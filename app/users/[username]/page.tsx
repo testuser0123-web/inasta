@@ -7,7 +7,7 @@ import ProfileClient from '@/app/profile/ProfileClient';
 
 export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
   const resolvedParams = await params;
-  const username = resolvedParams.username;
+  const username = decodeURIComponent(resolvedParams.username);
   const session = await getSession();
 
   const user = await db.user.findUnique({
