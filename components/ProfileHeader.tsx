@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { BadgeCheck, MoreHorizontal } from 'lucide-react';
 import { followUser, unfollowUser, muteUser, unmuteUser } from '@/app/actions/user';
 
 type ProfileHeaderProps = {
@@ -9,6 +9,7 @@ type ProfileHeaderProps = {
     id: number;
     username: string;
     avatarUrl: string | null;
+    isVerified?: boolean;
   };
   currentUser: {
     id: number;
@@ -31,6 +32,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleFollowToggle = async () => {
+    // ... logic ...
     // Optimistic update
     setStatus(prev => ({ ...prev, isFollowing: !prev.isFollowing }));
     setCounts(prev => ({
@@ -46,6 +48,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
   };
 
   const handleMuteToggle = async () => {
+     // ... logic ...
     setStatus(prev => ({ ...prev, isMuted: !prev.isMuted }));
     setIsMenuOpen(false); // Close menu
     
@@ -74,7 +77,10 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
         )}
       </div>
       
-      <h2 className="text-xl font-bold mb-2">@{user.username}</h2>
+      <div className="flex items-center gap-1 mb-2">
+        <h2 className="text-xl font-bold">@{user.username}</h2>
+        {user.isVerified && <BadgeCheck className="w-5 h-5 text-blue-500" />}
+      </div>
       
       <div className="flex gap-6 mb-4 text-sm">
          <div className="text-center">

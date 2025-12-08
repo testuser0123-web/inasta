@@ -56,9 +56,10 @@ export default async function Home({
       userId: true,
       user: {
         select: {
-          username: true,
-          avatarUrl: true,
-        },
+            username: true,
+            avatarUrl: true,
+            isVerified: true
+        }
       },
       _count: {
         select: { likes: true },

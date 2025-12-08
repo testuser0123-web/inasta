@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Grid, Heart } from 'lucide-react';
+import { Settings, Grid, Heart, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import Feed from '@/components/Feed';
 import ProfileHeader from '@/components/ProfileHeader';
+import VerificationModal from '@/components/VerificationModal';
+import { useRouter } from 'next/navigation';
 
 type Post = {
     id: number;
@@ -16,6 +18,7 @@ type Post = {
     user?: {
         username: string;
         avatarUrl: string | null;
+        isVerified?: boolean;
     }
 };
 
@@ -24,6 +27,7 @@ type ProfileClientProps = {
     id: number;
     username: string;
     avatarUrl: string | null;
+    isVerified: boolean;
     _count: {
         followers: number;
         following: number;
@@ -44,6 +48,8 @@ type ProfileClientProps = {
 
 export default function ProfileClient({ user, currentUser, posts, likedPosts = [], initialStatus }: ProfileClientProps) {
   const [activeTab, setActiveTab] = useState<'posts' | 'likes'>('posts');
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <div>
@@ -59,14 +65,24 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
          />
          
          {initialStatus.isMe && (
-            <div className="flex justify-center mb-6">
+            <div className="flex flex-col gap-2 max-w-xs mx-auto mb-6">
                 <Link
                     href="/profile/edit"
-                    className="w-full max-w-xs flex items-center justify-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
                 >
                     <Settings className="w-4 h-4" />
                     Edit Profile
                 </Link>
+                
+                {!user.isVerified && (
+                    <button
+                        onClick={() => setIsVerificationModalOpen(true)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors"
+                    >
+                        <ShieldCheck className="w-4 h-4" />
+                        Verify Account
+                    </button>
+                )}
             </div>
          )}
 
@@ -102,6 +118,14 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
       ) : (
         <Feed key="likes" initialPosts={likedPosts} currentUserId={currentUser?.id ?? -1} />
       )}
+
+      <VerificationModal 
+        isOpen={isVerificationModalOpen} 
+        onClose={() => setIsVerificationModalOpen(false)}
+        onVerified={() => {
+            router.refresh();
+        }}
+      />
     </div>
   );
 }

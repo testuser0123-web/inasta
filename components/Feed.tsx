@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, Plus, X, Trash2 } from 'lucide-react';
+import { Heart, Plus, X, Trash2, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
 import { toggleLike, deletePost } from '@/app/actions/post';
 
@@ -15,6 +15,7 @@ type Post = {
   user?: {
       username: string;
       avatarUrl: string | null;
+      isVerified?: boolean;
   }
 };
 
@@ -123,9 +124,12 @@ export default function Feed({ initialPosts, currentUserId }: { initialPosts: Po
                     </button>
                     {/* Username link */}
                     {selectedPost.user && (
-                         <Link href={`/users/${selectedPost.user.username}`} className="text-sm font-semibold hover:underline">
-                            @{selectedPost.user.username}
-                         </Link>
+                        <div className="flex items-center gap-1">
+                             <Link href={`/users/${selectedPost.user.username}`} className="text-sm font-semibold hover:underline">
+                                @{selectedPost.user.username}
+                             </Link>
+                             {selectedPost.user.isVerified && <BadgeCheck className="w-4 h-4 text-blue-500" />}
+                        </div>
                     )}
                 </div>
 

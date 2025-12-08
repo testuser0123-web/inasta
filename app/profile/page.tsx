@@ -14,18 +14,19 @@ export default async function ProfilePage() {
   }
 
   const user = await db.user.findUnique({
-      where: { id: session.id },
-      select: {
-          id: true,
-          username: true,
-          avatarUrl: true,
-          _count: {
-              select: {
-                  followers: true,
-                  following: true
-              }
-          }
-      }
+    where: { id: session.id },
+    select: {
+      id: true,
+      username: true,
+      avatarUrl: true,
+      isVerified: true,
+      _count: {
+        select: {
+          followers: true,
+          following: true,
+        },
+      },
+    },
   });
 
   if (!user) redirect('/login');
