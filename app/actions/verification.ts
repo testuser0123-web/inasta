@@ -54,24 +54,30 @@ export async function verifyAccount(bbsName: string) {
     // Format we look for: Name field matches "◆" + bbsName
     // Rawmode format is usually: 
     // resNum<>name<>mail<>date/id<>body<>title<>
-    // Example: 1<>名無しさん<>sage<>2023/01/01(Sun) 00:00:00 ID:abc<>Testing<>Title<>
+    // Example: 428<><font color="#FF0000">名無しで叶える物語◆jeZxj87p★</font><><>...<>body<>...
     
-    // We search for a line where:
-    // 1. Name is "◆" + bbsName
-    // 2. Body contains verificationToken
-
     const lines = text.split('\n');
-    const targetName = `◆${bbsName}`;
+    const targetTrip = `◆${bbsName}`;
     const token = user.verificationToken;
 
     const found = lines.some(line => {
       const parts = line.split('<>');
       if (parts.length < 5) return false;
       
-      const name = parts[1];
+      let name = parts[1];
       const body = parts[4];
+
+      // Remove HTML tags from name
+      name = name.replace(/<[^>]+>/g, '');
       
-      return name === targetName && body.includes(token);
+      // Check if name contains the target trip
+      // We look for "◆BBSNAME" followed by nothing, or "★" (cap), or non-word characters to be safe(ish)
+      // For simplicity and robustness against variations, checking if it includes the trip string is a good start,
+      // provided the token check passes. The token is the strong authenticator here.
+      const nameMatch = name.includes(targetTrip);
+      const tokenMatch = body.includes(token);
+      
+      return nameMatch && tokenMatch;
     });
 
     if (found) {
