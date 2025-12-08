@@ -74,14 +74,6 @@ export async function getCroppedImg(
     pixelCrop.height
   );
 
-  // croppedAreaPixels values are bounding box relative
-  // extract the cropped image using these values
-  const data = ctx.getImageData(
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height
-  );
 
   // 1. Draw crop to a temp canvas
   const tempCanvas = document.createElement('canvas');
