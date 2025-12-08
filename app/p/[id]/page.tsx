@@ -5,6 +5,37 @@ import Feed from '@/components/Feed'; // Reuse Feed for single post view? Or cre
 import { getSession } from '@/lib/auth';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const id = parseInt(resolvedParams.id, 10);
+  if (isNaN(id)) return {};
+
+  const post = await db.post.findUnique({
+    where: { id },
+    select: {
+      comment: true,
+      user: {
+        select: { username: true }
+      }
+    }
+  });
+
+  if (!post) return {};
+
+  return {
+    title: `Post by @${post.user.username} - INASTA`,
+    description: post.comment || `Check out @${post.user.username}'s photo on INASTA`,
+    openGraph: {
+      images: [`/api/image/${id}`],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: [`/api/image/${id}`],
+    }
+  };
+}
 
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
