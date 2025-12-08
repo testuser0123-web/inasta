@@ -2,12 +2,11 @@
 
 import { useActionState, useState, useRef, useCallback } from 'react';
 import { createPost } from '@/app/actions/post';
-import { Camera, Check, X, Smartphone, Image as ImageIcon } from 'lucide-react';
+import { Camera, Check, X } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '@/lib/image';
 
 type Area = { x: number; y: number; width: number; height: number };
-type AspectRatio = '1:1' | 'original';
 
 export default function UploadForm() {
   const [state, action, isPending] = useActionState(createPost, undefined);
@@ -17,8 +16,6 @@ export default function UploadForm() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [comment, setComment] = useState('');
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('1:1');
-  const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,13 +31,6 @@ export default function UploadForm() {
     reader.addEventListener('load', () => {
         setImageSrc(reader.result as string);
         setCroppedImage(null); // Reset cropped image to start cropping mode
-
-        // Load image to get dimensions
-        const img = new Image();
-        img.onload = () => {
-            setImageAspectRatio(img.width / img.height);
-        };
-        img.src = reader.result as string;
     });
     reader.readAsDataURL(file);
     // Reset file input value so same file can be selected again if needed
@@ -50,37 +40,20 @@ export default function UploadForm() {
   const showCroppedImage = useCallback(async () => {
     if (!imageSrc || !croppedAreaPixels) return;
     try {
-      let outputWidth = 512;
-      let outputHeight = 512;
-
-      if (aspectRatio === 'original') {
-          // Calculate dimensions such that long side is 512px
-          const width = croppedAreaPixels.width;
-          const height = croppedAreaPixels.height;
-          const aspect = width / height;
-
-          if (width > height) {
-              // Landscape
-              outputWidth = 512;
-              outputHeight = Math.round(512 / aspect);
-          } else {
-              // Portrait
-              outputHeight = 512;
-              outputWidth = Math.round(512 * aspect);
-          }
-      }
-
       const croppedImage = await getCroppedImg(
         imageSrc,
         croppedAreaPixels,
-        outputWidth,
-        outputHeight
+        512 // Output size
       );
       setCroppedImage(croppedImage);
+      // Don't clear imageSrc so we can go back?
+      // For now, simple flow: Select -> Crop -> Review/Upload.
+      // If they want to change crop, they currently have to re-select file or we can add "Back" button.
+      // Let's add a "Back" or "Cancel" button in the crop view.
     } catch (e) {
       console.error(e);
     }
-  }, [imageSrc, croppedAreaPixels, aspectRatio]);
+  }, [imageSrc, croppedAreaPixels]);
 
   const cancelCrop = () => {
       setImageSrc(null);
@@ -91,61 +64,32 @@ export default function UploadForm() {
   if (imageSrc && !croppedImage) {
       return (
           <div className="flex flex-col h-[calc(100vh-100px)]">
-              <div className="p-4 bg-white border-b flex flex-col gap-4">
-                 <div className="flex items-center justify-between gap-4">
-                     <div className="flex-1">
-                         <label className="text-xs text-gray-500 mb-1 block">Zoom</label>
-                         <input
-                            type="range"
-                            value={zoom}
-                            min={1}
-                            max={3}
-                            step={0.1}
-                            aria-labelledby="Zoom"
-                            onChange={(e) => setZoom(Number(e.target.value))}
-                            className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                        />
-                     </div>
-                     <div className="flex items-center gap-2">
-                         <button
-                            onClick={cancelCrop}
-                            className="p-2 text-gray-500 hover:text-black"
-                         >
-                             <X className="w-6 h-6" />
-                         </button>
-                         <button
-                            onClick={showCroppedImage}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold text-sm hover:bg-indigo-500"
-                         >
-                             <Check className="w-5 h-5" />
-                         </button>
-                     </div>
+              <div className="p-4 bg-white border-b flex items-center justify-between gap-4">
+                 <div className="flex-1">
+                     <label className="text-xs text-gray-500 mb-1 block">Zoom</label>
+                     <input
+                        type="range"
+                        value={zoom}
+                        min={1}
+                        max={3}
+                        step={0.1}
+                        aria-labelledby="Zoom"
+                        onChange={(e) => setZoom(Number(e.target.value))}
+                        className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
                  </div>
-
-                 <div className="flex justify-center gap-4">
+                 <div className="flex items-center gap-2">
                      <button
-                        type="button"
-                        onClick={() => setAspectRatio('1:1')}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${
-                            aspectRatio === '1:1'
-                                ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        }`}
+                        onClick={cancelCrop}
+                        className="p-2 text-gray-500 hover:text-black"
                      >
-                         <Smartphone className="w-3 h-3" />
-                         Square (1:1)
+                         <X className="w-6 h-6" />
                      </button>
                      <button
-                        type="button"
-                        onClick={() => setAspectRatio('original')}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${
-                            aspectRatio === 'original'
-                                ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        }`}
+                        onClick={showCroppedImage}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold text-sm hover:bg-indigo-500"
                      >
-                         <ImageIcon className="w-3 h-3" />
-                         Original
+                         <Check className="w-5 h-5" />
                      </button>
                  </div>
               </div>
@@ -154,7 +98,7 @@ export default function UploadForm() {
                     image={imageSrc}
                     crop={crop}
                     zoom={zoom}
-                    aspect={aspectRatio === '1:1' ? 1 : imageAspectRatio}
+                    aspect={1}
                     onCropChange={setCrop}
                     onCropComplete={onCropComplete}
                     onZoomChange={setZoom}
@@ -169,9 +113,9 @@ export default function UploadForm() {
        <input type="hidden" name="imageUrl" value={croppedImage || ''} />
       
       {croppedImage ? (
-           <div className={`w-full bg-gray-100 rounded-lg relative overflow-hidden border border-gray-200 group ${aspectRatio === '1:1' ? 'aspect-square' : ''}`}>
+           <div className="aspect-square w-full bg-gray-100 rounded-lg relative overflow-hidden border border-gray-200 group">
                {/* eslint-disable-next-line @next/next/no-img-element */}
-               <img src={croppedImage} alt="Preview" className="w-full h-auto object-contain" />
+               <img src={croppedImage} alt="Preview" className="w-full h-full object-cover" />
                <button 
                 type="button"
                 onClick={cancelCrop}
