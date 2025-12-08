@@ -112,9 +112,15 @@ export default async function Home({
             Following
           </Link>
         </div>
-      </div>
-
-      <Feed key={feedType} initialPosts={posts} currentUserId={session.id} />
-    </main>
-  );
-}
+            </div>
+            {feedType === 'following' && posts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm">
+                <p>まだ誰もフォローしていません。</p>
+                <p>他のユーザーをフォローして投稿を見ましょう。</p>
+              </div>
+            ) : (
+              <Feed key={feedType} initialPosts={posts} currentUserId={session.id} />
+            )}
+          </main>
+        );
+      }
