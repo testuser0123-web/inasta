@@ -1,10 +1,8 @@
-import { db } from "@/lib/db";
 import Feed from "@/components/Feed";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import Link from "next/link";
 import { User } from "lucide-react";
-import { Prisma } from "@prisma/client";
 import { fetchFeedPosts } from "@/app/actions/post";
 
 export const dynamic = "force-dynamic";
