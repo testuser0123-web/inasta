@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { getSession, encrypt } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { USERNAME_REGEX } from '@/lib/validation';
 
 export async function updateProfile(prevState: unknown, formData: FormData) {
   const session = await getSession();
@@ -16,6 +17,10 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
 
   if (!username) {
     return { message: 'Username is required' };
+  }
+
+  if (!USERNAME_REGEX.test(username)) {
+    return { message: 'Username must be alphanumeric (letters and numbers only)' };
   }
 
   try {

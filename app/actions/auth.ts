@@ -5,6 +5,7 @@ import { encrypt } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
+import { USERNAME_REGEX, PASSWORD_REGEX } from '@/lib/validation';
 
 export async function signup(prevState: unknown, formData: FormData) {
   const username = formData.get('username') as string;
@@ -12,6 +13,14 @@ export async function signup(prevState: unknown, formData: FormData) {
 
   if (!username || !password) {
     return { message: 'Username and password are required' };
+  }
+
+  if (!USERNAME_REGEX.test(username)) {
+    return { message: 'Username must be alphanumeric (letters and numbers only)' };
+  }
+
+  if (!PASSWORD_REGEX.test(password)) {
+    return { message: 'Password must contain only letters, numbers, and symbols' };
   }
 
   const existingUser = await db.user.findUnique({
