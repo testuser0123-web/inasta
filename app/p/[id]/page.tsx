@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Metadata } from 'next';
+import { getBaseUrl } from '@/lib/url';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
@@ -24,15 +25,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!post) return {};
 
+  const imageUrl = `${getBaseUrl()}/api/image/${id}.jpg`;
+
   return {
     title: `Post by @${post.user.username} - INASTA`,
     description: post.comment || `Check out @${post.user.username}'s photo on INASTA`,
     openGraph: {
-      images: [`/api/image/${id}`],
+      images: [imageUrl],
     },
     twitter: {
       card: 'summary_large_image',
-      images: [`/api/image/${id}`],
+      images: [imageUrl],
     }
   };
 }
@@ -76,21 +79,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       hasLiked: postData.likes.length > 0,
       likes: undefined,
       _count: undefined,
-      // We still pass imageUrl (Data URI) to Feed because Feed uses it for <img> src?
-      // No, we are changing Feed to use /api/image/[id]!
-      // But we should probably keep passing it or just pass ID.
-      // Wait, if we change Feed to use /api/image/[id], we don't need the full Data URI in the prop.
-      // However, for compatibility with optimistic updates (if we had any new uploads), Data URI is useful.
-      // But here we are fetching from DB.
-      // Let's pass the Data URI but Feed will ignore it for the main image src if we switch logic.
-      // OR, we update the object to set imageUrl to the API route here?
-      // Better: Update Feed to prefer API route if ID exists.
-      // Actually, Feed component renders images.
-      // If we change Feed logic, it affects everywhere.
-      // Let's modify Feed to render `/api/image/${post.id}`.
-      // But `initialPosts` passed to Feed has `imageUrl`.
-      // We can override `imageUrl` in the mapped object here.
-      imageUrl: `/api/image/${postData.id}` 
+      imageUrl: `/api/image/${postData.id}.jpg` 
   };
 
   return (

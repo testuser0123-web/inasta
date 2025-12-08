@@ -100,7 +100,7 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`/api/image/${post.id}`}
+              src={`/api/image/${post.id}.jpg`}
               alt=""
               className="w-full h-full object-cover"
               loading="lazy"
@@ -148,7 +148,7 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
             <div className="aspect-square relative bg-gray-100">
                {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`/api/image/${selectedPost.id}`}
+                src={`/api/image/${selectedPost.id}.jpg`}
                 alt=""
                 className="w-full h-full object-cover"
               />

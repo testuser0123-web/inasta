@@ -3,10 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ filename: string }> }
 ) {
   const resolvedParams = await params;
-  const id = parseInt(resolvedParams.id, 10);
+  // Parse ID from filename (e.g. "123.jpg" -> "123")
+  const idStr = resolvedParams.filename.split('.')[0];
+  const id = parseInt(idStr, 10);
+  
   if (isNaN(id)) {
     return new NextResponse('Invalid ID', { status: 400 });
   }
