@@ -102,7 +102,7 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
             <img
               src={`/api/image/${post.id}.jpg`}
               alt=""
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         ))}
@@ -144,12 +144,12 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
                 <X className="w-5 h-5" />
              </button>
 
-            <div className="aspect-square relative bg-gray-100">
+            <div className="w-full relative bg-gray-100 flex items-center justify-center max-h-[60vh]">
                {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`/api/image/${selectedPost.id}.jpg`}
                 alt=""
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain max-h-[60vh]"
               />
             </div>
 
