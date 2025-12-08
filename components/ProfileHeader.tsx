@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { BadgeCheck, MoreHorizontal } from 'lucide-react';
+import Link from 'next/link';
 import { followUser, unfollowUser, muteUser, unmuteUser } from '@/app/actions/user';
 
 type ProfileHeaderProps = {
@@ -83,14 +84,14 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
       </div>
       
       <div className="flex gap-6 mb-4 text-sm">
-         <div className="text-center">
+         <Link href={`/users/${user.username}/followers`} className="text-center hover:opacity-70 transition-opacity">
              <span className="font-bold block">{counts.followers}</span>
              <span className="text-gray-500">Followers</span>
-         </div>
-         <div className="text-center">
+         </Link>
+         <Link href={`/users/${user.username}/following`} className="text-center hover:opacity-70 transition-opacity">
              <span className="font-bold block">{counts.following}</span>
              <span className="text-gray-500">Following</span>
-         </div>
+         </Link>
       </div>
 
       {!status.isMe && currentUser && (
