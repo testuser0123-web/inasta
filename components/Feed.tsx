@@ -78,7 +78,7 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
   };
 
   const handleShare = async (postId: number) => {
-      const url = `${window.location.origin}/p/${postId}`;
+      const url = `${window.location.origin}/api/image/${postId}.jpg`;
       try {
           await navigator.clipboard.writeText(url);
           setShareFeedback('Link copied!');
