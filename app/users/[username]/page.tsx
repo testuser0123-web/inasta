@@ -138,6 +138,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       </div>
 
       <ProfileClient 
+          key={user.id}
           user={user}
           currentUser={session ? { id: session.id, username: session.username } : null}
           posts={posts}

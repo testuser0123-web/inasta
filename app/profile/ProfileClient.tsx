@@ -98,9 +98,9 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
       </div>
 
       {activeTab === 'posts' ? (
-        <Feed initialPosts={posts} currentUserId={currentUser?.id ?? -1} />
+        <Feed key="posts" initialPosts={posts} currentUserId={currentUser?.id ?? -1} />
       ) : (
-        <Feed initialPosts={likedPosts} currentUserId={currentUser?.id ?? -1} />
+        <Feed key="likes" initialPosts={likedPosts} currentUserId={currentUser?.id ?? -1} />
       )}
     </div>
   );
