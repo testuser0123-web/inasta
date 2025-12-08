@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { generateVerificationToken, verifyAccount } from '@/app/actions/verification';
-import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Copy } from 'lucide-react';
 
 export default function VerificationModal({ isOpen, onClose, onVerified }: { isOpen: boolean, onClose: () => void, onVerified: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
@@ -10,6 +10,7 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: { isO
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
 
   if (!isOpen) return null;
 
@@ -17,6 +18,7 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: { isO
     if (!bbsName) return;
     setIsLoading(true);
     setMessage(null);
+    setCopyStatus('idle');
     
     const result = await generateVerificationToken();
     if (result.success && result.token) {
@@ -43,6 +45,19 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: { isO
       setMessage({ type: 'error', text: result.message });
     }
     setIsLoading(false);
+  };
+
+  const handleCopy = async () => {
+    if (!token) return;
+    try {
+      await navigator.clipboard.writeText(token);
+      setCopyStatus('copied');
+      setTimeout(() => setCopyStatus('idle'), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      setCopyStatus('failed');
+      setTimeout(() => setCopyStatus('idle'), 2000);
+    }
   };
 
   return (
@@ -96,9 +111,20 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: { isO
                   </ol>
               </div>
 
-              <div className="bg-gray-100 p-3 rounded-md break-all font-mono text-center select-all cursor-pointer border border-gray-300">
-                  {token}
+              <div className="flex items-center gap-2 bg-gray-100 p-3 rounded-md border border-gray-300">
+                <div className="flex-1 break-all font-mono text-sm select-all cursor-pointer">
+                    {token}
+                </div>
+                <button
+                    onClick={handleCopy}
+                    className="p-1 rounded-md hover:bg-gray-200 text-gray-600 transition-colors"
+                    aria-label="Copy token"
+                >
+                    <Copy className="w-5 h-5" />
+                </button>
               </div>
+              {copyStatus === 'copied' && <p className="text-xs text-green-600 text-center">Copied!</p>}
+              {copyStatus === 'failed' && <p className="text-xs text-red-600 text-center">Failed to copy!</p>}
 
               {message && (
                   <div className={`p-3 rounded-md flex items-start gap-2 text-sm ${message.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
