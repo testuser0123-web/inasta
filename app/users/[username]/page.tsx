@@ -1,20 +1,15 @@
 import { db } from '@/lib/db';
-import Feed from '@/components/Feed';
-import { notFound, redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import Feed from '@/components/Feed';
+import { getSession } from '@/lib/auth';
+import ProfileHeader from '@/components/ProfileHeader';
 
-export const dynamic = 'force-dynamic';
-
-type Params = Promise<{ username: string }>;
-
-export default async function UserProfilePage({ params }: { params: Params }) {
-  const { username } = await params;
+export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
+  const resolvedParams = await params;
+  const username = resolvedParams.username;
   const session = await getSession();
-  if (!session) {
-    redirect('/login');
-  }
 
   const user = await db.user.findUnique({
     where: { username },
@@ -22,16 +17,44 @@ export default async function UserProfilePage({ params }: { params: Params }) {
       id: true,
       username: true,
       avatarUrl: true,
-    }
+      _count: {
+          select: {
+              followers: true,
+              following: true
+          }
+      }
+    },
   });
 
   if (!user) {
     notFound();
   }
 
-  // Redirect to my profile if it's the current user
-  if (user.id === session.id) {
-    redirect('/profile');
+  // Check relationship status if logged in
+  let isFollowing = false;
+  let isMuted = false;
+  const isMe = session?.id === user.id;
+
+  if (session && !isMe) {
+      const follow = await db.follow.findUnique({
+          where: {
+              followerId_followingId: {
+                  followerId: session.id,
+                  followingId: user.id
+              }
+          }
+      });
+      isFollowing = !!follow;
+
+      const mute = await db.mute.findUnique({
+          where: {
+              muterId_mutedId: {
+                  muterId: session.id,
+                  mutedId: user.id
+              }
+          }
+      });
+      isMuted = !!mute;
   }
 
   const postsData = await db.post.findMany({
@@ -43,16 +66,16 @@ export default async function UserProfilePage({ params }: { params: Params }) {
       comment: true,
       userId: true,
       user: {
-        select: {
-            username: true,
-            avatarUrl: true
-        }
+          select: {
+              username: true,
+              avatarUrl: true
+          }
       },
       _count: {
           select: { likes: true }
       },
       likes: {
-          where: { userId: session.id },
+          where: { userId: session?.id ?? -1 },
           select: { userId: true }
       }
     },
@@ -72,25 +95,27 @@ export default async function UserProfilePage({ params }: { params: Params }) {
          <Link href="/" className="text-gray-700 hover:text-black mr-4">
             <ArrowLeft className="w-6 h-6" />
          </Link>
-         <h1 className="text-lg font-bold">{user.username}</h1>
-      </div>
-      
-      <div className="p-4 flex flex-col items-center border-b mb-1">
-         <div className="w-20 h-20 bg-gray-200 rounded-full mb-2 overflow-hidden">
-             {user.avatarUrl ? (
-                 // eslint-disable-next-line @next/next/no-img-element
-                 <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
-             ) : (
-                <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-gray-500">
-                    {user.username[0].toUpperCase()}
-                </div>
-             )}
-         </div>
-         <h2 className="font-semibold text-lg">@{user.username}</h2>
-         <p className="text-sm text-gray-500">{posts.length} posts</p>
+         <h1 className="text-lg font-bold">@{user.username}</h1>
       </div>
 
-      <Feed initialPosts={posts} currentUserId={session.id} />
+      <div className="pt-6">
+        <ProfileHeader 
+            user={user} 
+            currentUser={session ? { id: session.id, username: session.username } : null}
+            initialCounts={{
+                followers: user._count.followers,
+                following: user._count.following
+            }}
+            initialStatus={{
+                isFollowing,
+                isMuted,
+                isMe
+            }}
+        />
+        <div className="border-t">
+             <Feed initialPosts={posts} currentUserId={session?.id ?? -1} />
+        </div>
+      </div>
     </main>
   );
 }

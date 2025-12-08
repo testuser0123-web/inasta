@@ -19,6 +19,12 @@ export default async function ProfilePage() {
           id: true,
           username: true,
           avatarUrl: true,
+          _count: {
+              select: {
+                  followers: true,
+                  following: true
+              }
+          }
       }
   });
 

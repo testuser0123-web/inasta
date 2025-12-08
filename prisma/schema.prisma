@@ -16,6 +16,10 @@ model User {
   avatarUrl String?
   posts     Post[]
   likes     Like[]
+  followers Follow[] @relation("followers")
+  following Follow[] @relation("following")
+  muted     Mute[]   @relation("muted")
+  mutedBy   Mute[]   @relation("mutedBy")
   createdAt DateTime @default(now())
 }
 
@@ -38,4 +42,26 @@ model Like {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now())
+  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Mute {
+  id        Int      @id @default(autoincrement())
+  muterId   Int
+  mutedId   Int
+  createdAt DateTime @default(now())
+  muter     User     @relation("muted", fields: [muterId], references: [id], onDelete: Cascade)
+  muted     User     @relation("mutedBy", fields: [mutedId], references: [id], onDelete: Cascade)
+
+  @@unique([muterId, mutedId])
 }

@@ -54,3 +54,82 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
   revalidatePath(`/users/${username}`); // In case we are viewing public profile
   return { message: 'Profile updated successfully', success: true };
 }
+
+export async function followUser(targetUserId: number) {
+  const session = await getSession();
+  if (!session) return { message: 'Unauthorized' };
+  if (session.id === targetUserId) return { message: 'Cannot follow yourself' };
+
+  try {
+    await db.follow.create({
+      data: {
+        followerId: session.id,
+        followingId: targetUserId,
+      },
+    });
+    revalidatePath(`/users`); // Revalidate generally, or specific user path if possible
+    revalidatePath('/'); // For feed
+  } catch (error) {
+    // Unique constraint error likely means already following
+    console.error('Failed to follow:', error);
+  }
+}
+
+export async function unfollowUser(targetUserId: number) {
+  const session = await getSession();
+  if (!session) return { message: 'Unauthorized' };
+
+  try {
+    await db.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId: session.id,
+          followingId: targetUserId,
+        },
+      },
+    });
+    revalidatePath(`/users`);
+    revalidatePath('/');
+  } catch (error) {
+    console.error('Failed to unfollow:', error);
+  }
+}
+
+export async function muteUser(targetUserId: number) {
+  const session = await getSession();
+  if (!session) return { message: 'Unauthorized' };
+  if (session.id === targetUserId) return { message: 'Cannot mute yourself' };
+
+  try {
+    await db.mute.create({
+      data: {
+        muterId: session.id,
+        mutedId: targetUserId,
+      },
+    });
+    revalidatePath(`/users`);
+    revalidatePath('/');
+  } catch (error) {
+    console.error('Failed to mute:', error);
+  }
+}
+
+export async function unmuteUser(targetUserId: number) {
+  const session = await getSession();
+  if (!session) return { message: 'Unauthorized' };
+
+  try {
+    await db.mute.delete({
+      where: {
+        muterId_mutedId: {
+          muterId: session.id,
+          mutedId: targetUserId,
+        },
+      },
+    });
+    revalidatePath(`/users`);
+    revalidatePath('/');
+  } catch (error) {
+    console.error('Failed to unmute:', error);
+  }
+}
