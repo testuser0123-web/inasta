@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts } from '@/app/actions/post';
 import { addComment } from '@/app/actions/comment';
 
@@ -40,6 +41,12 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    setPosts(initialPosts);
+  }, [initialPosts]);
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
@@ -117,43 +124,8 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
 
       if (result?.success) {
           setCommentText('');
-          // Re-fetch post or optimistically update.
-          // Since we can't easily fetch just one post with server action structure without exposing new endpoint,
-          // let's try to update locally if we assume success.
-          // But we need the user details for the comment.
-          // For now, we will just rely on revalidatePath in the action which should refresh the page data if we were on a page.
-          // But we are in a client component state.
-          // Ideally we should append the comment to the local state.
-          // We don't have the full user object here easily unless we pass it or fetch it.
-          // Let's just fetch the posts again or maybe just reload? No that's bad UX.
-          // Let's optimistically add it with "You" as user if we can.
-          // But better: The fetchFeedPosts returns updated data if we call it? No, that fetches lists.
-
-          // Let's just fetch the specific post? No endpoint.
-          // Quick fix: Reload the feed posts in background?
-          // Or just wait for next refresh.
-          // Let's try to fake the new comment.
-
-          // Actually, we can't easily fake the user avatar/username if we don't have it stored in session context on client.
-          // But we know currentUserId. We don't have current user's avatar/username passed to Feed explicitly in props except via posts...
-          // Wait, we don't have current user details in props.
-
-          // I will just let the action revalidate. Since this is a client component, `revalidatePath` on server won't automatically update the `posts` state here unless we trigger a router refresh.
-          // But `selectedPost` is derived from `posts`.
-
-          // Let's trigger a router refresh?
-          // import { useRouter } from 'next/navigation';
-          // const router = useRouter();
-          // router.refresh();
-          // This might work to update the server component that passed the props, but Feed is client component taking initialPosts.
-          // `router.refresh()` refreshes server components.
-          // If `Feed` is populated by parent server component, it might get new props?
-
-          // Actually, for this task, maybe simply reloading the window or accept that it updates on next load is fine?
-          // The requirement doesn't specify "real-time" or "instant" update without reload, but it's expected.
-          // I'll try to implement a simple optimistic update if I can find the user info, or just refresh.
-
-          window.location.reload(); // Simplest way to get updated data including new comment.
+          // Re-fetch data using router refresh instead of full reload to avoid client-side exceptions
+          router.refresh();
       } else {
           alert(result?.message || 'Failed to add comment');
       }
