@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, Plus, X, Trash2, BadgeCheck, Loader2 } from 'lucide-react';
+import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { toggleLike, deletePost, fetchFeedPosts } from '@/app/actions/post';
 
@@ -25,6 +25,7 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(initialPosts.length >= 12);
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
@@ -76,6 +77,18 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
       }
   };
 
+  const handleShare = async (postId: number) => {
+      const url = `${window.location.origin}/p/${postId}`;
+      try {
+          await navigator.clipboard.writeText(url);
+          setShareFeedback('Link copied!');
+          setTimeout(() => setShareFeedback(null), 2000);
+      } catch (err) {
+          console.error('Failed to copy', err);
+          setShareFeedback('Failed to copy');
+      }
+  };
+
   return (
     <div className="pb-20">
       <div className="grid grid-cols-3 gap-0.5">
@@ -87,7 +100,7 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={post.imageUrl}
+              src={`/api/image/${post.id}`}
               alt=""
               className="w-full h-full object-cover"
               loading="lazy"
@@ -135,7 +148,7 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
             <div className="aspect-square relative bg-gray-100">
                {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={selectedPost.imageUrl}
+                src={`/api/image/${selectedPost.id}`}
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -156,6 +169,18 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
                             }`} 
                         />
                         <span className="font-semibold text-gray-700">{selectedPost.likesCount}</span>
+                    </button>
+                    {/* Share Button */}
+                    <button
+                        onClick={() => handleShare(selectedPost.id)}
+                        className="text-gray-700 hover:text-black relative"
+                    >
+                        <Share2 className="w-6 h-6" />
+                        {shareFeedback && (
+                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                                {shareFeedback}
+                            </span>
+                        )}
                     </button>
                     {/* Username link */}
                     {selectedPost.user && (
