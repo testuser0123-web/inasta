@@ -76,7 +76,7 @@ export default function UploadForm() {
       const croppedImage = await getCroppedImg(
         imageSrc,
         croppedAreaPixels,
-        512 // Output size
+        { width: outputWidth, height: outputHeight }
       );
       setCroppedImage(croppedImage);
       // Don't clear imageSrc so we can go back?
