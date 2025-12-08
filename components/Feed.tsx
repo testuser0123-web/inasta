@@ -103,7 +103,6 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
               src={`/api/image/${post.id}.jpg`}
               alt=""
               className="w-full h-full object-cover"
-              loading="lazy"
             />
           </div>
         ))}
