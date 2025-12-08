@@ -31,7 +31,7 @@ export function rotateSize(width: number, height: number, rotation: number) {
 export async function getCroppedImg(
   imageSrc: string,
   pixelCrop: { x: number; y: number; width: number; height: number },
-  outputSize: number = 512,
+  outputSize: number | { width: number; height: number } = 512,
   rotation = 0,
   flip = { horizontal: false, vertical: false }
 ): Promise<string | null> {
@@ -85,11 +85,14 @@ export async function getCroppedImg(
   tempCtx.putImageData(data, 0, 0);
   
   // 2. Set main canvas size to final desired outputSize
-  canvas.width = outputSize;
-  canvas.height = outputSize;
+  const finalWidth = typeof outputSize === 'number' ? outputSize : outputSize.width;
+  const finalHeight = typeof outputSize === 'number' ? outputSize : outputSize.height;
+
+  canvas.width = finalWidth;
+  canvas.height = finalHeight;
   
   // 3. Draw temp canvas to final canvas with scaling
-  ctx.drawImage(tempCanvas, 0, 0, pixelCrop.width, pixelCrop.height, 0, 0, outputSize, outputSize);
+  ctx.drawImage(tempCanvas, 0, 0, pixelCrop.width, pixelCrop.height, 0, 0, finalWidth, finalHeight);
 
   // As Base64 string
   return canvas.toDataURL('image/jpeg', 0.9);
