@@ -52,8 +52,8 @@ export async function GET(
       headers: {
         'Content-Type': mimeType,
         'Content-Length': buffer.length.toString(),
-        'Cache-Control': 'public, max-age=31536000, immutable',
-        'CDN-Cache-Control': 'public, max-age=31536000, immutable',
+        'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
+        'CDN-Cache-Control': 'public, max-age=31536000, s-maxage=31536000,immutable',
       },
     });
 
