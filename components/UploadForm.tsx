@@ -222,7 +222,7 @@ export default function UploadForm() {
             type="text"
             id="comment"
             name="comment"
-            maxLength={200}
+            maxLength={173}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             disabled={!croppedImage}
@@ -230,7 +230,7 @@ export default function UploadForm() {
             placeholder="Write a caption..."
           />
           <span className="absolute right-3 top-1.5 text-xs text-gray-400">
-            {comment.length}/200
+            {comment.length}/173
           </span>
         </div>
       </div>

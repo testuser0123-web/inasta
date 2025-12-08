@@ -90,8 +90,8 @@ export async function createPost(prevState: unknown, formData: FormData) {
     return { message: "Image is required" };
   }
 
-  if (comment && comment.length > 200) {
-    return { message: "コメントが長すぎます(200文字まで)" };
+  if (comment && comment.length > 173) {
+    return { message: "コメントが長すぎます(173文字まで)" };
   }
 
   try {
