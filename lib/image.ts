@@ -74,18 +74,15 @@ export async function getCroppedImg(
     pixelCrop.height
   );
 
-  // set canvas width to final desired crop size - this will clear existing context
-  canvas.width = outputSize;
-  canvas.height = outputSize;
+  // croppedAreaPixels values are bounding box relative
+  // extract the cropped image using these values
+  const data = ctx.getImageData(
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height
+  );
 
-  // paste generated rotate image at the top left corner
-  ctx.putImageData(data, 0, 0);
-  
-  // Resizing happens here because putImageData puts the exact pixels. 
-  // Wait, putImageData does not resize. It just paints the pixels. 
-  // If pixelCrop.width != outputSize, we need to draw it again to resize.
-  
-  // Better approach for resizing:
   // 1. Draw crop to a temp canvas
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = pixelCrop.width;
@@ -95,7 +92,11 @@ export async function getCroppedImg(
   
   tempCtx.putImageData(data, 0, 0);
   
-  // 2. Draw temp canvas to final canvas with scaling
+  // 2. Set main canvas size to final desired outputSize
+  canvas.width = outputSize;
+  canvas.height = outputSize;
+  
+  // 3. Draw temp canvas to final canvas with scaling
   ctx.drawImage(tempCanvas, 0, 0, pixelCrop.width, pixelCrop.height, 0, 0, outputSize, outputSize);
 
   // As Base64 string

@@ -12,18 +12,18 @@ export async function signup(prevState: unknown, formData: FormData) {
   const password = formData.get("password") as string;
 
   if (!username || !password) {
-    return { message: "Username and password are required" };
+    return { message: "ユーザー名とパスワードが必要です" };
   }
 
   if (!USERNAME_REGEX.test(username)) {
     return {
-      message: "Username must be alphanumeric (letters and numbers only)",
+      message: "ユーザー名には英数字だけが使えます",
     };
   }
 
   if (!PASSWORD_REGEX.test(password)) {
     return {
-      message: "Password must contain only letters, numbers, and symbols",
+      message: "パスワードには英数字、記号が使えます",
     };
   }
 
@@ -32,7 +32,7 @@ export async function signup(prevState: unknown, formData: FormData) {
   });
 
   if (existingUser) {
-    return { message: "Username already taken" };
+    return { message: "ユーザー名はすでに使われています" };
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -59,7 +59,7 @@ export async function login(prevState: unknown, formData: FormData) {
   const password = formData.get("password") as string;
 
   if (!username || !password) {
-    return { message: "Username and password are required" };
+    return { message: "ユーザー名とパスワードが必要です" };
   }
 
   const user = await db.user.findUnique({
