@@ -2,9 +2,8 @@ import { db } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import Feed from '@/components/Feed';
 import { getSession } from '@/lib/auth';
-import ProfileHeader from '@/components/ProfileHeader';
+import ProfileClient from '@/app/profile/ProfileClient';
 
 export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
   const resolvedParams = await params;
@@ -89,6 +88,46 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       _count: undefined
   }));
 
+  let likedPosts: typeof posts = [];
+  if (isMe) {
+      // Fetch liked posts only if viewing own profile
+      const likedPostsData = await db.like.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: 'desc' },
+          select: {
+              post: {
+                  select: {
+                    id: true,
+                    imageUrl: true,
+                    comment: true,
+                    userId: true,
+                    user: {
+                        select: {
+                            username: true,
+                            avatarUrl: true
+                        }
+                    },
+                    _count: {
+                        select: { likes: true }
+                    },
+                    likes: {
+                        where: { userId: user.id },
+                        select: { userId: true }
+                    }
+                  }
+              }
+          }
+      });
+
+      likedPosts = likedPostsData.map(item => ({
+          ...item.post,
+          likesCount: item.post._count.likes,
+          hasLiked: item.post.likes.length > 0,
+          likes: undefined,
+          _count: undefined
+      }));
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <div className="sticky top-0 z-40 bg-white border-b px-4 py-3 flex items-center shadow-sm">
@@ -98,24 +137,17 @@ export default async function UserPage({ params }: { params: Promise<{ username:
          <h1 className="text-lg font-bold">@{user.username}</h1>
       </div>
 
-      <div className="pt-6">
-        <ProfileHeader 
-            user={user} 
-            currentUser={session ? { id: session.id, username: session.username } : null}
-            initialCounts={{
-                followers: user._count.followers,
-                following: user._count.following
-            }}
-            initialStatus={{
-                isFollowing,
-                isMuted,
-                isMe
-            }}
-        />
-        <div className="border-t">
-             <Feed initialPosts={posts} currentUserId={session?.id ?? -1} />
-        </div>
-      </div>
+      <ProfileClient 
+          user={user}
+          currentUser={session ? { id: session.id, username: session.username } : null}
+          posts={posts}
+          likedPosts={likedPosts}
+          initialStatus={{
+              isFollowing,
+              isMuted,
+              isMe
+          }}
+      />
     </main>
   );
 }

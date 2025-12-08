@@ -118,7 +118,17 @@ export default async function ProfilePage() {
          </form>
       </div>
       
-      <ProfileClient user={user} myPosts={myPosts} likedPosts={likedPosts} />
+      <ProfileClient 
+          user={user} 
+          currentUser={{ id: session.id, username: session.username }}
+          posts={myPosts} 
+          likedPosts={likedPosts} 
+          initialStatus={{
+              isFollowing: false,
+              isMuted: false,
+              isMe: true
+          }}
+      />
     </main>
   );
 }
