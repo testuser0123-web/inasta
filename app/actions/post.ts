@@ -1,12 +1,18 @@
-'use server';
+"use server";
 
-import { db } from '@/lib/db';
-import { getSession } from '@/lib/auth';
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { Prisma } from '@prisma/client';
+import { db } from "@/lib/db";
+import { getSession } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { Prisma } from "@prisma/client";
 
-export async function fetchFeedPosts({ cursorId, feedType }: { cursorId?: number, feedType: 'all' | 'following' }) {
+export async function fetchFeedPosts({
+  cursorId,
+  feedType,
+}: {
+  cursorId?: number;
+  feedType: "all" | "following";
+}) {
   const session = await getSession();
   if (!session) return [];
 
@@ -21,7 +27,7 @@ export async function fetchFeedPosts({ cursorId, feedType }: { cursorId?: number
     userId: { notIn: mutedIds },
   };
 
-  if (feedType === 'following') {
+  if (feedType === "following") {
     const following = await db.follow.findMany({
       where: { followerId: session.id },
       select: { followingId: true },
@@ -39,7 +45,7 @@ export async function fetchFeedPosts({ cursorId, feedType }: { cursorId?: number
     skip: cursorId ? 1 : 0,
     cursor: cursorId ? { id: cursorId } : undefined,
     where: whereClause,
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     select: {
       id: true,
       imageUrl: true,
@@ -88,18 +94,18 @@ export async function fetchFeedPosts({ cursorId, feedType }: { cursorId?: number
 export async function createPost(prevState: unknown, formData: FormData) {
   const session = await getSession();
   if (!session) {
-    return { message: 'Unauthorized' };
+    return { message: "Unauthorized" };
   }
 
-  const imageUrl = formData.get('imageUrl') as string;
-  const comment = formData.get('comment') as string;
+  const imageUrl = formData.get("imageUrl") as string;
+  const comment = formData.get("comment") as string;
 
   if (!imageUrl) {
-    return { message: 'Image is required' };
+    return { message: "Image is required" };
   }
 
-  if (comment && comment.length > 17) {
-    return { message: 'Comment too long (max 17 chars)' };
+  if (comment && comment.length > 173) {
+    return { message: "コメントが長すぎます(173文字まで)" };
   }
 
   try {
@@ -111,18 +117,18 @@ export async function createPost(prevState: unknown, formData: FormData) {
       },
     });
   } catch (error) {
-    console.error('Failed to create post:', error);
-    return { message: 'Failed to create post' };
+    console.error("Failed to create post:", error);
+    return { message: "Failed to create post" };
   }
 
-  revalidatePath('/');
-  revalidatePath('/profile');
-  redirect('/');
+  revalidatePath("/");
+  revalidatePath("/profile");
+  redirect("/");
 }
 
 export async function toggleLike(postId: number) {
   const session = await getSession();
-  if (!session) return; 
+  if (!session) return;
 
   const existingLike = await db.like.findUnique({
     where: {
@@ -151,32 +157,32 @@ export async function toggleLike(postId: number) {
     });
   }
 
-  revalidatePath('/');
-  revalidatePath('/profile');
+  revalidatePath("/");
+  revalidatePath("/profile");
   // Revalidate dynamic user pages too, but we can't easily know all usernames here.
   // Ideally, revalidateTag logic should be used, but for now this covers main views.
 }
 
 export async function deletePost(postId: number) {
   const session = await getSession();
-  if (!session) return { message: 'Unauthorized' };
+  if (!session) return { message: "Unauthorized" };
 
   const post = await db.post.findUnique({
     where: { id: postId },
   });
 
   if (!post) {
-    return { message: 'Post not found' };
+    return { message: "Post not found" };
   }
 
   if (post.userId !== session.id) {
-    return { message: 'Forbidden' };
+    return { message: "Forbidden" };
   }
 
   await db.post.delete({
     where: { id: postId },
   });
 
-  revalidatePath('/');
-  revalidatePath('/profile');
+  revalidatePath("/");
+  revalidatePath("/profile");
 }
