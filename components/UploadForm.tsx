@@ -64,18 +64,7 @@ export default function UploadForm() {
   if (imageSrc && !croppedImage) {
       return (
           <div className="flex flex-col h-[calc(100vh-100px)]">
-              <div className="relative flex-1 bg-black w-full">
-                <Cropper
-                    image={imageSrc}
-                    crop={crop}
-                    zoom={zoom}
-                    aspect={1}
-                    onCropChange={setCrop}
-                    onCropComplete={onCropComplete}
-                    onZoomChange={setZoom}
-                />
-              </div>
-              <div className="p-4 bg-white border-t flex items-center justify-between gap-4">
+              <div className="p-4 bg-white border-b flex items-center justify-between gap-4">
                  <div className="flex-1">
                      <label className="text-xs text-gray-500 mb-1 block">Zoom</label>
                      <input
@@ -103,6 +92,17 @@ export default function UploadForm() {
                          <Check className="w-5 h-5" />
                      </button>
                  </div>
+              </div>
+              <div className="relative flex-1 bg-black w-full">
+                <Cropper
+                    image={imageSrc}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    onCropChange={setCrop}
+                    onCropComplete={onCropComplete}
+                    onZoomChange={setZoom}
+                />
               </div>
           </div>
       )
