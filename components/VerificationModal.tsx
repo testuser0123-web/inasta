@@ -70,15 +70,15 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: { isO
           ✕
         </button>
         
-        <h2 className="text-xl font-bold mb-4">Account Verification</h2>
+        <h2 className="text-xl font-bold mb-4">アカウント認証</h2>
         
         {step === 1 ? (
           <div className="space-y-4">
              <p className="text-sm text-gray-600">
-                To verify your account, enter the name (tripcode base) you use on the BBS.
+                アカウントを認証するには、BBSで使用している名前（トリップの元となる文字列）を入力してください。
              </p>
              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">BBS Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">BBS名</label>
                 <div className="flex items-center gap-2">
                     <span className="text-gray-500 font-mono">◆</span>
                     <input 
@@ -89,25 +89,25 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: { isO
                         placeholder="ABC"
                     />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Enter &quot;ABC&quot; if your trip name is &quot;◆ABC&quot;</p>
+                <p className="text-xs text-gray-500 mt-1">トリップ名が「◆ABC」の場合、「ABC」と入力してください</p>
              </div>
              <button
                 onClick={handleGenerateToken}
                 disabled={!bbsName || isLoading}
                 className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 flex justify-center"
              >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Next'}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : '次へ'}
              </button>
           </div>
         ) : (
           <div className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-                  <p className="text-sm text-blue-800 font-semibold mb-2">Instructions:</p>
+                  <p className="text-sm text-blue-800 font-semibold mb-2">指示:</p>
                   <ol className="list-decimal list-inside text-sm text-blue-700 space-y-1">
-                      <li>Do not close this tab.</li>
-                      <li>Go to the BBS thread.</li>
-                      <li>Post a message with the name <strong>◆{bbsName}</strong>.</li>
-                      <li>Include the token below in your message body.</li>
+                      <li>このタブを閉じないでください。</li>
+                      <li>BBSのスレッドに移動してください。</li>
+                      <li>名前欄に<strong>◆{bbsName}</strong>と入力して投稿してください。</li>
+                      <li>以下のトークンをメッセージ本文に含めてください。</li>
                   </ol>
               </div>
 
@@ -118,13 +118,13 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: { isO
                 <button
                     onClick={handleCopy}
                     className="p-1 rounded-md hover:bg-gray-200 text-gray-600 transition-colors"
-                    aria-label="Copy token"
+                    aria-label="トークンをコピー"
                 >
                     <Copy className="w-5 h-5" />
                 </button>
               </div>
-              {copyStatus === 'copied' && <p className="text-xs text-green-600 text-center">Copied!</p>}
-              {copyStatus === 'failed' && <p className="text-xs text-red-600 text-center">Failed to copy!</p>}
+              {copyStatus === 'copied' && <p className="text-xs text-green-600 text-center">コピーしました！</p>}
+              {copyStatus === 'failed' && <p className="text-xs text-red-600 text-center">コピーに失敗しました！</p>}
 
               {message && (
                   <div className={`p-3 rounded-md flex items-start gap-2 text-sm ${message.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
@@ -138,7 +138,7 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: { isO
                 disabled={isLoading}
                 className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 flex justify-center"
              >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'I have posted, Verify now'}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : '投稿しました。今すぐ認証する'}
              </button>
           </div>
         )}

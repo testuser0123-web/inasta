@@ -8,7 +8,7 @@ const BBS_URL = 'https://jbbs.shitaraba.net/bbs/rawmode.cgi/anime/11224/17389318
 
 export async function generateVerificationToken() {
   const session = await getSession();
-  if (!session) return { message: 'Unauthorized', success: false };
+  if (!session) return { message: '認証されていません', success: false };
 
   const token = randomBytes(16).toString('hex');
 
@@ -22,7 +22,7 @@ export async function generateVerificationToken() {
 
 export async function verifyAccount(bbsName: string) {
   const session = await getSession();
-  if (!session) return { message: 'Unauthorized', success: false };
+  if (!session) return { message: '認証されていません', success: false };
 
   const user = await db.user.findUnique({
     where: { id: session.id },
@@ -30,32 +30,19 @@ export async function verifyAccount(bbsName: string) {
   });
 
   if (!user || !user.verificationToken) {
-    return { message: 'No verification token found. Please start over.', success: false };
+    return { message: '認証トークンが見つかりません。最初からやり直してください。', success: false };
   }
 
   try {
     const response = await fetch(BBS_URL, { cache: 'no-store' });
     if (!response.ok) {
-      return { message: 'Failed to fetch BBS logs.', success: false };
+      return { message: 'BBSログの取得に失敗しました。', success: false };
     }
 
-    // Shitaraba rawmode returns EUC-JP usually, but node-fetch might handle it as buffer.
-    // However, recent fetch implementations might try to decode.
-    // Let's assume text first, but we might need to handle encoding if characters get garbled.
-    // Since we are looking for a hex token (ascii) and standard trip names,
-    // simple text decoding often works for the specific parts we care about unless the name itself is complex kanji.
-    // Note: `◆` symbol might be encoding dependent.
-    
-    // For robustness with Japanese text in fetch environments:
     const buffer = await response.arrayBuffer();
-    const decoder = new TextDecoder('euc-jp'); // Shitaraba is typically EUC-JP
+    const decoder = new TextDecoder('euc-jp');
     const text = decoder.decode(buffer);
 
-    // Format we look for: Name field matches "◆" + bbsName
-    // Rawmode format is usually: 
-    // resNum<>name<>mail<>date/id<>body<>title<>
-    // Example: 428<><font color="#FF0000">名無しで叶える物語◆jeZxj87p★</font><><>...<>body<>...
-    
     const lines = text.split('\n');
     const targetTrip = `◆${bbsName}`;
     const token = user.verificationToken;
@@ -67,13 +54,8 @@ export async function verifyAccount(bbsName: string) {
       let name = parts[1];
       const body = parts[4];
 
-      // Remove HTML tags from name
       name = name.replace(/<[^>]+>/g, '');
       
-      // Check if name contains the target trip
-      // We look for "◆BBSNAME" followed by nothing, or "★" (cap), or non-word characters to be safe(ish)
-      // For simplicity and robustness against variations, checking if it includes the trip string is a good start,
-      // provided the token check passes. The token is the strong authenticator here.
       const nameMatch = name.includes(targetTrip);
       const tokenMatch = body.includes(token);
       
@@ -85,16 +67,16 @@ export async function verifyAccount(bbsName: string) {
         where: { id: session.id },
         data: { 
             isVerified: true,
-            verificationToken: null // Clear token
+            verificationToken: null
         },
       });
-      return { message: 'Account verified successfully!', success: true };
+      return { message: 'アカウントが正常に認証されました！', success: true };
     } else {
-      return { message: 'Verification post not found. Please make sure you used the correct name (◆' + bbsName + ') and included the token.', success: false };
+      return { message: '認証投稿が見つかりません。正しい名前（◆' + bbsName + '）とトークンを使用していることを確認してください。', success: false };
     }
 
   } catch (error) {
     console.error('Verification error:', error);
-    return { message: 'An error occurred during verification.', success: false };
+    return { message: '認証中にエラーが発生しました。', success: false };
   }
 }
