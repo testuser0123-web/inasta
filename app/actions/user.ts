@@ -4,9 +4,8 @@ import { db } from '@/lib/db';
 import { getSession, encrypt } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 
-export async function updateProfile(prevState: any, formData: FormData) {
+export async function updateProfile(prevState: unknown, formData: FormData) {
   const session = await getSession();
   if (!session) {
     return { message: 'Unauthorized' };

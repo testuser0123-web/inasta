@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Heart, Plus, X, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { toggleLike, deletePost } from '@/app/actions/post';
@@ -20,18 +20,10 @@ type Post = {
 
 export default function Feed({ initialPosts, currentUserId }: { initialPosts: Post[], currentUserId: number }) {
   const [posts, setPosts] = useState(initialPosts);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Sync selectedPost with posts when posts change (e.g. after like toggle)
-  useEffect(() => {
-    if (selectedPost) {
-        const updatedPost = posts.find(p => p.id === selectedPost.id);
-        if (updatedPost) {
-            setSelectedPost(updatedPost);
-        }
-    }
-  }, [posts, selectedPost]);
+  const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
   const handleLike = async (post: Post) => {
     // Optimistic update
@@ -58,7 +50,7 @@ export default function Feed({ initialPosts, currentUserId }: { initialPosts: Po
     
     // Optimistic remove
     setPosts((current) => current.filter((p) => p.id !== postId));
-    setSelectedPost(null);
+    setSelectedPostId(null);
     setIsDeleting(false);
   };
 
@@ -68,7 +60,7 @@ export default function Feed({ initialPosts, currentUserId }: { initialPosts: Po
         {posts.map((post) => (
           <div
             key={post.id}
-            onClick={() => setSelectedPost(post)}
+            onClick={() => setSelectedPostId(post.id)}
             className="aspect-square relative cursor-pointer bg-gray-100 overflow-hidden"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -92,13 +84,13 @@ export default function Feed({ initialPosts, currentUserId }: { initialPosts: Po
 
       {/* Modal */}
       {selectedPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedPost(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedPostId(null)}>
           <div 
             className="bg-white rounded-lg overflow-hidden w-full max-w-sm relative"
             onClick={(e) => e.stopPropagation()}
           >
              <button 
-                onClick={() => setSelectedPost(null)}
+                onClick={() => setSelectedPostId(null)}
                 className="absolute top-2 right-2 p-1 bg-black/20 rounded-full text-white z-10 hover:bg-black/40"
              >
                 <X className="w-5 h-5" />

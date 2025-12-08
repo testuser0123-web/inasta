@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-export async function createPost(prevState: any, formData: FormData) {
+export async function createPost(prevState: unknown, formData: FormData) {
   const session = await getSession();
   if (!session) {
     return { message: 'Unauthorized' };
