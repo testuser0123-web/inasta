@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import Link from "next/link";
 import { User } from "lucide-react";
 import { Prisma } from "@prisma/client";
+import { fetchFeedPosts } from "@/app/actions/post";
 
 export const dynamic = "force-dynamic";
 
@@ -22,62 +23,7 @@ export default async function Home({
   const feedType =
     resolvedSearchParams.feed === "following" ? "following" : "all";
 
-  // Get muted users to exclude
-  const muted = await db.mute.findMany({
-    where: { muterId: session.id },
-    select: { mutedId: true },
-  });
-  const mutedIds = muted.map((m) => m.mutedId);
-
-  let whereClause: Prisma.PostWhereInput = {
-    userId: { notIn: mutedIds },
-  };
-
-  if (feedType === "following") {
-    const following = await db.follow.findMany({
-      where: { followerId: session.id },
-      select: { followingId: true },
-    });
-    const followingIds = following.map((f) => f.followingId);
-
-    whereClause = {
-      ...whereClause,
-      userId: { in: followingIds, notIn: mutedIds },
-    };
-  }
-
-  const postsData = await db.post.findMany({
-    where: whereClause,
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      imageUrl: true,
-      comment: true,
-      userId: true,
-      user: {
-        select: {
-            username: true,
-            avatarUrl: true,
-            isVerified: true
-        }
-      },
-      _count: {
-        select: { likes: true },
-      },
-      likes: {
-        where: { userId: session.id },
-        select: { userId: true },
-      },
-    },
-  });
-
-  const posts = postsData.map((post) => ({
-    ...post,
-    likesCount: post._count.likes,
-    hasLiked: post.likes.length > 0,
-    likes: undefined, // remove raw likes array
-    _count: undefined, // remove raw count
-  }));
+  const posts = await fetchFeedPosts({ feedType });
 
   return (
     <main className="min-h-screen bg-white">
@@ -113,15 +59,15 @@ export default async function Home({
             Following
           </Link>
         </div>
-            </div>
-            {feedType === 'following' && posts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm">
-                <p>まだ誰もフォローしていません。</p>
-                <p>他のユーザーをフォローして投稿を見ましょう。</p>
-              </div>
-            ) : (
-              <Feed key={feedType} initialPosts={posts} currentUserId={session.id} />
-            )}
-          </main>
-        );
-      }
+      </div>
+      {feedType === 'following' && posts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm">
+          <p>まだ誰もフォローしていません。</p>
+          <p>他のユーザーをフォローして投稿を見ましょう。</p>
+        </div>
+      ) : (
+        <Feed key={feedType} initialPosts={posts} currentUserId={session.id} feedType={feedType} />
+      )}
+    </main>
+  );
+}

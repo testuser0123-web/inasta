@@ -4,6 +4,72 @@ import { db } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { Prisma } from '@prisma/client';
+
+export async function fetchFeedPosts({ cursorId, feedType }: { cursorId?: number, feedType: 'all' | 'following' }) {
+  const session = await getSession();
+  if (!session) return [];
+
+  // Get muted users to exclude
+  const muted = await db.mute.findMany({
+    where: { muterId: session.id },
+    select: { mutedId: true },
+  });
+  const mutedIds = muted.map((m) => m.mutedId);
+
+  let whereClause: Prisma.PostWhereInput = {
+    userId: { notIn: mutedIds },
+  };
+
+  if (feedType === 'following') {
+    const following = await db.follow.findMany({
+      where: { followerId: session.id },
+      select: { followingId: true },
+    });
+    const followingIds = following.map((f) => f.followingId);
+
+    whereClause = {
+      ...whereClause,
+      userId: { in: followingIds, notIn: mutedIds },
+    };
+  }
+
+  const postsData = await db.post.findMany({
+    take: 12,
+    skip: cursorId ? 1 : 0,
+    cursor: cursorId ? { id: cursorId } : undefined,
+    where: whereClause,
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      imageUrl: true,
+      comment: true,
+      userId: true,
+      user: {
+        select: {
+          username: true,
+          avatarUrl: true,
+          isVerified: true,
+        },
+      },
+      _count: {
+        select: { likes: true },
+      },
+      likes: {
+        where: { userId: session.id },
+        select: { userId: true },
+      },
+    },
+  });
+
+  return postsData.map((post) => ({
+    ...post,
+    likesCount: post._count.likes,
+    hasLiked: post.likes.length > 0,
+    likes: undefined,
+    _count: undefined,
+  }));
+}
 
 export async function createPost(prevState: unknown, formData: FormData) {
   const session = await getSession();

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, Plus, X, Trash2, BadgeCheck } from 'lucide-react';
+import { Heart, Plus, X, Trash2, BadgeCheck, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { toggleLike, deletePost } from '@/app/actions/post';
+import { toggleLike, deletePost, fetchFeedPosts } from '@/app/actions/post';
 
 type Post = {
   id: number;
@@ -19,10 +19,12 @@ type Post = {
   }
 };
 
-export default function Feed({ initialPosts, currentUserId }: { initialPosts: Post[], currentUserId: number }) {
+export default function Feed({ initialPosts, currentUserId, feedType }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' }) {
   const [posts, setPosts] = useState(initialPosts);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(initialPosts.length >= 12);
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
@@ -55,6 +57,25 @@ export default function Feed({ initialPosts, currentUserId }: { initialPosts: Po
     setIsDeleting(false);
   };
 
+  const loadMore = async () => {
+      if (isLoadingMore || !feedType) return;
+      
+      setIsLoadingMore(true);
+      const lastPostId = posts[posts.length - 1]?.id;
+      
+      try {
+          const newPosts = await fetchFeedPosts({ cursorId: lastPostId, feedType });
+          if (newPosts.length < 12) {
+              setHasMore(false);
+          }
+          setPosts(prev => [...prev, ...newPosts]);
+      } catch (error) {
+          console.error("Failed to load more posts", error);
+      } finally {
+          setIsLoadingMore(false);
+      }
+  };
+
   return (
     <div className="pb-20">
       <div className="grid grid-cols-3 gap-0.5">
@@ -74,6 +95,20 @@ export default function Feed({ initialPosts, currentUserId }: { initialPosts: Po
           </div>
         ))}
       </div>
+
+      {/* Load More Button - Only show if feedType is provided (Home feed) */}
+      {feedType && hasMore && (
+          <div className="flex justify-center p-6">
+              <button
+                onClick={loadMore}
+                disabled={isLoadingMore}
+                className="px-6 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-200 disabled:opacity-50 flex items-center gap-2"
+              >
+                  {isLoadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Load More
+              </button>
+          </div>
+      )}
 
       {/* FAB */}
       <Link
