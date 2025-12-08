@@ -58,6 +58,20 @@ export async function fetchFeedPosts({
           isVerified: true,
         },
       },
+      comments: {
+        select: {
+          id: true,
+          text: true,
+          userId: true,
+          user: {
+            select: {
+              username: true,
+              avatarUrl: true,
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' } // Oldest first or newest? Usually oldest first in thread.
+      },
       _count: {
         select: { likes: true },
       },

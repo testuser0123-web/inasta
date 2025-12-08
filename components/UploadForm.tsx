@@ -76,14 +76,17 @@ export default function UploadForm() {
       const croppedImage = await getCroppedImg(
         imageSrc,
         croppedAreaPixels,
-        outputWidth,
-        outputHeight
+        512 // Output size
       );
       setCroppedImage(croppedImage);
+      // Don't clear imageSrc so we can go back?
+      // For now, simple flow: Select -> Crop -> Review/Upload.
+      // If they want to change crop, they currently have to re-select file or we can add "Back" button.
+      // Let's add a "Back" or "Cancel" button in the crop view.
     } catch (e) {
       console.error(e);
     }
-  }, [imageSrc, croppedAreaPixels, aspectRatio]);
+  }, [imageSrc, croppedAreaPixels]);
 
   const cancelCrop = () => {
     setImageSrc(null);

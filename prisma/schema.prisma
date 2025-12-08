@@ -18,6 +18,7 @@ model User {
   verificationToken String?
   posts     Post[]
   likes     Like[]
+  comments  Comment[]
   followers Follow[] @relation("followers")
   following Follow[] @relation("following")
   muted     Mute[]   @relation("muted")
@@ -33,6 +34,7 @@ model Post {
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   likes     Like[]
+  comments  Comment[]
 }
 
 model Like {
@@ -44,6 +46,16 @@ model Like {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  createdAt DateTime @default(now())
+  userId    Int
+  postId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Follow {
