@@ -31,7 +31,6 @@ export async function GET(
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {
         console.error('Image URL is not a Data URI for post:', id);
-        // If it's a normal URL, we might want to redirect, but for now error out as we expect Data URI
         return new NextResponse('Invalid Image Format', { status: 500 });
     }
 
@@ -54,6 +53,7 @@ export async function GET(
         'Content-Type': mimeType,
         'Content-Length': buffer.length.toString(),
         'Cache-Control': 'public, max-age=31536000, immutable',
+        'CDN-Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
 
