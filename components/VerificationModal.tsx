@@ -132,7 +132,7 @@ export default function VerificationModal({
               <p className="text-sm text-blue-800 font-semibold mb-2">指示:</p>
               <ol className="list-decimal list-inside text-sm text-blue-700 space-y-1">
                 <li>このタブを閉じないでください。</li>
-                <li>書き込みテストスレに移動してください。</li>
+                <li>認証スレに移動してください。</li>
                 <li>
                   <strong>◆{bbsName}</strong>の名前で投稿してください。
                 </li>
