@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts } from '@/app/actions/post';
@@ -31,6 +31,7 @@ type Post = {
   };
   comments?: Comment[];
   hashtags?: { name: string }[];
+  images?: { id: number; order: number }[];
 };
 
 export default function Feed({ initialPosts, currentUserId, feedType, searchQuery }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search', searchQuery?: string }) {
@@ -190,14 +191,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 <X className="w-5 h-5" />
              </button>
 
-            <div className="w-full relative bg-gray-100 flex items-center justify-center min-h-[200px] shrink-0">
-               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/api/image/${selectedPost.id}.jpg`}
-                alt=""
-                className="w-full h-auto max-h-[50vh] object-contain"
-              />
-            </div>
+            <ImageCarousel post={selectedPost} />
 
             <div className="p-4 overflow-y-auto flex-1">
               <div className="flex items-center justify-between mb-2">
@@ -323,4 +317,92 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       )}
     </div>
   );
+}
+
+function ImageCarousel({ post }: { post: Post }) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    // Construct list of all image URLs
+    const imageUrls = [
+        `/api/image/${post.id}.jpg`,
+        ...(post.images || []).map(img => `/api/post_image/${img.id}.jpg`)
+    ];
+
+    const scrollTo = (index: number) => {
+        if (!scrollContainerRef.current) return;
+        const width = scrollContainerRef.current.clientWidth;
+        scrollContainerRef.current.scrollTo({
+            left: width * index,
+            behavior: 'smooth'
+        });
+        setCurrentIndex(index);
+    };
+
+    const handleScroll = () => {
+        if (!scrollContainerRef.current) return;
+        const width = scrollContainerRef.current.clientWidth;
+        const scrollLeft = scrollContainerRef.current.scrollLeft;
+        const newIndex = Math.round(scrollLeft / width);
+        if (newIndex !== currentIndex) {
+            setCurrentIndex(newIndex);
+        }
+    };
+
+    return (
+        <div className="w-full relative bg-gray-100 min-h-[200px] shrink-0 group">
+             {/* Slider */}
+            <div
+                ref={scrollContainerRef}
+                className="flex w-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                onScroll={handleScroll}
+            >
+                {imageUrls.map((url, idx) => (
+                    <div key={idx} className="w-full flex-shrink-0 snap-center flex items-center justify-center h-auto max-h-[50vh]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={url}
+                            alt={`Slide ${idx}`}
+                            className="w-full h-full object-contain max-h-[50vh]"
+                        />
+                    </div>
+                ))}
+            </div>
+
+            {/* Navigation Arrows */}
+            {imageUrls.length > 1 && (
+                <>
+                    {currentIndex > 0 && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); scrollTo(currentIndex - 1); }}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/40 text-white rounded-full transition-opacity hover:bg-black/60 z-10"
+                        >
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                    )}
+                    {currentIndex < imageUrls.length - 1 && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); scrollTo(currentIndex + 1); }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/40 text-white rounded-full transition-opacity hover:bg-black/60 z-10"
+                        >
+                            <ChevronRight className="w-6 h-6" />
+                        </button>
+                    )}
+                </>
+            )}
+
+            {/* Dots Indicator */}
+            {imageUrls.length > 1 && (
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                    {imageUrls.map((_, idx) => (
+                        <div
+                            key={idx}
+                            className={`w-1.5 h-1.5 rounded-full transition-colors ${idx === currentIndex ? 'bg-white' : 'bg-white/50'}`}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }
