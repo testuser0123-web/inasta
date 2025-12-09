@@ -66,6 +66,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
   }
 
   const postsData = await db.post.findMany({
+    take: 12,
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
     select: {
@@ -73,6 +74,11 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       // imageUrl: true,
       comment: true,
       userId: true,
+      hashtags: {
+        select: {
+            name: true
+        }
+      },
       user: {
           select: {
               username: true,
@@ -106,6 +112,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
   if (isMe) {
       // Fetch liked posts only if viewing own profile
       const likedPostsData = await db.like.findMany({
+          take: 12,
           where: { userId: user.id },
           orderBy: { createdAt: 'desc' },
           select: {
@@ -115,6 +122,11 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                     // imageUrl: true,
                     comment: true,
                     userId: true,
+                hashtags: {
+                    select: {
+                        name: true
+                    }
+                },
                     user: {
                         select: {
                             username: true,

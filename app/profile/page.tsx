@@ -41,6 +41,7 @@ export default async function ProfilePage() {
 
   // Fetch my posts
   const myPostsData = await db.post.findMany({
+    take: 12,
     where: { userId: session.id },
     orderBy: { createdAt: 'desc' },
     select: {
@@ -48,6 +49,11 @@ export default async function ProfilePage() {
       // imageUrl: true,
       comment: true,
       userId: true,
+      hashtags: {
+        select: {
+            name: true
+        }
+      },
       user: {
           select: {
               username: true,
@@ -79,6 +85,7 @@ export default async function ProfilePage() {
 
   // Fetch liked posts
   const likedPostsData = await db.like.findMany({
+      take: 12,
       where: { userId: session.id },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -88,6 +95,11 @@ export default async function ProfilePage() {
                 // imageUrl: true,
                 comment: true,
                 userId: true,
+                hashtags: {
+                    select: {
+                        name: true
+                    }
+                },
                 user: {
                     select: {
                         username: true,
