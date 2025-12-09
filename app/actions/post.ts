@@ -74,6 +74,7 @@ export async function fetchFeedPosts({
         select: {
           username: true,
           avatarUrl: true,
+          updatedAt: true,
           isVerified: true,
         },
       },
@@ -105,7 +106,7 @@ export async function fetchFeedPosts({
     ...post,
     user: {
       ...post.user,
-      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}` : null,
+      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null,
     },
     likesCount: post._count.likes,
     hasLiked: post.likes.length > 0,

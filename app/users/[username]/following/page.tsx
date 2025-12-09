@@ -24,6 +24,7 @@ export default async function FollowingPage({ params }: { params: Promise<{ user
           id: true,
           username: true,
           avatarUrl: true,
+          updatedAt: true,
           isVerified: true,
         },
       },
@@ -33,7 +34,7 @@ export default async function FollowingPage({ params }: { params: Promise<{ user
 
   const users = following.map((f) => ({
     ...f.following,
-    avatarUrl: f.following.avatarUrl ? `/api/avatar/${f.following.username}` : null,
+    avatarUrl: f.following.avatarUrl ? `/api/avatar/${f.following.username}?v=${f.following.updatedAt.getTime()}` : null,
   }));
 
   return (

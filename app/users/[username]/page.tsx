@@ -16,6 +16,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       id: true,
       username: true,
       avatarUrl: true,
+      updatedAt: true,
       isVerified: true,
       _count: {
           select: {
@@ -28,7 +29,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
 
   const user = userData ? {
       ...userData,
-      avatarUrl: userData.avatarUrl ? `/api/avatar/${userData.username}` : null
+      avatarUrl: userData.avatarUrl ? `/api/avatar/${userData.username}?v=${userData.updatedAt.getTime()}` : null
   } : null;
 
   if (!user) {
@@ -73,7 +74,8 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       user: {
           select: {
               username: true,
-              avatarUrl: true
+              avatarUrl: true,
+              updatedAt: true
           }
       },
       _count: {
@@ -90,7 +92,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       ...post,
       user: {
           ...post.user,
-          avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}` : null
+          avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
       },
       likesCount: post._count.likes,
       hasLiked: post.likes.length > 0,
@@ -114,7 +116,8 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                     user: {
                         select: {
                             username: true,
-                            avatarUrl: true
+                            avatarUrl: true,
+                            updatedAt: true
                         }
                     },
                     _count: {
@@ -133,7 +136,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
           ...item.post,
           user: {
               ...item.post.user,
-              avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}` : null
+              avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}` : null
           },
           likesCount: item.post._count.likes,
           hasLiked: item.post.likes.length > 0,
