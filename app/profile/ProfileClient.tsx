@@ -29,6 +29,8 @@ type ProfileClientProps = {
     username: string;
     avatarUrl: string | null;
     isVerified: boolean;
+    bio?: string | null;
+    oshi?: string | null;
     _count: {
         followers: number;
         following: number;

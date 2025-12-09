@@ -14,6 +14,8 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
 
   const username = formData.get('username') as string;
   const avatarUrl = formData.get('avatarUrl') as string;
+  const bio = formData.get('bio') as string;
+  const oshi = formData.get('oshi') as string;
 
   if (!username) {
     return { message: 'Username is required' };
@@ -21,6 +23,14 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
 
   if (!USERNAME_REGEX.test(username)) {
     return { message: 'Username must be alphanumeric (letters and numbers only)' };
+  }
+
+  if (bio && bio.length > 160) {
+    return { message: 'Bio must be 160 characters or less' };
+  }
+
+  if (oshi && oshi.length > 20) {
+    return { message: 'Oshi must be 20 characters or less' };
   }
 
   try {
@@ -38,6 +48,8 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
       data: {
         username,
         avatarUrl: avatarUrl || undefined, // Only update if provided
+        bio: bio || null,
+        oshi: oshi || null,
       },
     });
 

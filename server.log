@@ -1,0 +1,78 @@
+
+> inasta@0.1.0 dev
+> next dev
+
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.0.2:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 1761ms
+ ○ Compiling /signup ...
+ GET /signup 200 in 5.6s (compile: 5.1s, proxy.ts: 114ms, render: 342ms)
+ POST /signup 200 in 193ms (compile: 7ms, proxy.ts: 13ms, render: 173ms)
+ GET /login 200 in 865ms (compile: 718ms, proxy.ts: 5ms, render: 142ms)
+ GET /signup 200 in 87ms (compile: 7ms, proxy.ts: 7ms, render: 74ms)
+ POST /signup 200 in 24ms (compile: 5ms, proxy.ts: 8ms, render: 11ms)
+ GET /login 200 in 61ms (compile: 4ms, proxy.ts: 6ms, render: 51ms)
+ GET /signup 200 in 88ms (compile: 6ms, proxy.ts: 8ms, render: 75ms)
+ POST /signup 200 in 197ms (compile: 4ms, proxy.ts: 5ms, render: 188ms)
+ GET /login 200 in 96ms (compile: 14ms, proxy.ts: 11ms, render: 71ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."updatedAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."verificationToken", "public"."User"."bio", "public"."User"."oshi" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."User" ("username","password","createdAt","updatedAt","isVerified") VALUES ($1,$2,$3,$4,$5) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."updatedAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."verificationToken", "public"."User"."bio", "public"."User"."oshi"
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)) OFFSET $13
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5) OFFSET $6
+ GET / 200 in 2.0s (compile: 1454ms, proxy.ts: 12ms, render: 537ms)
+ GET /signup 200 in 82ms (compile: 5ms, proxy.ts: 5ms, render: 71ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."updatedAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."verificationToken", "public"."User"."bio", "public"."User"."oshi" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."User" ("username","password","createdAt","updatedAt","isVerified") VALUES ($1,$2,$3,$4,$5) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."updatedAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."verificationToken", "public"."User"."bio", "public"."User"."oshi"
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)) OFFSET $13
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4) OFFSET $5
+ GET / 200 in 466ms (compile: 4ms, proxy.ts: 7ms, render: 455ms)
+ POST /signup 303 in 909ms (compile: 4ms, proxy.ts: 6ms, render: 898ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl" FROM "public"."Post" WHERE "public"."Post"."id" IN ($1,$2,$3,$4,$5,$6) OFFSET $7
+ GET /api/image/152.jpg 200 in 2.1s (compile: 1864ms, render: 249ms)
+ GET /api/image/156.jpg 200 in 2.1s (compile: 1883ms, render: 249ms)
+ GET /api/image/155.jpg 200 in 2.1s (compile: 1882ms, render: 249ms)
+ GET /api/image/151.jpg 200 in 2.1s (compile: 1859ms, render: 252ms)
+ GET /api/image/153.jpg 200 in 2.1s (compile: 1877ms, render: 251ms)
+ GET /api/image/154.jpg 200 in 2.1s (compile: 1878ms, render: 251ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl" FROM "public"."Post" WHERE ("public"."Post"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ GET /api/image/150.jpg 200 in 98ms (compile: 29ms, render: 70ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl" FROM "public"."Post" WHERE ("public"."Post"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ GET /api/image/149.jpg 200 in 160ms (compile: 33ms, render: 128ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl" FROM "public"."Post" WHERE ("public"."Post"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ GET /api/image/148.jpg 200 in 178ms (compile: 45ms, render: 133ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl" FROM "public"."Post" WHERE ("public"."Post"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ GET /api/image/147.jpg 200 in 184ms (compile: 22ms, render: 162ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl" FROM "public"."Post" WHERE ("public"."Post"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ GET /api/image/146.jpg 200 in 396ms (compile: 30ms, render: 366ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl" FROM "public"."Post" WHERE ("public"."Post"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ GET /api/image/145.jpg 200 in 400ms (compile: 39ms, render: 362ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."bio", "public"."User"."oshi" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ GET /profile/edit 200 in 1168ms (compile: 788ms, proxy.ts: 8ms, render: 372ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."updatedAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."verificationToken", "public"."User"."bio", "public"."User"."oshi" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query UPDATE "public"."User" SET "username" = $1, "bio" = $2, "oshi" = $3, "updatedAt" = $4 WHERE ("public"."User"."id" = $5 AND 1=1) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."updatedAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."verificationToken", "public"."User"."bio", "public"."User"."oshi"
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."bio", "public"."User"."oshi" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /profile/edit 200 in 168ms (compile: 4ms, proxy.ts: 9ms, render: 155ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."bio", "public"."User"."oshi", COALESCE("aggr_selection_0_Follow"."_aggr_count_followers", 0) AS "_aggr_count_followers", COALESCE("aggr_selection_1_Follow"."_aggr_count_following", 0) AS "_aggr_count_following" FROM "public"."User" LEFT JOIN (SELECT "public"."Follow"."followingId", COUNT(*) AS "_aggr_count_followers" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followingId") AS "aggr_selection_0_Follow" ON ("public"."User"."id" = "aggr_selection_0_Follow"."followingId") LEFT JOIN (SELECT "public"."Follow"."followerId", COUNT(*) AS "_aggr_count_following" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followerId") AS "aggr_selection_1_Follow" ON ("public"."User"."id" = "aggr_selection_1_Follow"."followerId") WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."userId" = $1 ORDER BY "public"."Post"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+prisma:query SELECT "public"."Like"."id", "public"."Like"."postId" FROM "public"."Like" WHERE "public"."Like"."userId" = $1 ORDER BY "public"."Like"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+ GET /profile 200 in 1269ms (compile: 779ms, proxy.ts: 8ms, render: 482ms)

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BadgeCheck, MoreHorizontal } from 'lucide-react';
+import { BadgeCheck, MoreHorizontal, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { followUser, unfollowUser, muteUser, unmuteUser } from '@/app/actions/user';
 
@@ -11,6 +11,8 @@ type ProfileHeaderProps = {
     username: string;
     avatarUrl: string | null;
     isVerified?: boolean;
+    bio?: string | null;
+    oshi?: string | null;
   };
   currentUser: {
     id: number;
@@ -82,6 +84,20 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
         <h2 className="text-xl font-bold">@{user.username}</h2>
         {user.isVerified && <BadgeCheck className="w-5 h-5 text-blue-500" />}
       </div>
+
+      {(user.bio || user.oshi) && (
+          <div className="flex flex-col items-center gap-1 mb-4 max-w-md text-center px-4">
+              {user.oshi && (
+                  <div className="text-pink-500 font-medium text-sm flex items-center gap-1">
+                      <Heart className="w-3 h-3 fill-current" />
+                      <span>{user.oshi}</span>
+                  </div>
+              )}
+              {user.bio && (
+                  <p className="text-gray-700 whitespace-pre-wrap text-sm">{user.bio}</p>
+              )}
+          </div>
+      )}
       
       <div className="flex gap-6 mb-4 text-sm">
          <Link href={`/users/${user.username}/followers`} className="text-center hover:opacity-70 transition-opacity">

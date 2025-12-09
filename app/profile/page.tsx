@@ -21,6 +21,8 @@ export default async function ProfilePage() {
       avatarUrl: true,
       updatedAt: true,
       isVerified: true,
+      bio: true,
+      oshi: true,
       _count: {
         select: {
           followers: true,
