@@ -103,6 +103,10 @@ export async function fetchFeedPosts({
 
   return postsData.map((post) => ({
     ...post,
+    user: {
+      ...post.user,
+      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}` : null,
+    },
     likesCount: post._count.likes,
     hasLiked: post.likes.length > 0,
     likes: undefined,
