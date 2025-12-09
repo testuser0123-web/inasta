@@ -35,14 +35,14 @@ model Post {
   comments  Comment[]
   likes     Like[]
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  PostImage PostImage[]
-  hashtags  Hashtag[]   @relation("HashtagToPost")
+  images    PostImage[]
+  hashtags  Hashtag[]
 }
 
 model Hashtag {
   id    Int    @id @default(autoincrement())
   name  String @unique
-  posts Post[] @relation("HashtagToPost")
+  posts Post[]
 }
 
 model Like {
@@ -93,5 +93,5 @@ model PostImage {
   url    String
   order  Int
   postId Int
-  Post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
