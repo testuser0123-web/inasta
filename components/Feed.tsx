@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { toggleLike, deletePost, fetchFeedPosts } from '@/app/actions/post';
+import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment } from '@/app/actions/comment';
 
 type Comment = {
@@ -34,7 +34,7 @@ type Post = {
   images?: { id: number; order: number }[];
 };
 
-export default function Feed({ initialPosts, currentUserId, feedType, searchQuery }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search', searchQuery?: string }) {
+export default function Feed({ initialPosts, currentUserId, feedType, searchQuery, targetUserId }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search' | 'user_posts' | 'user_likes', searchQuery?: string, targetUserId?: number }) {
   const [posts, setPosts] = useState(initialPosts);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -89,7 +89,16 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       const lastPostId = posts[posts.length - 1]?.id;
       
       try {
-          const newPosts = await fetchFeedPosts({ cursorId: lastPostId, feedType, searchQuery });
+          let newPosts: Post[] = [];
+
+          if (feedType === 'user_posts' && targetUserId) {
+              newPosts = await fetchUserPosts({ userId: targetUserId, cursorId: lastPostId });
+          } else if (feedType === 'user_likes' && targetUserId) {
+              newPosts = await fetchLikedPosts({ userId: targetUserId, cursorId: lastPostId });
+          } else if (feedType === 'all' || feedType === 'following' || feedType === 'search') {
+              newPosts = await fetchFeedPosts({ cursorId: lastPostId, feedType, searchQuery });
+          }
+
           if (newPosts.length < 12) {
               setHasMore(false);
           }
