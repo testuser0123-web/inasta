@@ -17,7 +17,13 @@ export async function signup(prevState: unknown, formData: FormData) {
 
   if (!USERNAME_REGEX.test(username)) {
     return {
-      message: "ユーザー名には英数字だけが使えます",
+      message: "ユーザー名には英数字と日本語が使えます",
+    };
+  }
+
+  if (username.length > 50) {
+    return {
+      message: "ユーザー名は50文字以内で入力してください",
     };
   }
 

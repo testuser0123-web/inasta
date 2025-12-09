@@ -4,7 +4,8 @@ import { db } from '@/lib/db';
 import { getSession, encrypt } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import { USERNAME_REGEX } from '@/lib/validation';
+import { USERNAME_REGEX, PASSWORD_REGEX } from '@/lib/validation';
+import bcrypt from 'bcryptjs';
 
 export async function updateProfile(prevState: unknown, formData: FormData) {
   const session = await getSession();
@@ -22,7 +23,11 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
   }
 
   if (!USERNAME_REGEX.test(username)) {
-    return { message: 'Username must be alphanumeric (letters and numbers only)' };
+    return { message: 'Username must be alphanumeric (letters and numbers) or Japanese characters' };
+  }
+
+  if (username.length > 50) {
+    return { message: 'Username must be 50 characters or less' };
   }
 
   if (bio && bio.length > 160) {
@@ -149,4 +154,72 @@ export async function unmuteUser(targetUserId: number) {
   } catch (error) {
     console.error('Failed to unmute:', error);
   }
+}
+
+export async function changePassword(prevState: unknown, formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    return { message: 'Unauthorized' };
+  }
+
+  const currentPassword = formData.get('currentPassword') as string;
+  const newPassword = formData.get('newPassword') as string;
+
+  if (!currentPassword || !newPassword) {
+    return { message: '現在のパスワードと新しいパスワードを入力してください' };
+  }
+
+  if (!PASSWORD_REGEX.test(newPassword)) {
+      return { message: "パスワードには英数字、記号が使えます" };
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: session.id },
+  });
+
+  if (!user) {
+    return { message: 'User not found' };
+  }
+
+  const isValid = await bcrypt.compare(currentPassword, user.password);
+
+  if (!isValid) {
+    return { message: '現在のパスワードが間違っています' };
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await db.user.update({
+    where: { id: session.id },
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  return { message: 'パスワードを変更しました', success: true };
+}
+
+export async function updateSettings(prevState: unknown, formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    return { message: 'Unauthorized' };
+  }
+
+  const excludeUnverifiedPosts = formData.get('excludeUnverifiedPosts') === 'on';
+
+  try {
+    await db.user.update({
+      where: { id: session.id },
+      data: {
+        excludeUnverifiedPosts,
+      },
+    });
+
+    revalidatePath('/'); // Revalidate feed
+  } catch (error) {
+    console.error('Failed to update settings:', error);
+    return { message: 'Failed to update settings' };
+  }
+
+  return { message: '設定を保存しました', success: true };
 }

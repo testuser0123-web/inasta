@@ -25,9 +25,24 @@ export async function fetchFeedPosts({
   });
   const mutedIds = muted.map((m) => m.mutedId);
 
+  // Check user settings for excluding unverified posts
+  const user = await db.user.findUnique({
+    where: { id: session.id },
+    select: { excludeUnverifiedPosts: true },
+  });
+
   let whereClause: Prisma.PostWhereInput = {
     userId: { notIn: mutedIds },
   };
+
+  if (feedType === "all" && user?.excludeUnverifiedPosts) {
+     whereClause = {
+         ...whereClause,
+         user: {
+             isVerified: true
+         }
+     };
+  }
 
   if (feedType === "following") {
     const following = await db.follow.findMany({

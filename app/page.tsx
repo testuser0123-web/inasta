@@ -101,7 +101,7 @@ export default async function Home({
         </div>
       ) : feedType === 'search' && searchQuery && posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm">
-          <p>No posts found for "{searchQuery}"</p>
+          <p>No posts found for &quot;{searchQuery}&quot;</p>
         </div>
       ) : (
         <Feed key={`${feedType}-${searchQuery}`} initialPosts={posts} currentUserId={session.id} feedType={feedType} searchQuery={searchQuery} />
