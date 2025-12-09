@@ -9,9 +9,11 @@ import { Prisma } from "@prisma/client";
 export async function fetchFeedPosts({
   cursorId,
   feedType,
+  searchQuery,
 }: {
   cursorId?: number;
-  feedType: "all" | "following";
+  feedType: "all" | "following" | "search";
+  searchQuery?: string;
 }) {
   const session = await getSession();
   if (!session) return [];
@@ -37,6 +39,16 @@ export async function fetchFeedPosts({
     whereClause = {
       ...whereClause,
       userId: { in: followingIds, notIn: mutedIds },
+    };
+  } else if (feedType === "search" && searchQuery) {
+    const query = searchQuery.startsWith("#") ? searchQuery : `#${searchQuery}`;
+    whereClause = {
+      ...whereClause,
+      hashtags: {
+        some: {
+          name: query,
+        },
+      },
     };
   }
 

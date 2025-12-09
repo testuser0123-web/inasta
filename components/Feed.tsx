@@ -32,7 +32,7 @@ type Post = {
   comments?: Comment[];
 };
 
-export default function Feed({ initialPosts, currentUserId, feedType }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' }) {
+export default function Feed({ initialPosts, currentUserId, feedType, searchQuery }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search', searchQuery?: string }) {
   const [posts, setPosts] = useState(initialPosts);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -46,6 +46,7 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
 
   useEffect(() => {
     setPosts(initialPosts);
+    setHasMore(initialPosts.length >= 12); // Reset hasMore when initialPosts change (e.g. tab switch)
   }, [initialPosts]);
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
@@ -86,7 +87,7 @@ export default function Feed({ initialPosts, currentUserId, feedType }: { initia
       const lastPostId = posts[posts.length - 1]?.id;
       
       try {
-          const newPosts = await fetchFeedPosts({ cursorId: lastPostId, feedType });
+          const newPosts = await fetchFeedPosts({ cursorId: lastPostId, feedType, searchQuery });
           if (newPosts.length < 12) {
               setHasMore(false);
           }
