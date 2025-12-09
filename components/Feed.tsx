@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
@@ -21,6 +21,7 @@ type Post = {
   id: number;
   // imageUrl: string; // Removed from payload
   comment: string | null;
+  createdAt: Date;
   likesCount: number;
   hasLiked: boolean;
   userId: number;
@@ -160,6 +161,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               alt=""
               className="w-full h-full object-contain"
             />
+            {post.images && post.images.length > 0 && (
+                <div className="absolute top-2 right-2 z-10">
+                    <Layers className="w-5 h-5 text-white drop-shadow-md" />
+                </div>
+            )}
           </div>
         ))}
       </div>
@@ -265,6 +271,17 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               {selectedPost.comment && (
                 <p className="text-gray-900 break-words mb-2">{selectedPost.comment}</p>
               )}
+
+              <div className="text-xs text-gray-500 mb-2">
+                {new Date(selectedPost.createdAt).toLocaleString('ja-JP', {
+                  timeZone: 'Asia/Tokyo',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </div>
 
               {selectedPost.hashtags && selectedPost.hashtags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-4">

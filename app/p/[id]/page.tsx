@@ -53,7 +53,17 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       id: true,
       imageUrl: true,
       comment: true,
+      createdAt: true,
       userId: true,
+      images: {
+          select: {
+              id: true,
+              order: true
+          },
+          orderBy: {
+              order: 'asc'
+          }
+      },
       user: {
           select: {
               username: true,

@@ -48,11 +48,21 @@ export default async function ProfilePage() {
       id: true,
       // imageUrl: true,
       comment: true,
+      createdAt: true,
       userId: true,
       hashtags: {
         select: {
             name: true
         }
+      },
+      images: {
+          select: {
+              id: true,
+              order: true
+          },
+          orderBy: {
+              order: 'asc'
+          }
       },
       comments: {
         select: {
@@ -108,10 +118,20 @@ export default async function ProfilePage() {
                 id: true,
                 // imageUrl: true,
                 comment: true,
+                createdAt: true,
                 userId: true,
                 hashtags: {
                     select: {
                         name: true
+                    }
+                },
+                images: {
+                    select: {
+                        id: true,
+                        order: true
+                    },
+                    orderBy: {
+                        order: 'asc'
                     }
                 },
                 comments: {
