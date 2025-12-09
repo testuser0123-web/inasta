@@ -70,6 +70,15 @@ export async function fetchFeedPosts({
           name: true,
         },
       },
+      images: {
+        select: {
+          id: true,
+          order: true,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      },
       user: {
         select: {
           username: true,
@@ -121,11 +130,27 @@ export async function createPost(prevState: unknown, formData: FormData) {
     return { message: "Unauthorized" };
   }
 
-  const imageUrl = formData.get("imageUrl") as string;
+  const imageUrlsJson = formData.get("imageUrls") as string;
+  const imageUrl = formData.get("imageUrl") as string; // Fallback or first image
   const comment = formData.get("comment") as string;
   const hashtagsRaw = formData.get("hashtags") as string;
 
-  if (!imageUrl) {
+  // We expect imageUrlsJson to be a JSON string of string[]
+  let imageUrls: string[] = [];
+  if (imageUrlsJson) {
+      try {
+          imageUrls = JSON.parse(imageUrlsJson);
+      } catch (e) {
+          console.error("Failed to parse imageUrls", e);
+      }
+  }
+
+  // If no JSON array, fall back to single imageUrl
+  if (imageUrls.length === 0 && imageUrl) {
+      imageUrls = [imageUrl];
+  }
+
+  if (imageUrls.length === 0) {
     return { message: "Image is required" };
   }
 
@@ -152,9 +177,11 @@ export async function createPost(prevState: unknown, formData: FormData) {
   }
 
   try {
+    const [firstImage, ...restImages] = imageUrls;
+
     await db.post.create({
       data: {
-        imageUrl,
+        imageUrl: firstImage,
         comment,
         userId: session.id,
         hashtags: {
@@ -163,6 +190,12 @@ export async function createPost(prevState: unknown, formData: FormData) {
             create: { name: tag },
           })),
         },
+        images: {
+            create: restImages.map((url, index) => ({
+                url: url,
+                order: index + 1, // Start order from 1 (0 is the main post image)
+            }))
+        }
       },
     });
   } catch (error) {

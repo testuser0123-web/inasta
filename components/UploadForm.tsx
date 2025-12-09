@@ -15,7 +15,7 @@ export default function UploadForm() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [croppedImage, setCroppedImage] = useState<string | null>(null);
+  const [croppedImages, setCroppedImages] = useState<string[]>([]);
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
@@ -37,7 +37,6 @@ export default function UploadForm() {
     const reader = new FileReader();
     reader.addEventListener("load", () => {
       setImageSrc(reader.result as string);
-      setCroppedImage(null); // Reset cropped image to start cropping mode
 
       // Load image to get dimensions
       const img = new Image();
@@ -51,7 +50,7 @@ export default function UploadForm() {
     e.target.value = "";
   };
 
-  const showCroppedImage = useCallback(async () => {
+  const handleCropConfirm = useCallback(async () => {
     if (!imageSrc || !croppedAreaPixels) return;
     try {
       let outputWidth = 512;
@@ -74,28 +73,35 @@ export default function UploadForm() {
         }
       }
 
-      const croppedImage = await getCroppedImg(
+      const cropped = await getCroppedImg(
         imageSrc,
         croppedAreaPixels,
         { width: outputWidth, height: outputHeight }
       );
-      setCroppedImage(croppedImage);
-      // Don't clear imageSrc so we can go back?
-      // For now, simple flow: Select -> Crop -> Review/Upload.
-      // If they want to change crop, they currently have to re-select file or we can add "Back" button.
-      // Let's add a "Back" or "Cancel" button in the crop view.
+
+      if (cropped) {
+          setCroppedImages(prev => [...prev, cropped]);
+      }
+
+      // Reset crop state
+      setImageSrc(null);
+      setZoom(1);
     } catch (e) {
       console.error(e);
     }
-  }, [imageSrc, croppedAreaPixels]);
+  }, [imageSrc, croppedAreaPixels, aspectRatio]);
 
   const cancelCrop = () => {
     setImageSrc(null);
-    setCroppedImage(null);
+    setZoom(1);
   };
 
-  // If we have an image source but no cropped image yet, show Cropper
-  if (imageSrc && !croppedImage) {
+  const removeImage = (index: number) => {
+      setCroppedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // If we have an image source, show Cropper
+  if (imageSrc) {
     return (
       <div className="flex flex-col h-[calc(100vh-100px)]">
         <div className="p-4 bg-white border-b flex flex-col gap-4">
@@ -121,7 +127,7 @@ export default function UploadForm() {
                 <X className="w-6 h-6" />
               </button>
               <button
-                onClick={showCroppedImage}
+                onClick={handleCropConfirm}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold text-sm hover:bg-indigo-500"
               >
                 <Check className="w-5 h-5" />
@@ -173,36 +179,37 @@ export default function UploadForm() {
 
   return (
     <form action={action} className="space-y-6 w-full max-w-md mx-auto p-4">
-      <input type="hidden" name="imageUrl" value={croppedImage || ""} />
+      <input type="hidden" name="imageUrls" value={JSON.stringify(croppedImages)} />
 
-      {croppedImage ? (
-        <div
-          className={`w-full bg-gray-100 rounded-lg relative overflow-hidden border border-gray-200 group ${
-            aspectRatio === "1:1" ? "aspect-square" : ""
-          }`}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={croppedImage}
-            alt="Preview"
-            className="w-full h-auto object-contain"
-          />
-          <button
-            type="button"
-            onClick={cancelCrop}
-            className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      ) : (
+      {/* Grid of selected images */}
+      {croppedImages.length > 0 && (
+          <div className="grid grid-cols-2 gap-2">
+              {croppedImages.map((img, index) => (
+                  <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                  </div>
+              ))}
+          </div>
+      )}
+
+      {/* Add Button */}
+      {croppedImages.length < 4 && (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="aspect-square w-full bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 hover:border-gray-400 relative overflow-hidden"
+          className={`w-full bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 hover:border-gray-400 relative overflow-hidden ${croppedImages.length === 0 ? 'aspect-square' : 'h-32'}`}
         >
           <div className="text-gray-400 flex flex-col items-center">
-            <Camera className="w-12 h-12 mb-2" />
-            <span>Tap to select image</span>
+            <Camera className="w-8 h-8 mb-2" />
+            <span>{croppedImages.length === 0 ? "Tap to select image" : "Add another image"}</span>
+            <span className="text-xs mt-1">{croppedImages.length}/4</span>
           </div>
           <input
             ref={fileInputRef}
@@ -229,7 +236,7 @@ export default function UploadForm() {
             maxLength={173}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            disabled={!croppedImage}
+            disabled={croppedImages.length === 0}
             className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400"
             placeholder="Write a caption..."
           />
@@ -253,7 +260,7 @@ export default function UploadForm() {
             name="hashtags"
             value={hashtags}
             onChange={(e) => setHashtags(e.target.value)}
-            disabled={!croppedImage}
+            disabled={croppedImages.length === 0}
             className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400"
             placeholder="#travel #food #nature"
           />
@@ -269,7 +276,7 @@ export default function UploadForm() {
 
       <button
         type="submit"
-        disabled={isPending || !croppedImage}
+        disabled={isPending || croppedImages.length === 0}
         className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
       >
         {isPending ? "Uploading..." : "Share"}
