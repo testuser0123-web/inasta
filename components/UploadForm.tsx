@@ -244,7 +244,7 @@ export default function UploadForm() {
           htmlFor="hashtags"
           className="block text-sm font-medium text-gray-700"
         >
-          Hashtags (Optional, max 3)
+          ハッシュタグ (任意, 最大3つ)
         </label>
         <div className="relative">
           <input
@@ -259,7 +259,7 @@ export default function UploadForm() {
           />
         </div>
         <p className="text-xs text-gray-500">
-          Separate hashtags with spaces.
+          ハッシュタグはスペースで区切ってください。
         </p>
       </div>
 
