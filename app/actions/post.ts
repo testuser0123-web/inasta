@@ -99,6 +99,7 @@ export async function createPost(prevState: unknown, formData: FormData) {
 
   const imageUrl = formData.get("imageUrl") as string;
   const comment = formData.get("comment") as string;
+  const hashtagsRaw = formData.get("hashtags") as string;
 
   if (!imageUrl) {
     return { message: "Image is required" };
@@ -108,12 +109,36 @@ export async function createPost(prevState: unknown, formData: FormData) {
     return { message: "コメントが長すぎます(173文字まで)" };
   }
 
+  // Parse hashtags
+  let hashtagList: string[] = [];
+  if (hashtagsRaw) {
+    // Split by space, filter empty strings
+    hashtagList = hashtagsRaw
+      .split(" ")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+      .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`)); // Add # if missing
+
+    // Remove duplicates
+    hashtagList = Array.from(new Set(hashtagList));
+
+    if (hashtagList.length > 3) {
+      return { message: "ハッシュタグは3つまでです" };
+    }
+  }
+
   try {
     await db.post.create({
       data: {
         imageUrl,
         comment,
         userId: session.id,
+        hashtags: {
+          connectOrCreate: hashtagList.map((tag) => ({
+            where: { name: tag },
+            create: { name: tag },
+          })),
+        },
       },
     });
   } catch (error) {
