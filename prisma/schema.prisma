@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -35,8 +36,16 @@ model Post {
   comments  Comment[]
   likes     Like[]
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  images    PostImage[]
   hashtags  Hashtag[]
+  images    PostImage[]
+}
+
+model PostImage {
+  id     Int    @id @default(autoincrement())
+  url    String
+  order  Int
+  postId Int
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Hashtag {
