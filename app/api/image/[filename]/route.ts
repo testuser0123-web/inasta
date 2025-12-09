@@ -48,7 +48,7 @@ export async function GET(
 
     const buffer = Buffer.from(base64Data, 'base64');
 
-    return new NextResponse(buffer, {
+    const response = new NextResponse(buffer, {
       headers: {
         'Content-Type': mimeType,
         'Content-Length': buffer.length.toString(),
@@ -56,6 +56,12 @@ export async function GET(
         'CDN-Cache-Control': 'public, max-age=31536000, s-maxage=31536000,immutable',
       },
     });
+
+    // 2. 【ここが重要】Next.jsが勝手につけるVaryを「Accept-Encoding」だけで上書き固定する
+    response.headers.set('Vary', 'Accept-Encoding');
+
+    // 3. 修正したレスポンスを返す
+    return response;
 
   } catch (error) {
       console.error('Error serving image:', error);
