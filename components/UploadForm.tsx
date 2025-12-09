@@ -17,6 +17,7 @@ export default function UploadForm() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [comment, setComment] = useState("");
+  const [hashtags, setHashtags] = useState("");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
 
@@ -236,6 +237,30 @@ export default function UploadForm() {
             {comment.length}/173
           </span>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <label
+          htmlFor="hashtags"
+          className="block text-sm font-medium text-gray-700"
+        >
+          ハッシュタグ (任意, 最大3つ)
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            id="hashtags"
+            name="hashtags"
+            value={hashtags}
+            onChange={(e) => setHashtags(e.target.value)}
+            disabled={!croppedImage}
+            className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400"
+            placeholder="#travel #food #nature"
+          />
+        </div>
+        <p className="text-xs text-gray-500">
+          ハッシュタグはスペースで区切ってください。
+        </p>
       </div>
 
       {state?.message && (

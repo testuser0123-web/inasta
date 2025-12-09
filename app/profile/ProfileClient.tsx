@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 
 type Post = {
     id: number;
-    imageUrl: string;
+    // imageUrl: string;
     comment: string | null;
     likesCount: number;
     hasLiked: boolean;
@@ -19,7 +19,8 @@ type Post = {
         username: string;
         avatarUrl: string | null;
         isVerified?: boolean;
-    }
+    };
+    hashtags?: { name: string }[];
 };
 
 type ProfileClientProps = {

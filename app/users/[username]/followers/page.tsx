@@ -24,6 +24,7 @@ export default async function FollowersPage({ params }: { params: Promise<{ user
           id: true,
           username: true,
           avatarUrl: true,
+          updatedAt: true,
           isVerified: true,
         },
       },
@@ -31,7 +32,10 @@ export default async function FollowersPage({ params }: { params: Promise<{ user
     orderBy: { createdAt: 'desc' },
   });
 
-  const users = followers.map((f) => f.follower);
+  const users = followers.map((f) => ({
+    ...f.follower,
+    avatarUrl: f.follower.avatarUrl ? `/api/avatar/${f.follower.username}?v=${f.follower.updatedAt.getTime()}` : null,
+  }));
 
   return (
     <main className="min-h-screen bg-white">

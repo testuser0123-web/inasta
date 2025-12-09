@@ -13,12 +13,13 @@ export default async function ProfilePage() {
     redirect('/login');
   }
 
-  const user = await db.user.findUnique({
+  const userData = await db.user.findUnique({
     where: { id: session.id },
     select: {
       id: true,
       username: true,
       avatarUrl: true,
+      updatedAt: true,
       isVerified: true,
       _count: {
         select: {
@@ -29,7 +30,12 @@ export default async function ProfilePage() {
     },
   });
 
-  if (!user) redirect('/login');
+  if (!userData) redirect('/login');
+
+  const user = {
+      ...userData,
+      avatarUrl: userData.avatarUrl ? `/api/avatar/${userData.username}?v=${userData.updatedAt.getTime()}` : null
+  };
 
   // Fetch my posts
   const myPostsData = await db.post.findMany({
@@ -37,13 +43,14 @@ export default async function ProfilePage() {
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
-      imageUrl: true,
+      // imageUrl: true,
       comment: true,
       userId: true,
       user: {
           select: {
               username: true,
-              avatarUrl: true
+              avatarUrl: true,
+              updatedAt: true
           }
       },
       _count: {
@@ -58,6 +65,10 @@ export default async function ProfilePage() {
 
   const myPosts = myPostsData.map(post => ({
       ...post,
+      user: {
+          ...post.user,
+          avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
+      },
       likesCount: post._count.likes,
       hasLiked: post.likes.length > 0,
       likes: undefined,
@@ -72,13 +83,14 @@ export default async function ProfilePage() {
           post: {
               select: {
                 id: true,
-                imageUrl: true,
+                // imageUrl: true,
                 comment: true,
                 userId: true,
                 user: {
                     select: {
                         username: true,
-                        avatarUrl: true
+                        avatarUrl: true,
+                        updatedAt: true
                     }
                 },
                 _count: {
@@ -95,6 +107,10 @@ export default async function ProfilePage() {
 
   const likedPosts = likedPostsData.map(item => ({
       ...item.post,
+      user: {
+          ...item.post.user,
+          avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}` : null
+      },
       likesCount: item.post._count.likes,
       hasLiked: item.post.likes.length > 0,
       likes: undefined,
