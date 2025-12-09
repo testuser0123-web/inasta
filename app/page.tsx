@@ -2,7 +2,7 @@ import Feed from "@/components/Feed";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import Link from "next/link";
-import { User } from "lucide-react";
+import { User, Search } from "lucide-react";
 import { fetchFeedPosts } from "@/app/actions/post";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ feed?: string }>;
+  searchParams: Promise<{ feed?: string; q?: string }>;
 }) {
   const session = await getSession();
   if (!session) {
@@ -18,10 +18,16 @@ export default async function Home({
   }
 
   const resolvedSearchParams = await searchParams;
-  const feedType =
-    resolvedSearchParams.feed === "following" ? "following" : "all";
+  let feedType: "all" | "following" | "search" = "all";
+  if (resolvedSearchParams.feed === "following") {
+    feedType = "following";
+  } else if (resolvedSearchParams.feed === "search") {
+    feedType = "search";
+  }
 
-  const posts = await fetchFeedPosts({ feedType });
+  const searchQuery = resolvedSearchParams.q || "";
+
+  const posts = await fetchFeedPosts({ feedType, searchQuery });
 
   return (
     <main className="min-h-screen bg-white">
@@ -56,15 +62,49 @@ export default async function Home({
           >
             Following
           </Link>
+          <Link
+            href="/?feed=search"
+            className={`flex-1 text-center py-2 text-sm font-semibold border-b-2 transition-colors flex justify-center items-center gap-1 ${
+              feedType === "search"
+                ? "border-black text-black"
+                : "border-transparent text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            <Search className="w-4 h-4" />
+            Search
+          </Link>
         </div>
       </div>
+
+      {feedType === 'search' && (
+        <div className="p-4 border-b">
+          <form action="/" method="GET" className="relative">
+            <input type="hidden" name="feed" value="search" />
+            <div className="relative">
+              <input
+                type="text"
+                name="q"
+                defaultValue={searchQuery}
+                placeholder="Search hashtags..."
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
+            </div>
+          </form>
+        </div>
+      )}
+
       {feedType === 'following' && posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm">
           <p>まだ誰もフォローしていません。</p>
           <p>他のユーザーをフォローして投稿を見ましょう。</p>
         </div>
+      ) : feedType === 'search' && searchQuery && posts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm">
+          <p>No posts found for "{searchQuery}"</p>
+        </div>
       ) : (
-        <Feed key={feedType} initialPosts={posts} currentUserId={session.id} feedType={feedType} />
+        <Feed key={`${feedType}-${searchQuery}`} initialPosts={posts} currentUserId={session.id} feedType={feedType} searchQuery={searchQuery} />
       )}
     </main>
   );
