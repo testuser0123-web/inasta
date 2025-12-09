@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Grid, Heart, ShieldCheck } from 'lucide-react';
+import { Settings, Grid, Heart, ShieldCheck, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import Feed from '@/components/Feed';
 import ProfileHeader from '@/components/ProfileHeader';
@@ -75,6 +75,14 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                 >
                     <Settings className="w-4 h-4" />
                     Edit Profile
+                </Link>
+
+                <Link
+                    href="/settings"
+                    className="flex items-center justify-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                >
+                    <MoreHorizontal className="w-4 h-4" />
+                    Other Settings
                 </Link>
                 
                 {!user.isVerified && (

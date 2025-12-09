@@ -25,9 +25,24 @@ export async function fetchFeedPosts({
   });
   const mutedIds = muted.map((m) => m.mutedId);
 
+  // Check user settings for excluding unverified posts
+  const user = await db.user.findUnique({
+    where: { id: session.id },
+    select: { excludeUnverifiedPosts: true },
+  });
+
   let whereClause: Prisma.PostWhereInput = {
     userId: { notIn: mutedIds },
   };
+
+  if (feedType === "all" && user?.excludeUnverifiedPosts) {
+     whereClause = {
+         ...whereClause,
+         user: {
+             isVerified: true
+         }
+     };
+  }
 
   if (feedType === "following") {
     const following = await db.follow.findMany({
@@ -233,33 +248,18 @@ export async function fetchLikedPosts({
   // And `loadMore` in Feed.tsx passes `lastPostId` as cursor.
   // So if we use `lastPostId` as cursor for `fetchLikedPosts`, we need to find the Like entry for that post.
 
-  let cursorOption = undefined;
-  if (cursorId) {
-      const likeCursor = await db.like.findUnique({
-          where: {
-              userId_postId: {
-                  userId: userId,
-                  postId: cursorId
-              }
-          },
-          select: { id: true } // Like ID is composite? No, schema says `@@id([userId, postId])` usually, let's check schema.
-      });
-      // Actually checking schema... I can't check schema directly but I can infer from `db.like.findUnique`.
-      // The toggleLike function uses `userId_postId`.
-      // If Like doesn't have a single primary key `id`, we can't use it as cursor easily if it's composite.
-      // Let's check `toggleLike` again.
-      /*
-        await db.like.delete({
-            where: {
-                userId_postId: { userId: session.id, postId: postId },
-            },
-        });
-      */
-      // It seems it uses composite key.
-
-      // Prisma supports composite ID cursors.
-      // cursor: { userId_postId: { userId: userId, postId: cursorId } }
-  }
+  // let cursorOption = undefined;
+  // if (cursorId) {
+  //     await db.like.findUnique({
+  //         where: {
+  //             userId_postId: {
+  //                 userId: userId,
+  //                 postId: cursorId
+  //             }
+  //         },
+  //         select: { id: true }
+  //     });
+  // }
 
   const likedPostsData = await db.like.findMany({
     take: 12,

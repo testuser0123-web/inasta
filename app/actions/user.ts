@@ -4,7 +4,8 @@ import { db } from '@/lib/db';
 import { getSession, encrypt } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import { USERNAME_REGEX } from '@/lib/validation';
+import { USERNAME_REGEX, PASSWORD_REGEX } from '@/lib/validation';
+import bcrypt from 'bcryptjs';
 
 export async function updateProfile(prevState: unknown, formData: FormData) {
   const session = await getSession();
@@ -18,19 +19,23 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
   const oshi = formData.get('oshi') as string;
 
   if (!username) {
-    return { message: 'Username is required' };
+    return { message: 'ユーザー名は必須です' };
   }
 
   if (!USERNAME_REGEX.test(username)) {
-    return { message: 'Username must be alphanumeric (letters and numbers only)' };
+    return { message: 'ユーザー名には英数字、日本語、記号（_ @ . - = ( ) （ ））が使えます' };
+  }
+
+  if (username.length > 50) {
+    return { message: 'ユーザー名は50文字以内で入力してください' };
   }
 
   if (bio && bio.length > 160) {
-    return { message: 'Bio must be 160 characters or less' };
+    return { message: '自己紹介は160文字以内で入力してください' };
   }
 
   if (oshi && oshi.length > 20) {
-    return { message: 'Oshi must be 20 characters or less' };
+    return { message: '推し名は20文字以内で入力してください' };
   }
 
   try {
@@ -40,7 +45,7 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
     });
 
     if (existingUser && existingUser.id !== session.id) {
-      return { message: 'Username already taken' };
+      return { message: 'このユーザー名は既に使用されています' };
     }
 
     const updatedUser = await db.user.update({
@@ -63,13 +68,13 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
 
   } catch (error) {
     console.error('Failed to update profile:', error);
-    return { message: 'Failed to update profile' };
+    return { message: 'プロフィールの更新に失敗しました' };
   }
 
   revalidatePath('/profile');
   revalidatePath('/');
   revalidatePath(`/users/${username}`); // In case we are viewing public profile
-  return { message: 'Profile updated successfully', success: true };
+  return { message: 'プロフィールを更新しました', success: true };
 }
 
 export async function followUser(targetUserId: number) {
@@ -149,4 +154,72 @@ export async function unmuteUser(targetUserId: number) {
   } catch (error) {
     console.error('Failed to unmute:', error);
   }
+}
+
+export async function changePassword(prevState: unknown, formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    return { message: 'Unauthorized' };
+  }
+
+  const currentPassword = formData.get('currentPassword') as string;
+  const newPassword = formData.get('newPassword') as string;
+
+  if (!currentPassword || !newPassword) {
+    return { message: '現在のパスワードと新しいパスワードを入力してください' };
+  }
+
+  if (!PASSWORD_REGEX.test(newPassword)) {
+      return { message: "パスワードには英数字、記号が使えます" };
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: session.id },
+  });
+
+  if (!user) {
+    return { message: 'User not found' };
+  }
+
+  const isValid = await bcrypt.compare(currentPassword, user.password);
+
+  if (!isValid) {
+    return { message: '現在のパスワードが間違っています' };
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await db.user.update({
+    where: { id: session.id },
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  return { message: 'パスワードを変更しました', success: true };
+}
+
+export async function updateSettings(prevState: unknown, formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    return { message: 'Unauthorized' };
+  }
+
+  const excludeUnverifiedPosts = formData.get('excludeUnverifiedPosts') === 'on';
+
+  try {
+    await db.user.update({
+      where: { id: session.id },
+      data: {
+        excludeUnverifiedPosts,
+      },
+    });
+
+    revalidatePath('/'); // Revalidate feed
+  } catch (error) {
+    console.error('Failed to update settings:', error);
+    return { message: 'Failed to update settings' };
+  }
+
+  return { message: '設定を保存しました', success: true };
 }
