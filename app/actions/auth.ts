@@ -17,7 +17,7 @@ export async function signup(prevState: unknown, formData: FormData) {
 
   if (!USERNAME_REGEX.test(username)) {
     return {
-      message: "ユーザー名には英数字と日本語が使えます",
+      message: "ユーザー名には英数字、日本語、記号（_ @ . - = ( ) （ ））が使えます",
     };
   }
 

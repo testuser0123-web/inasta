@@ -19,23 +19,23 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
   const oshi = formData.get('oshi') as string;
 
   if (!username) {
-    return { message: 'Username is required' };
+    return { message: 'ユーザー名は必須です' };
   }
 
   if (!USERNAME_REGEX.test(username)) {
-    return { message: 'Username must be alphanumeric (letters and numbers) or Japanese characters' };
+    return { message: 'ユーザー名には英数字、日本語、記号（_ @ . - = ( ) （ ））が使えます' };
   }
 
   if (username.length > 50) {
-    return { message: 'Username must be 50 characters or less' };
+    return { message: 'ユーザー名は50文字以内で入力してください' };
   }
 
   if (bio && bio.length > 160) {
-    return { message: 'Bio must be 160 characters or less' };
+    return { message: '自己紹介は160文字以内で入力してください' };
   }
 
   if (oshi && oshi.length > 20) {
-    return { message: 'Oshi must be 20 characters or less' };
+    return { message: '推し名は20文字以内で入力してください' };
   }
 
   try {
@@ -45,7 +45,7 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
     });
 
     if (existingUser && existingUser.id !== session.id) {
-      return { message: 'Username already taken' };
+      return { message: 'このユーザー名は既に使用されています' };
     }
 
     const updatedUser = await db.user.update({
@@ -68,13 +68,13 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
 
   } catch (error) {
     console.error('Failed to update profile:', error);
-    return { message: 'Failed to update profile' };
+    return { message: 'プロフィールの更新に失敗しました' };
   }
 
   revalidatePath('/profile');
   revalidatePath('/');
   revalidatePath(`/users/${username}`); // In case we are viewing public profile
-  return { message: 'Profile updated successfully', success: true };
+  return { message: 'プロフィールを更新しました', success: true };
 }
 
 export async function followUser(targetUserId: number) {
