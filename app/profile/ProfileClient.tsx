@@ -117,9 +117,21 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
       </div>
 
       {activeTab === 'posts' ? (
-        <Feed key="posts" initialPosts={posts} currentUserId={currentUser?.id ?? -1} />
+        <Feed
+            key="posts"
+            initialPosts={posts}
+            currentUserId={currentUser?.id ?? -1}
+            feedType="user_posts"
+            targetUserId={user.id}
+        />
       ) : (
-        <Feed key="likes" initialPosts={likedPosts} currentUserId={currentUser?.id ?? -1} />
+        <Feed
+            key="likes"
+            initialPosts={likedPosts}
+            currentUserId={currentUser?.id ?? -1}
+            feedType="user_likes"
+            targetUserId={user.id}
+        />
       )}
 
       <VerificationModal 

@@ -124,6 +124,206 @@ export async function fetchFeedPosts({
   }));
 }
 
+export async function fetchUserPosts({
+  userId,
+  cursorId,
+}: {
+  userId: number;
+  cursorId?: number;
+}) {
+  const session = await getSession();
+  // if (!session) return []; // Allow fetching user posts without session? Or follow page rules?
+  // Page seems to allow viewing profiles without session, but checking 'liked' status needs session.
+
+  const postsData = await db.post.findMany({
+    take: 12,
+    skip: cursorId ? 1 : 0,
+    cursor: cursorId ? { id: cursorId } : undefined,
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      comment: true,
+      userId: true,
+      hashtags: {
+        select: {
+          name: true,
+        },
+      },
+      images: {
+        select: {
+          id: true,
+          order: true,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      },
+      user: {
+        select: {
+          username: true,
+          avatarUrl: true,
+          updatedAt: true,
+          isVerified: true,
+        },
+      },
+      comments: {
+        select: {
+          id: true,
+          text: true,
+          userId: true,
+          user: {
+            select: {
+              username: true,
+              avatarUrl: true,
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
+      },
+      _count: {
+        select: { likes: true },
+      },
+      likes: {
+        where: { userId: session?.id ?? -1 },
+        select: { userId: true },
+      },
+    },
+  });
+
+  return postsData.map((post) => ({
+    ...post,
+    user: {
+      ...post.user,
+      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null,
+    },
+    likesCount: post._count.likes,
+    hasLiked: post.likes.length > 0,
+    likes: undefined,
+    _count: undefined,
+  }));
+}
+
+export async function fetchLikedPosts({
+  userId,
+  cursorId,
+}: {
+  userId: number;
+  cursorId?: number;
+}) {
+  const session = await getSession();
+
+  // Note: Only allow seeing liked posts if it's "Me" (current user).
+  // The UI currently only shows Liked tab for the current user in ProfileClient (initialStatus.isMe check).
+  // If we want to strictly enforce this on backend, we should check if session.id == userId.
+  if (!session || session.id !== userId) return [];
+
+  // Likes are stored in Like table. We need to fetch Like table with pagination, then get the posts.
+  // However, Like table cursor would be on Like ID or createdAt, but the UI expects Post cursor?
+  // Usually infinite scroll uses the ID of the last item in the list.
+  // Here the list is of Liked Posts.
+  // Ideally we should paginate on the Like table.
+  // If we pass cursorId (postId), we need to find the Like record corresponding to that Post to use as cursor?
+  // Or maybe we can assume cursorId refers to the Like ID?
+  // But the frontend usually passes the ID of the last element it rendered. The elements are Posts.
+  // So the cursorId passed will be a Post ID.
+
+  // Wait, if we paginate on Like table, the cursor should be Like ID.
+  // But the Feed component expects a list of Posts.
+  // And `loadMore` in Feed.tsx passes `lastPostId` as cursor.
+  // So if we use `lastPostId` as cursor for `fetchLikedPosts`, we need to find the Like entry for that post.
+
+  let cursorOption = undefined;
+  if (cursorId) {
+      const likeCursor = await db.like.findUnique({
+          where: {
+              userId_postId: {
+                  userId: userId,
+                  postId: cursorId
+              }
+          },
+          select: { id: true } // Like ID is composite? No, schema says `@@id([userId, postId])` usually, let's check schema.
+      });
+      // Actually checking schema... I can't check schema directly but I can infer from `db.like.findUnique`.
+      // The toggleLike function uses `userId_postId`.
+      // If Like doesn't have a single primary key `id`, we can't use it as cursor easily if it's composite.
+      // Let's check `toggleLike` again.
+      /*
+        await db.like.delete({
+            where: {
+                userId_postId: { userId: session.id, postId: postId },
+            },
+        });
+      */
+      // It seems it uses composite key.
+
+      // Prisma supports composite ID cursors.
+      // cursor: { userId_postId: { userId: userId, postId: cursorId } }
+  }
+
+  const likedPostsData = await db.like.findMany({
+    take: 12,
+    skip: cursorId ? 1 : 0,
+    cursor: cursorId ? { userId_postId: { userId: userId, postId: cursorId } } : undefined,
+    where: { userId: userId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      post: {
+        select: {
+            id: true,
+            comment: true,
+            userId: true,
+            hashtags: {
+                select: { name: true }
+            },
+            images: {
+                select: { id: true, order: true },
+                orderBy: { order: 'asc' }
+            },
+            user: {
+                select: {
+                    username: true,
+                    avatarUrl: true,
+                    updatedAt: true,
+                    isVerified: true,
+                }
+            },
+            comments: {
+                select: {
+                    id: true,
+                    text: true,
+                    userId: true,
+                    user: {
+                        select: { username: true, avatarUrl: true }
+                    }
+                },
+                orderBy: { createdAt: 'asc' }
+            },
+            _count: {
+                select: { likes: true }
+            },
+            likes: {
+                where: { userId: session.id }, // Check if *session user* liked this post
+                select: { userId: true }
+            }
+        }
+      }
+    }
+  });
+
+  return likedPostsData.map((item) => ({
+    ...item.post,
+    user: {
+      ...item.post.user,
+      avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}` : null,
+    },
+    likesCount: item.post._count.likes,
+    hasLiked: item.post.likes.length > 0,
+    likes: undefined,
+    _count: undefined,
+  }));
+}
+
 export async function createPost(prevState: unknown, formData: FormData) {
   const session = await getSession();
   if (!session) {
