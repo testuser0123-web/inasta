@@ -74,6 +74,11 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       // imageUrl: true,
       comment: true,
       userId: true,
+      hashtags: {
+        select: {
+            name: true
+        }
+      },
       user: {
           select: {
               username: true,
@@ -117,6 +122,11 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                     // imageUrl: true,
                     comment: true,
                     userId: true,
+                hashtags: {
+                    select: {
+                        name: true
+                    }
+                },
                     user: {
                         select: {
                             username: true,

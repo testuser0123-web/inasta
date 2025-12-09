@@ -49,6 +49,11 @@ export default async function ProfilePage() {
       // imageUrl: true,
       comment: true,
       userId: true,
+      hashtags: {
+        select: {
+            name: true
+        }
+      },
       user: {
           select: {
               username: true,
@@ -90,6 +95,11 @@ export default async function ProfilePage() {
                 // imageUrl: true,
                 comment: true,
                 userId: true,
+                hashtags: {
+                    select: {
+                        name: true
+                    }
+                },
                 user: {
                     select: {
                         username: true,
