@@ -6,6 +6,8 @@ import EditProfileForm from '@/components/EditProfileForm';
 type User = {
     username: string;
     avatarUrl: string | null;
+    bio: string | null;
+    oshi: string | null;
 };
 
 export default function EditProfileClient({ user }: { user: User }) {

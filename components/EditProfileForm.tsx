@@ -9,6 +9,8 @@ import { getCroppedImg } from '@/lib/image';
 type User = {
     username: string;
     avatarUrl: string | null;
+    bio: string | null;
+    oshi: string | null;
 };
 
 type Area = { x: number; y: number; width: number; height: number };
@@ -17,6 +19,8 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
   const [state, action, isPending] = useActionState(updateProfile, undefined);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatarUrl);
   const [username, setUsername] = useState(user.username);
+  const [bio, setBio] = useState(user.bio || '');
+  const [oshi, setOshi] = useState(user.oshi || '');
   
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -165,6 +169,38 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     required
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
                 />
+            </div>
+
+            <div className="space-y-2">
+                <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+                    Bio
+                </label>
+                <textarea
+                    id="bio"
+                    name="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    maxLength={160}
+                    rows={3}
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 resize-none"
+                />
+                <p className="text-xs text-gray-500 text-right">{bio.length}/160</p>
+            </div>
+
+            <div className="space-y-2">
+                <label htmlFor="oshi" className="block text-sm font-medium text-gray-700">
+                    Oshi (推し) ❤
+                </label>
+                <input
+                    type="text"
+                    id="oshi"
+                    name="oshi"
+                    value={oshi}
+                    onChange={(e) => setOshi(e.target.value)}
+                    maxLength={20}
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
+                />
+                <p className="text-xs text-gray-500 text-right">{oshi.length}/20</p>
             </div>
 
             {state?.message && (

@@ -14,6 +14,8 @@ export default async function EditProfilePage() {
     select: {
       username: true,
       avatarUrl: true,
+      bio: true,
+      oshi: true,
     },
   });
 

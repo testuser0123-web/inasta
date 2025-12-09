@@ -18,6 +18,8 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       avatarUrl: true,
       updatedAt: true,
       isVerified: true,
+      bio: true,
+      oshi: true,
       _count: {
           select: {
               followers: true,
