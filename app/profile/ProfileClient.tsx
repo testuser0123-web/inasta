@@ -12,6 +12,7 @@ type Post = {
     id: number;
     // imageUrl: string;
     comment: string | null;
+    createdAt: Date;
     likesCount: number;
     hasLiked: boolean;
     userId: number;
@@ -21,6 +22,7 @@ type Post = {
         isVerified?: boolean;
     };
     hashtags?: { name: string }[];
+    images?: { id: number; order: number }[];
 };
 
 type ProfileClientProps = {

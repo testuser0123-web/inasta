@@ -79,6 +79,7 @@ export async function fetchFeedPosts({
       id: true,
       // imageUrl: true, // Don't fetch the base64 string, use the API route instead
       comment: true,
+      createdAt: true,
       userId: true,
       hashtags: {
         select: {
@@ -159,6 +160,7 @@ export async function fetchUserPosts({
     select: {
       id: true,
       comment: true,
+      createdAt: true,
       userId: true,
       hashtags: {
         select: {
@@ -272,6 +274,7 @@ export async function fetchLikedPosts({
         select: {
             id: true,
             comment: true,
+            createdAt: true,
             userId: true,
             hashtags: {
                 select: { name: true }
