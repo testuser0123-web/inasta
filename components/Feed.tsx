@@ -19,7 +19,7 @@ type Comment = {
 
 type Post = {
   id: number;
-  imageUrl: string;
+  // imageUrl: string; // Removed from payload
   comment: string | null;
   likesCount: number;
   hasLiked: boolean;
@@ -30,6 +30,7 @@ type Post = {
       isVerified?: boolean;
   };
   comments?: Comment[];
+  hashtags?: { name: string }[];
 };
 
 export default function Feed({ initialPosts, currentUserId, feedType, searchQuery }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search', searchQuery?: string }) {
@@ -259,7 +260,21 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               </div>
               
               {selectedPost.comment && (
-                <p className="text-gray-900 break-words mb-4">{selectedPost.comment}</p>
+                <p className="text-gray-900 break-words mb-2">{selectedPost.comment}</p>
+              )}
+
+              {selectedPost.hashtags && selectedPost.hashtags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {selectedPost.hashtags.map((tag) => (
+                    <Link
+                      key={tag.name}
+                      href={`/?feed=search&q=${tag.name.replace('#', '')}`}
+                      className="text-blue-500 text-sm hover:underline"
+                    >
+                      {tag.name}
+                    </Link>
+                  ))}
+                </div>
               )}
 
               {/* Comments Section */}

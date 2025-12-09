@@ -40,7 +40,9 @@ export async function fetchFeedPosts({
       ...whereClause,
       userId: { in: followingIds, notIn: mutedIds },
     };
-  } else if (feedType === "search" && searchQuery) {
+  } else if (feedType === "search") {
+    if (!searchQuery) return []; // Don't return any posts if search query is empty
+
     const query = searchQuery.startsWith("#") ? searchQuery : `#${searchQuery}`;
     whereClause = {
       ...whereClause,
@@ -60,9 +62,14 @@ export async function fetchFeedPosts({
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
-      imageUrl: true,
+      // imageUrl: true, // Don't fetch the base64 string, use the API route instead
       comment: true,
       userId: true,
+      hashtags: {
+        select: {
+          name: true,
+        },
+      },
       user: {
         select: {
           username: true,
