@@ -79,6 +79,20 @@ export default async function UserPage({ params }: { params: Promise<{ username:
             name: true
         }
       },
+      comments: {
+        select: {
+            id: true,
+            text: true,
+            userId: true,
+            user: {
+                select: {
+                    username: true,
+                    avatarUrl: true
+                }
+            }
+        },
+        orderBy: { createdAt: 'asc' }
+      },
       user: {
           select: {
               username: true,
@@ -126,6 +140,20 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                     select: {
                         name: true
                     }
+                },
+                comments: {
+                    select: {
+                        id: true,
+                        text: true,
+                        userId: true,
+                        user: {
+                            select: {
+                                username: true,
+                                avatarUrl: true
+                            }
+                        }
+                    },
+                    orderBy: { createdAt: 'asc' }
                 },
                     user: {
                         select: {

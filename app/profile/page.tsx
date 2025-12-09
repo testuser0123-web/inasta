@@ -54,6 +54,20 @@ export default async function ProfilePage() {
             name: true
         }
       },
+      comments: {
+        select: {
+            id: true,
+            text: true,
+            userId: true,
+            user: {
+                select: {
+                    username: true,
+                    avatarUrl: true
+                }
+            }
+        },
+        orderBy: { createdAt: 'asc' }
+      },
       user: {
           select: {
               username: true,
@@ -99,6 +113,20 @@ export default async function ProfilePage() {
                     select: {
                         name: true
                     }
+                },
+                comments: {
+                    select: {
+                        id: true,
+                        text: true,
+                        userId: true,
+                        user: {
+                            select: {
+                                username: true,
+                                avatarUrl: true
+                            }
+                        }
+                    },
+                    orderBy: { createdAt: 'asc' }
                 },
                 user: {
                     select: {
