@@ -17,6 +17,7 @@ type ProfileHeaderProps = {
   currentUser: {
     id: number;
     username: string;
+    avatarUrl?: string | null;
   } | null;
   initialCounts: {
     followers: number;
@@ -68,13 +69,13 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
   };
 
   return (
-    <div className="flex flex-col items-center mb-6">
-      <div className="w-24 h-24 bg-gray-200 rounded-full mb-4 overflow-hidden">
+    <div className="flex flex-col items-center mb-6 text-gray-900 dark:text-gray-100">
+      <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full mb-4 overflow-hidden">
         {user.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl font-bold">
+          <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-4xl font-bold">
             {user.username[0].toUpperCase()}
           </div>
         )}
@@ -94,7 +95,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
                   </div>
               )}
               {user.bio && (
-                  <p className="text-gray-700 whitespace-pre-wrap text-sm">{user.bio}</p>
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm">{user.bio}</p>
               )}
           </div>
       )}
@@ -102,11 +103,11 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
       <div className="flex gap-6 mb-4 text-sm">
          <Link href={`/users/${user.username}/followers`} className="text-center hover:opacity-70 transition-opacity">
              <span className="font-bold block">{counts.followers}</span>
-             <span className="text-gray-500">Followers</span>
+             <span className="text-gray-500 dark:text-gray-400">Followers</span>
          </Link>
          <Link href={`/users/${user.username}/following`} className="text-center hover:opacity-70 transition-opacity">
              <span className="font-bold block">{counts.following}</span>
-             <span className="text-gray-500">Following</span>
+             <span className="text-gray-500 dark:text-gray-400">Following</span>
          </Link>
       </div>
 
@@ -116,7 +117,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
              onClick={handleFollowToggle}
              className={`px-6 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                  status.isFollowing 
-                 ? 'bg-gray-200 text-black hover:bg-gray-300' 
+                 ? 'bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
              }`}
            >
@@ -126,7 +127,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
            <div className="relative">
              <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-1.5 rounded-full hover:bg-gray-100 text-gray-600"
+                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300"
              >
                 <MoreHorizontal className="w-6 h-6" />
              </button>
@@ -134,10 +135,10 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
              {isMenuOpen && (
                  <>
                    <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
-                   <div className="absolute top-full right-0 mt-1 w-32 bg-white border rounded-lg shadow-lg z-20 overflow-hidden">
+                   <div className="absolute top-full right-0 mt-1 w-32 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg z-20 overflow-hidden">
                        <button 
                          onClick={handleMuteToggle}
-                         className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 text-red-600"
+                         className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
                        >
                            {status.isMuted ? 'Unmute' : 'Mute'}
                        </button>

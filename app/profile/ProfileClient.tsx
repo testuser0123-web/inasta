@@ -73,7 +73,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
             <div className="flex flex-col gap-2 max-w-xs mx-auto mb-6">
                 <Link
                     href="/profile/edit"
-                    className="flex items-center justify-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-center gap-2 px-4 py-2 border dark:border-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors dark:text-gray-100"
                 >
                     <Settings className="w-4 h-4" />
                     Edit Profile
@@ -81,7 +81,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
 
                 <Link
                     href="/settings"
-                    className="flex items-center justify-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-center gap-2 px-4 py-2 border dark:border-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors dark:text-gray-100"
                 >
                     <MoreHorizontal className="w-4 h-4" />
                     Other Settings
@@ -90,7 +90,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                 {!user.isVerified && (
                     <button
                         onClick={() => setIsVerificationModalOpen(true)}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors"
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 rounded-lg text-sm font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                     >
                         <ShieldCheck className="w-4 h-4" />
                         Verify Account
@@ -101,11 +101,11 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
 
          {/* Tabs - only show for me */}
          {initialStatus.isMe ? (
-             <div className="flex border-b">
+             <div className="flex border-b dark:border-gray-800">
                 <button
                     onClick={() => setActiveTab('posts')}
                     className={`flex-1 flex items-center justify-center py-3 text-sm font-medium transition-colors ${
-                        activeTab === 'posts' ? 'border-b-2 border-black text-black' : 'text-gray-500 hover:text-black'
+                        activeTab === 'posts' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
                     }`}
                 >
                     <Grid className="w-5 h-5 mr-2" />
@@ -114,7 +114,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                 <button
                     onClick={() => setActiveTab('likes')}
                     className={`flex-1 flex items-center justify-center py-3 text-sm font-medium transition-colors ${
-                        activeTab === 'likes' ? 'border-b-2 border-black text-black' : 'text-gray-500 hover:text-black'
+                        activeTab === 'likes' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
                     }`}
                 >
                     <Heart className="w-5 h-5 mr-2" />
@@ -122,7 +122,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                 </button>
              </div>
          ) : (
-             <div className="border-t border-gray-100 mt-4" />
+             <div className="border-t border-gray-100 dark:border-gray-800 mt-4" />
          )}
       </div>
 

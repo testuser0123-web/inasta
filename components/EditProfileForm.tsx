@@ -116,15 +116,15 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-white rounded-lg w-full max-w-sm p-6 relative">
+      <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-sm p-6 relative shadow-xl border dark:border-gray-800">
         <button 
             onClick={onClose}
-            className="absolute top-2 right-2 p-1 text-gray-500 hover:text-black"
+            className="absolute top-2 right-2 p-1 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
         >
             <X className="w-6 h-6" />
         </button>
 
-        <h2 className="text-xl font-bold mb-6 text-center">Edit Profile</h2>
+        <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white">Edit Profile</h2>
 
         <form action={action} className="space-y-6">
             <input type="hidden" name="avatarUrl" value={avatarPreview || ''} />
@@ -132,13 +132,13 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
             <div className="flex flex-col items-center">
                 <div 
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden cursor-pointer relative group border-2 border-transparent hover:border-indigo-500 transition-colors"
+                    className="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer relative group border-2 border-transparent hover:border-indigo-500 transition-colors"
                 >
                     {avatarPreview ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
-                         <div className="w-full h-full flex items-center justify-center text-gray-400">
+                         <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                              <Camera className="w-8 h-8" />
                          </div>
                     )}
@@ -153,11 +153,11 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     className="hidden" 
                     onChange={handleFileChange} 
                 />
-                <p className="text-xs text-gray-500 mt-2">Tap to change photo</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Tap to change photo</p>
             </div>
 
             <div className="space-y-2">
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Username
                 </label>
                 <input
@@ -167,12 +167,12 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
                 />
             </div>
 
             <div className="space-y-2">
-                <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Bio
                 </label>
                 <textarea
@@ -182,13 +182,13 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     onChange={(e) => setBio(e.target.value)}
                     maxLength={160}
                     rows={3}
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 resize-none"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 resize-none"
                 />
-                <p className="text-xs text-gray-500 text-right">{bio.length}/160</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-right">{bio.length}/160</p>
             </div>
 
             <div className="space-y-2">
-                <label htmlFor="oshi" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="oshi" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Oshi (推し) ❤
                 </label>
                 <input
@@ -198,13 +198,13 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     value={oshi}
                     onChange={(e) => setOshi(e.target.value)}
                     maxLength={20}
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
                 />
-                <p className="text-xs text-gray-500 text-right">{oshi.length}/20</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-right">{oshi.length}/20</p>
             </div>
 
             {state?.message && (
-                <div className={`text-sm text-center ${state.success ? 'text-green-600' : 'text-red-500'}`}>
+                <div className={`text-sm text-center ${state.success ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                     {state.message}
                 </div>
             )}

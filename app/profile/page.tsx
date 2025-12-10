@@ -180,9 +180,9 @@ export default async function ProfilePage() {
   }));
 
   return (
-    <main className="min-h-screen bg-white">
-      <div className="sticky top-0 z-40 bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm">
-         <Link href="/" className="text-gray-700 hover:text-black">
+    <main className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
+      <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 px-4 py-3 flex items-center justify-between shadow-sm">
+         <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
             <ArrowLeft className="w-6 h-6" />
          </Link>
          <h1 className="text-lg font-bold">My Page</h1>
@@ -191,7 +191,7 @@ export default async function ProfilePage() {
              await logout();
              redirect('/login');
          }}>
-             <button type="submit" className="text-gray-700 hover:text-red-500">
+             <button type="submit" className="text-gray-700 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400">
                 <LogOut className="w-6 h-6" />
              </button>
          </form>
