@@ -189,7 +189,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
             <div className="space-y-2">
                 <label htmlFor="oshi" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Oshi (推し) ❤
+                    推し
                 </label>
                 <input
                     type="text"
