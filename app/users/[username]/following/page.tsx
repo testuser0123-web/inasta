@@ -38,14 +38,14 @@ export default async function FollowingPage({ params }: { params: Promise<{ user
   }));
 
   return (
-    <main className="min-h-screen bg-white">
-      <div className="sticky top-0 z-40 bg-white border-b px-4 py-3 flex items-center shadow-sm">
-        <Link href={`/users/${username}`} className="text-gray-700 hover:text-black mr-4">
+    <main className="min-h-screen bg-white dark:bg-black">
+      <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 px-4 py-3 flex items-center shadow-sm">
+        <Link href={`/users/${username}`} className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white mr-4">
           <ArrowLeft className="w-6 h-6" />
         </Link>
         <div>
-           <h1 className="text-sm text-gray-500">@{user.username}</h1>
-           <h2 className="text-lg font-bold">Following</h2>
+           <h1 className="text-sm text-gray-500 dark:text-gray-400">@{user.username}</h1>
+           <h2 className="text-lg font-bold dark:text-white">Following</h2>
         </div>
       </div>
       <UserList users={users} />
