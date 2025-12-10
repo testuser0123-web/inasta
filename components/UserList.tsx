@@ -8,6 +8,7 @@ type User = {
   username: string;
   avatarUrl: string | null;
   isVerified?: boolean;
+  isGold?: boolean;
 };
 
 type UserListProps = {
@@ -47,7 +48,11 @@ export default function UserList({ users }: UserListProps) {
           </div>
           <div className="flex items-center gap-1">
             <span className="font-semibold text-gray-900 dark:text-gray-100">{user.username}</span>
-            {user.isVerified && <BadgeCheck className="w-4 h-4 text-blue-500" />}
+            {user.isGold ? (
+              <BadgeCheck className="w-4 h-4 text-yellow-500 fill-yellow-500/10" />
+            ) : user.isVerified ? (
+              <BadgeCheck className="w-4 h-4 text-blue-500" />
+            ) : null}
           </div>
         </Link>
       ))}

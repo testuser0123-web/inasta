@@ -29,6 +29,7 @@ type Post = {
       username: string;
       avatarUrl: string | null;
       isVerified?: boolean;
+      isGold?: boolean;
   };
   comments?: Comment[];
   hashtags?: { name: string }[];
@@ -252,7 +253,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                              <Link href={`/users/${selectedPost.user.username}`} className="text-sm font-semibold hover:underline">
                                 @{selectedPost.user.username}
                              </Link>
-                             {selectedPost.user.isVerified && <BadgeCheck className="w-4 h-4 text-blue-500" />}
+                             {selectedPost.user.isGold ? (
+                               <BadgeCheck className="w-4 h-4 text-yellow-500 fill-yellow-500/10" />
+                             ) : selectedPost.user.isVerified ? (
+                               <BadgeCheck className="w-4 h-4 text-blue-500" />
+                             ) : null}
                         </div>
                     )}
                 </div>
