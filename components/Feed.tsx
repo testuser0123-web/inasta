@@ -153,7 +153,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
           <div
             key={post.id}
             onClick={() => setSelectedPostId(post.id)}
-            className="aspect-square relative cursor-pointer bg-gray-100 overflow-hidden"
+            className="aspect-square relative cursor-pointer bg-gray-100 dark:bg-gray-800 overflow-hidden"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -176,7 +176,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               <button
                 onClick={loadMore}
                 disabled={isLoadingMore}
-                className="px-6 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-200 disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full text-sm font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
               >
                   {isLoadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
                   Load More
@@ -187,7 +187,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       {/* FAB */}
       <Link
         href="/upload"
-        className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
+        className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors z-20"
       >
         <Plus className="w-6 h-6" />
       </Link>
@@ -196,7 +196,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       {selectedPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedPostId(null)}>
           <div 
-            className="bg-white rounded-lg overflow-hidden w-full max-w-sm relative flex flex-col max-h-[90vh]"
+            className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden w-full max-w-sm relative flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
              <button 
@@ -208,7 +208,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
             <ImageCarousel post={selectedPost} />
 
-            <div className="p-4 overflow-y-auto flex-1">
+            <div className="p-4 overflow-y-auto flex-1 dark:text-gray-100">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                     <button
@@ -219,15 +219,15 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                             className={`w-6 h-6 transition-colors ${
                                 selectedPost.hasLiked 
                                     ? 'fill-red-500 text-red-500' 
-                                    : 'text-gray-700 group-hover:text-red-500'
+                                    : 'text-gray-700 dark:text-gray-300 group-hover:text-red-500'
                             }`} 
                         />
-                        <span className="font-semibold text-gray-700">{selectedPost.likesCount}</span>
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">{selectedPost.likesCount}</span>
                     </button>
                     {/* Share Button */}
                     <button
                         onClick={() => handleShare(selectedPost.id)}
-                        className="text-gray-700 hover:text-black relative"
+                        className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white relative"
                     >
                         <Share2 className="w-6 h-6" />
                         {shareFeedback && (
@@ -239,12 +239,12 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                     {/* Username link with Avatar */}
                     {selectedPost.user && (
                         <div className="flex items-center gap-2">
-                             <div className="w-6 h-6 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                             <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                                 {selectedPost.user.avatarUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={selectedPost.user.avatarUrl} alt={selectedPost.user.username} className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-500">
+                                    <div className="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-300">
                                         <UserIcon className="w-4 h-4" />
                                     </div>
                                 )}
@@ -261,7 +261,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                    <button
                     onClick={() => handleDelete(selectedPost.id)}
                     disabled={isDeleting}
-                    className="text-gray-400 hover:text-red-500 disabled:opacity-50"
+                    className="text-gray-400 dark:text-gray-500 hover:text-red-500 disabled:opacity-50"
                    >
                      <Trash2 className="w-5 h-5" />
                    </button>
@@ -269,10 +269,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               </div>
               
               {selectedPost.comment && (
-                <p className="text-gray-900 break-words mb-2">{selectedPost.comment}</p>
+                <p className="text-gray-900 dark:text-gray-100 break-words mb-2">{selectedPost.comment}</p>
               )}
 
-              <div className="text-xs text-gray-500 mb-2">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 {new Date(selectedPost.createdAt).toLocaleString('ja-JP', {
                   timeZone: 'Asia/Tokyo',
                   year: 'numeric',
@@ -298,13 +298,13 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               )}
 
               {/* Comments Section */}
-              <div className="space-y-3 border-t pt-3">
+              <div className="space-y-3 border-t dark:border-gray-800 pt-3">
                   {selectedPost.comments?.map((comment) => (
                       <div key={comment.id} className="flex gap-2 items-start text-sm">
-                          <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline shrink-0">
+                          <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline shrink-0 text-gray-900 dark:text-gray-100">
                               {comment.user.username}
                           </Link>
-                          <span className="text-gray-800 break-words">{comment.text}</span>
+                          <span className="text-gray-800 dark:text-gray-200 break-words">{comment.text}</span>
                       </div>
                   ))}
                   {(!selectedPost.comments || selectedPost.comments.length === 0) && (
@@ -314,7 +314,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             </div>
 
             {/* Add Comment Form */}
-            <div className="p-3 border-t bg-gray-50 shrink-0">
+            <div className="p-3 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-800 shrink-0">
                 <form onSubmit={handleAddComment} className="flex gap-2">
                     <input
                         type="text"
@@ -322,12 +322,12 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                         onChange={(e) => setCommentText(e.target.value)}
                         placeholder="Add a comment..."
                         maxLength={31}
-                        className="flex-1 rounded-full border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2"
+                        className="flex-1 rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2"
                     />
                     <button
                         type="submit"
                         disabled={!commentText.trim() || isSubmittingComment}
-                        className="p-2 text-indigo-600 hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isSubmittingComment ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                     </button>
@@ -376,7 +376,7 @@ function ImageCarousel({ post }: { post: Post }) {
     };
 
     return (
-        <div className="w-full relative bg-gray-100 min-h-[200px] shrink-0 group">
+        <div className="w-full relative bg-gray-100 dark:bg-gray-800 min-h-[200px] shrink-0 group">
              {/* Slider */}
             <div
                 ref={scrollContainerRef}

@@ -81,23 +81,23 @@ export default function VerificationModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-white rounded-lg w-full max-w-md p-6 relative">
+      <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-md p-6 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
         >
           ✕
         </button>
 
-        <h2 className="text-xl font-bold mb-4">アカウント認証</h2>
+        <h2 className="text-xl font-bold mb-4 dark:text-white">アカウント認証</h2>
 
         {step === 1 ? (
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               アカウントを認証するには、したらばで使用している名前（トリップの元となる文字列）を入力してください。
             </p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 BBS名
               </label>
               <div className="flex items-center gap-2">
@@ -106,11 +106,11 @@ export default function VerificationModal({
                   type="text"
                   value={bbsName}
                   onChange={(e) => setBbsName(e.target.value)}
-                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+                  className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
                   placeholder="ABC"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 トリップ名が「◆ABC」の場合、「ABC」と入力してください
               </p>
             </div>
@@ -128,9 +128,9 @@ export default function VerificationModal({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-              <p className="text-sm text-blue-800 font-semibold mb-2">指示:</p>
-              <ol className="list-decimal list-inside text-sm text-blue-700 space-y-1">
+            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-md border border-blue-100 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-300 font-semibold mb-2">指示:</p>
+              <ol className="list-decimal list-inside text-sm text-blue-700 dark:text-blue-200 space-y-1">
                 <li>このタブを閉じないでください。</li>
                 <li>認証スレに移動してください。</li>
                 <li>
@@ -140,25 +140,25 @@ export default function VerificationModal({
               </ol>
             </div>
 
-            <div className="flex items-center gap-2 bg-gray-100 p-3 rounded-md border border-gray-300">
-              <div className="flex-1 break-all font-mono text-sm select-all cursor-pointer">
+            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-3 rounded-md border border-gray-300 dark:border-gray-700">
+              <div className="flex-1 break-all font-mono text-sm select-all cursor-pointer dark:text-white">
                 {token}
               </div>
               <button
                 onClick={handleCopy}
-                className="p-1 rounded-md hover:bg-gray-200 text-gray-600 transition-colors"
+                className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
                 aria-label="トークンをコピー"
               >
                 <Copy className="w-5 h-5" />
               </button>
             </div>
             {copyStatus === "copied" && (
-              <p className="text-xs text-green-600 text-center">
+              <p className="text-xs text-green-600 dark:text-green-400 text-center">
                 コピーしました！
               </p>
             )}
             {copyStatus === "failed" && (
-              <p className="text-xs text-red-600 text-center">
+              <p className="text-xs text-red-600 dark:text-red-400 text-center">
                 コピーに失敗しました！
               </p>
             )}
@@ -167,8 +167,8 @@ export default function VerificationModal({
               <div
                 className={`p-3 rounded-md flex items-start gap-2 text-sm ${
                   message.type === "error"
-                    ? "bg-red-50 text-red-700"
-                    : "bg-green-50 text-green-700"
+                    ? "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                    : "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300"
                 }`}
               >
                 {message.type === "error" ? (

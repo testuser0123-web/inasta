@@ -208,9 +208,9 @@ export default async function UserPage({ params }: { params: Promise<{ username:
   }
 
   return (
-    <main className="min-h-screen bg-white">
-      <div className="sticky top-0 z-40 bg-white border-b px-4 py-3 flex items-center shadow-sm">
-         <Link href="/" className="text-gray-700 hover:text-black mr-4">
+    <main className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
+      <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 px-4 py-3 flex items-center shadow-sm">
+         <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white mr-4">
             <ArrowLeft className="w-6 h-6" />
          </Link>
          <h1 className="text-lg font-bold">@{user.username}</h1>
