@@ -5,6 +5,7 @@ import { updateProfile } from '@/app/actions/user';
 import { Camera, Check, X } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '@/lib/image';
+import { upload } from '@vercel/blob/client';
 
 type User = {
     username: string;
@@ -21,6 +22,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
   const [username, setUsername] = useState(user.username);
   const [bio, setBio] = useState(user.bio || '');
   const [oshi, setOshi] = useState(user.oshi || '');
+  const [isUploading, setIsUploading] = useState(false);
   
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -68,6 +70,48 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
   const cancelCrop = () => {
       setImageSrc(null);
+  };
+
+  const handleSubmit = async (formData: FormData) => {
+      setIsUploading(true);
+      try {
+          let avatarBlobUrl = '';
+          // If avatarPreview is a base64 string, upload it
+          if (avatarPreview && avatarPreview.startsWith('data:')) {
+              const res = await fetch(avatarPreview);
+              const blob = await res.blob();
+              const file = new File([blob], `avatar.png`, { type: 'image/png' });
+
+              const newBlob = await upload(file.name, file, {
+                  access: 'public',
+                  handleUploadUrl: '/api/upload',
+              });
+              avatarBlobUrl = newBlob.url;
+          }
+
+          // Pass the Blob URL (if new) or existing URL (if not changed) or base64 (if something went wrong but we shouldn't fail safe)
+          // Wait, server action logic:
+          // if starts with data: -> upload to blob.
+          // We removed server upload logic.
+          // So we must pass the BLOB URL here if we uploaded it.
+
+          if (avatarBlobUrl) {
+              // We replace the 'avatarUrl' field with the new blob URL
+              formData.set('avatarUrl', avatarBlobUrl);
+          } else {
+              // If we didn't upload (no change, or removed), keep what is in avatarPreview
+              // (which is either old URL or null, or base64 if upload failed but we didn't catch?)
+              // If it's old URL (https://...), server action sees it doesn't start with data:, so it just updates/keeps it.
+              formData.set('avatarUrl', avatarPreview || '');
+          }
+
+          await action(formData);
+      } catch (error) {
+          console.error("Upload failed", error);
+          alert("アバターのアップロードに失敗しました");
+      } finally {
+          setIsUploading(false);
+      }
   };
 
   // If in cropping mode
@@ -126,7 +170,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
         <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white">Edit Profile</h2>
 
-        <form action={action} className="space-y-6">
+        <form action={handleSubmit} className="space-y-6">
             <input type="hidden" name="avatarUrl" value={avatarPreview || ''} />
 
             <div className="flex flex-col items-center">
@@ -211,10 +255,10 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
             <button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || isUploading}
                 className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
             >
-                {isPending ? 'Saving...' : 'Save Changes'}
+                {isPending || isUploading ? 'Saving...' : 'Save Changes'}
             </button>
         </form>
       </div>

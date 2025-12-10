@@ -5,6 +5,7 @@ import { createPost } from "@/app/actions/post";
 import { Camera, Check, X, Smartphone, Image as ImageIcon } from "lucide-react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/image";
+import { upload } from '@vercel/blob/client';
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
@@ -20,6 +21,7 @@ export default function UploadForm() {
   const [hashtags, setHashtags] = useState("");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -100,6 +102,38 @@ export default function UploadForm() {
       setCroppedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleSubmit = async (formData: FormData) => {
+    setIsUploading(true);
+    try {
+        const uploadedUrls = await Promise.all(
+            croppedImages.map(async (base64Image, index) => {
+                 // Convert base64 to Blob
+                 const res = await fetch(base64Image);
+                 const blob = await res.blob();
+
+                 // Upload to Vercel Blob
+                 const file = new File([blob], `image-${index}.png`, { type: 'image/png' });
+                 const newBlob = await upload(file.name, file, {
+                    access: 'public',
+                    handleUploadUrl: '/api/upload',
+                 });
+                 return newBlob.url;
+            })
+        );
+
+        // Pass urls to Server Action
+        formData.set('imageUrls', JSON.stringify(uploadedUrls));
+
+        // Call the server action
+        await action(formData);
+    } catch (error) {
+        console.error("Upload failed", error);
+        alert("画像のアップロードに失敗しました。");
+    } finally {
+        setIsUploading(false);
+    }
+  };
+
   // If we have an image source, show Cropper
   if (imageSrc) {
     return (
@@ -178,7 +212,7 @@ export default function UploadForm() {
   }
 
   return (
-    <form action={action} className="space-y-6 w-full max-w-md mx-auto p-4">
+    <form action={handleSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
       <input type="hidden" name="imageUrls" value={JSON.stringify(croppedImages)} />
 
       {/* Grid of selected images */}
@@ -276,10 +310,10 @@ export default function UploadForm() {
 
       <button
         type="submit"
-        disabled={isPending || croppedImages.length === 0}
+        disabled={isPending || isUploading || croppedImages.length === 0}
         className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
       >
-        {isPending ? "Uploading..." : "Share"}
+        {isPending || isUploading ? "Uploading..." : "Share"}
       </button>
     </form>
   );

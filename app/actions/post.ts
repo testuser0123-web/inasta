@@ -5,7 +5,6 @@ import { getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
-import { put } from "@vercel/blob";
 
 export async function fetchFeedPosts({
   cursorId,
@@ -402,11 +401,11 @@ export async function createPost(prevState: unknown, formData: FormData) {
   }
 
   const imageUrlsJson = formData.get("imageUrls") as string;
-  const imageUrl = formData.get("imageUrl") as string; // Fallback or first image
   const comment = formData.get("comment") as string;
   const hashtagsRaw = formData.get("hashtags") as string;
 
-  // We expect imageUrlsJson to be a JSON string of string[] (Base64 data)
+  // We expect imageUrlsJson to be a JSON string of string[] (Blob URLs or Base64 if fallback)
+  // With client-upload, these are Blob URLs.
   let imageUrls: string[] = [];
   if (imageUrlsJson) {
       try {
@@ -416,7 +415,8 @@ export async function createPost(prevState: unknown, formData: FormData) {
       }
   }
 
-  // If no JSON array, fall back to single imageUrl
+  // Fallback for direct formData field (deprecated by client-upload, but good for robustness)
+  const imageUrl = formData.get("imageUrl") as string;
   if (imageUrls.length === 0 && imageUrl) {
       imageUrls = [imageUrl];
   }
@@ -448,38 +448,24 @@ export async function createPost(prevState: unknown, formData: FormData) {
   }
 
   try {
-    // Upload images to Vercel Blob
-    const uploadedUrls: string[] = [];
+    // With client-side upload, imageUrls are already Blob URLs.
+    // However, if the client logic failed and sent base64, we should probably handle it or error.
+    // But assuming client side works, we just save them.
+    // If we want to support both (backward compat), we check if it is a Blob URL.
 
-    // Helper to upload base64
-    const uploadImage = async (base64: string, index: number) => {
-        // Simple filename generation, maybe with timestamp and random string
-        const filename = `post-${session.id}-${Date.now()}-${index}.png`;
-        const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-        if (!matches || matches.length !== 3) {
-            // If it's not base64, maybe it's already a URL?
-            // If so, just return it (though createPost usually receives new base64)
-            return base64;
-        }
-        const contentType = matches[1];
-        const buffer = Buffer.from(matches[2], 'base64');
-        const blob = await put(filename, buffer, { access: 'public', contentType });
-        return blob.url;
-    };
+    // Check if first image is base64 (legacy fallback)
+    // Note: User explicitly asked to "Client Upload", so we assume URLs are blob urls.
+    // But for robustness:
+    const isBlobUrl = (url: string) => url.startsWith('http') || url.startsWith('blob:') || url.startsWith('/'); // Vercel blob urls start with https://
 
-    for (let i = 0; i < imageUrls.length; i++) {
-        const url = await uploadImage(imageUrls[i], i);
-        uploadedUrls.push(url);
-    }
+    // Actually, `upload` from client returns https URLs.
 
-    const [firstImageBlobUrl, ...restImagesBlobUrls] = uploadedUrls;
-    // const [firstImageOriginal, ...restImagesOriginals] = imageUrls; // Don't need original Base64 anymore for storage
+    const [firstImage, ...restImages] = imageUrls;
 
     await db.post.create({
       data: {
-        // imageUrl: firstImageOriginal, // STOP SAVING BASE64
-        imageUrl: undefined, // Let it be null (or not set if undefined is skipped by prisma types, but we made it nullable)
-        imageBlobUrl: firstImageBlobUrl,
+        imageUrl: undefined,
+        imageBlobUrl: firstImage, // Save the URL directly
         comment,
         userId: session.id,
         hashtags: {
@@ -489,8 +475,7 @@ export async function createPost(prevState: unknown, formData: FormData) {
           })),
         },
         images: {
-            create: restImagesBlobUrls.map((url, index) => ({
-                // url: restImagesOriginals[index], // STOP SAVING BASE64
+            create: restImages.map((url, index) => ({
                 url: undefined,
                 blobUrl: url,
                 order: index + 1,
