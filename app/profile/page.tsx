@@ -21,6 +21,7 @@ export default async function ProfilePage() {
       avatarUrl: true,
       updatedAt: true,
       isVerified: true,
+      isGold: true,
       bio: true,
       oshi: true,
       _count: {
@@ -82,7 +83,9 @@ export default async function ProfilePage() {
           select: {
               username: true,
               avatarUrl: true,
-              updatedAt: true
+              updatedAt: true,
+              isVerified: true,
+              isGold: true,
           }
       },
       _count: {
@@ -152,7 +155,9 @@ export default async function ProfilePage() {
                     select: {
                         username: true,
                         avatarUrl: true,
-                        updatedAt: true
+                        updatedAt: true,
+                        isVerified: true,
+                        isGold: true,
                     }
                 },
                 _count: {

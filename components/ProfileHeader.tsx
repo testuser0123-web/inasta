@@ -11,6 +11,7 @@ type ProfileHeaderProps = {
     username: string;
     avatarUrl: string | null;
     isVerified?: boolean;
+    isGold?: boolean;
     bio?: string | null;
     oshi?: string | null;
   };
@@ -83,7 +84,11 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
       
       <div className="flex items-center gap-1 mb-2">
         <h2 className="text-xl font-bold">@{user.username}</h2>
-        {user.isVerified && <BadgeCheck className="w-5 h-5 text-blue-500" />}
+        {user.isGold ? (
+          <BadgeCheck className="w-5 h-5 text-yellow-500 fill-yellow-500/10" />
+        ) : user.isVerified ? (
+          <BadgeCheck className="w-5 h-5 text-blue-500" />
+        ) : null}
       </div>
 
       {(user.bio || user.oshi) && (

@@ -101,6 +101,7 @@ export async function fetchFeedPosts({
           avatarUrl: true,
           updatedAt: true,
           isVerified: true,
+          isGold: true,
         },
       },
       comments: {
@@ -182,6 +183,7 @@ export async function fetchUserPosts({
           avatarUrl: true,
           updatedAt: true,
           isVerified: true,
+          isGold: true,
         },
       },
       comments: {
@@ -289,6 +291,7 @@ export async function fetchLikedPosts({
                     avatarUrl: true,
                     updatedAt: true,
                     isVerified: true,
+                    isGold: true,
                 }
             },
             comments: {
