@@ -66,7 +66,21 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
       where: { id: session.id },
       data: {
         username,
-        avatarUrl: avatarUrl || undefined, // Keep old logic/column
+        // avatarUrl: avatarUrl || undefined, // Keep old logic/column // STOP SAVING BASE64 if we have new blob
+        avatarUrl: avatarBlobUrl ? undefined : (avatarUrl || undefined), // Only save avatarUrl if it's NOT a new blob upload (e.g. maybe user cleared it? or it's same old url?).
+        // Actually, if avatarUrl is sent as base64, and we upload it to blob, we don't want to save base64 to avatarUrl.
+        // If avatarUrl is NOT sent (undefined/null), we might be keeping old one.
+        // If user removed avatar? Client sends empty string?
+        // Let's assume if avatarBlobUrl is set, we don't touch avatarUrl (it stays as old value? No we want to clear old value if we want to save space?)
+        // User said "stop saving base64".
+        // If I update `avatarBlobUrl`, I should probably leave `avatarUrl` alone (it holds the OLD avatar base64).
+        // Or should I clear `avatarUrl`?
+        // If I clear it, and upload fails (caught by try/catch though), or migration issues...
+        // Safest is to just NOT update `avatarUrl` with the NEW base64.
+        // `avatarUrl` in form data is the new base64 string.
+        // So `avatarUrl || undefined` would update it.
+        // We want to skip that update if `avatarBlobUrl` is present.
+
         avatarBlobUrl: avatarBlobUrl, // Update new column if new avatar
         bio: bio || null,
         oshi: oshi || null,

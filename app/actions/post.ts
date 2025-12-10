@@ -138,33 +138,7 @@ export async function fetchFeedPosts({
     // Resolve Post Image
     let displayImageUrl = post.imageBlobUrl;
     if (!displayImageUrl) {
-        // Fallback to legacy behavior if not migrated
-        // If it was Base64, we rely on the API. But if we are in transition...
-        // The previous code didn't select imageUrl for bandwidth reasons and used /api/image.
-        // We will continue to use the blobUrl if available, otherwise fallback to API logic or raw base64?
-        // Wait, previous code commented out imageUrl selection: `// imageUrl: true,`.
-        // But I included it in select above.
-        // If it's Base64, we don't want to send it to client if it's huge.
-        // But if I selected it, it's sent.
-        // We should preferably use `imageBlobUrl`.
-        // If `imageBlobUrl` is null, we might need to rely on the old /api/image/[filename] approach
-        // OR send the base64 if we selected it.
-
-        // Actually, for Phase 2, we want to switch to <img src={post.imageUrl} />.
-        // If `imageBlobUrl` is present, we use it.
-        // If not, we might be dealing with old data not migrated or new data that failed upload?
-        // But we migrated everything.
-        // Let's return `imageBlobUrl` as `imageUrl` for the frontend to use comfortably.
-        // If `imageBlobUrl` is missing, we can try to use the `imageUrl` field (Base64) but that's heavy.
-        // Or we use the old API route logic.
-        // The old API route logic was specific: it didn't use `imageUrl` field in `fetchFeedPosts`.
-        // It constructed URL on client side? No, the client used `<img src={`/api/image/post-${post.id}.png`} />` or similar?
-        // Let's check `Feed.tsx` later.
-
-        // For now, let's normalize the output.
-        displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
-        // Note: The /api/image route logic was "Post images are served via a dynamic API route".
-        // But we want to move away from it.
+        displayImageUrl = (post.imageUrl?.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
     }
 
     // Resolve User Avatar
@@ -175,14 +149,14 @@ export async function fetchFeedPosts({
 
     return {
       ...post,
-      imageUrl: displayImageUrl, // Override with Blob URL or fallback
+      imageUrl: displayImageUrl!, // Force string as fallback ensures it
       user: {
         ...post.user,
         avatarUrl: userAvatar,
       },
       images: post.images.map(img => ({
           ...img,
-          url: img.blobUrl || img.url
+          url: img.blobUrl || img.url || '' // Provide fallback for TS
       })),
       comments: post.comments.map(c => ({
           ...c,
@@ -190,7 +164,7 @@ export async function fetchFeedPosts({
               ...c.user,
               avatarUrl: c.user.avatarBlobUrl ||
                  (c.user.avatarUrl ?
-                   (c.user.avatarUrl.startsWith("data:") ? c.user.avatarUrl : `/api/avatar/${c.user.username}?v=${Date.now()}`) // Timestamp fallback might be inaccurate for comments user but acceptable
+                   (c.user.avatarUrl.startsWith("data:") ? c.user.avatarUrl : `/api/avatar/${c.user.username}?v=${Date.now()}`)
                    : null)
           }
       })),
@@ -276,7 +250,10 @@ export async function fetchUserPosts({
   });
 
   return postsData.map((post) => {
-    let displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+    let displayImageUrl = post.imageBlobUrl;
+    if (!displayImageUrl) {
+        displayImageUrl = (post.imageUrl?.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+    }
 
     const userAvatar = post.user.avatarBlobUrl ||
        (post.user.avatarUrl ?
@@ -285,14 +262,14 @@ export async function fetchUserPosts({
 
     return {
         ...post,
-        imageUrl: displayImageUrl,
+        imageUrl: displayImageUrl!,
         user: {
           ...post.user,
           avatarUrl: userAvatar,
         },
         images: post.images.map(img => ({
             ...img,
-            url: img.blobUrl || img.url
+            url: img.blobUrl || img.url || ''
         })),
         comments: post.comments.map(c => ({
             ...c,
@@ -380,7 +357,10 @@ export async function fetchLikedPosts({
 
   return likedPostsData.map((item) => {
     const post = item.post;
-    let displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+    let displayImageUrl = post.imageBlobUrl;
+    if (!displayImageUrl) {
+        displayImageUrl = (post.imageUrl?.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+    }
     const userAvatar = post.user.avatarBlobUrl ||
        (post.user.avatarUrl ?
          (post.user.avatarUrl.startsWith("data:") ? post.user.avatarUrl : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
@@ -388,14 +368,14 @@ export async function fetchLikedPosts({
 
     return {
         ...post,
-        imageUrl: displayImageUrl,
+        imageUrl: displayImageUrl!,
         user: {
           ...post.user,
           avatarUrl: userAvatar,
         },
         images: post.images.map(img => ({
             ...img,
-            url: img.blobUrl || img.url
+            url: img.blobUrl || img.url || ''
         })),
         comments: post.comments.map(c => ({
             ...c,
@@ -493,11 +473,12 @@ export async function createPost(prevState: unknown, formData: FormData) {
     }
 
     const [firstImageBlobUrl, ...restImagesBlobUrls] = uploadedUrls;
-    const [firstImageOriginal, ...restImagesOriginals] = imageUrls;
+    // const [firstImageOriginal, ...restImagesOriginals] = imageUrls; // Don't need original Base64 anymore for storage
 
     await db.post.create({
       data: {
-        imageUrl: firstImageOriginal, // Keep original Base64 for now as per instructions "don't delete old columns yet"
+        // imageUrl: firstImageOriginal, // STOP SAVING BASE64
+        imageUrl: undefined, // Let it be null (or not set if undefined is skipped by prisma types, but we made it nullable)
         imageBlobUrl: firstImageBlobUrl,
         comment,
         userId: session.id,
@@ -509,7 +490,8 @@ export async function createPost(prevState: unknown, formData: FormData) {
         },
         images: {
             create: restImagesBlobUrls.map((url, index) => ({
-                url: restImagesOriginals[index], // Keep original Base64
+                // url: restImagesOriginals[index], // STOP SAVING BASE64
+                url: undefined,
                 blobUrl: url,
                 order: index + 1,
             }))

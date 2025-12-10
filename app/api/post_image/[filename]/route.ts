@@ -17,14 +17,22 @@ export async function GET(
   try {
     const postImage = await db.postImage.findUnique({
       where: { id },
-      select: { url: true },
+      select: { url: true, blobUrl: true },
     });
 
     if (!postImage) {
       return new NextResponse('Not Found', { status: 404 });
     }
 
+    if (postImage.blobUrl) {
+         return NextResponse.redirect(postImage.blobUrl);
+    }
+
     const imageUrl = postImage.url;
+
+    if (!imageUrl) {
+        return new NextResponse('Not Found', { status: 404 });
+    }
 
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {

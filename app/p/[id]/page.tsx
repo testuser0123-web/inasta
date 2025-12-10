@@ -88,7 +88,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
   if (!postData) notFound();
 
-  const displayImageUrl = postData.imageBlobUrl || (postData.imageUrl.startsWith("data:") ? postData.imageUrl : `/api/image/post-${postData.id}.png`);
+  const displayImageUrl = postData.imageBlobUrl || (postData.imageUrl?.startsWith("data:") ? postData.imageUrl : `/api/image/post-${postData.id}.png`);
 
   const userAvatar = postData.user.avatarBlobUrl ||
        (postData.user.avatarUrl ?
@@ -97,14 +97,14 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
   const post = {
       ...postData,
-      imageUrl: displayImageUrl,
+      imageUrl: displayImageUrl!,
       user: {
           ...postData.user,
           avatarUrl: userAvatar
       },
       images: postData.images.map(img => ({
           ...img,
-          url: img.blobUrl || img.url
+          url: img.blobUrl || img.url || ''
       })),
       likesCount: postData._count.likes,
       hasLiked: postData.likes.length > 0,

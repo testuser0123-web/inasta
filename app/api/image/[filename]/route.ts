@@ -18,7 +18,7 @@ export async function GET(
   try {
     const post = await db.post.findUnique({
       where: { id },
-      select: { imageUrl: true },
+      select: { imageUrl: true, imageBlobUrl: true },
     });
 
     if (!post) {
@@ -26,7 +26,19 @@ export async function GET(
       return new NextResponse('Not Found', { status: 404 });
     }
 
+    // If new post with Blob URL calls this API (it shouldn't if frontend is correct, but just in case or if shared link), redirect?
+    // Or if `imageUrl` is null, we can't serve it.
+    // The frontend should be using `imageBlobUrl` directly.
+    // However, if someone accesses this URL directly for a new post, we might want to redirect to the blob url?
+    if (post.imageBlobUrl) {
+         return NextResponse.redirect(post.imageBlobUrl);
+    }
+
     const imageUrl = post.imageUrl;
+
+    if (!imageUrl) {
+        return new NextResponse('Not Found', { status: 404 });
+    }
 
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {

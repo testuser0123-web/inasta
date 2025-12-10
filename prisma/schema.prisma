@@ -32,7 +32,7 @@ model User {
 
 model Post {
   id        Int         @id @default(autoincrement())
-  imageUrl  String
+  imageUrl  String?
   imageBlobUrl String?
   comment   String?
   createdAt DateTime    @default(now())
@@ -46,7 +46,7 @@ model Post {
 
 model PostImage {
   id     Int    @id @default(autoincrement())
-  url    String
+  url    String?
   blobUrl String?
   order  Int
   postId Int

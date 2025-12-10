@@ -135,7 +135,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
   });
 
   const posts = postsData.map(post => {
-      let displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+      let displayImageUrl = post.imageBlobUrl || (post.imageUrl?.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
       const userAvatar = post.user.avatarBlobUrl ||
        (post.user.avatarUrl ?
          (post.user.avatarUrl.startsWith("data:") ? post.user.avatarUrl : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
@@ -143,14 +143,14 @@ export default async function UserPage({ params }: { params: Promise<{ username:
 
       return {
           ...post,
-          imageUrl: displayImageUrl,
+          imageUrl: displayImageUrl!,
           user: {
               ...post.user,
               avatarUrl: userAvatar
           },
           images: post.images.map(img => ({
               ...img,
-              url: img.blobUrl || img.url
+              url: img.blobUrl || img.url || ''
           })),
           likesCount: post._count.likes,
           hasLiked: post.likes.length > 0,
@@ -230,21 +230,21 @@ export default async function UserPage({ params }: { params: Promise<{ username:
 
       likedPosts = likedPostsData.map(item => {
           const post = item.post;
-          let displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+          let displayImageUrl = post.imageBlobUrl || (post.imageUrl?.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
           const userAvatar = post.user.avatarBlobUrl ||
            (post.user.avatarUrl ?
              (post.user.avatarUrl.startsWith("data:") ? post.user.avatarUrl : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
              : null);
           return {
               ...post,
-              imageUrl: displayImageUrl,
+              imageUrl: displayImageUrl!,
               user: {
                   ...post.user,
                   avatarUrl: userAvatar
               },
               images: post.images.map(img => ({
                   ...img,
-                  url: img.blobUrl || img.url
+                  url: img.blobUrl || img.url || ''
               })),
               likesCount: post._count.likes,
               hasLiked: post.likes.length > 0,
