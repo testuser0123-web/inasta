@@ -13,6 +13,7 @@ model User {
   password          String
   createdAt         DateTime  @default(now())
   avatarUrl         String?
+  avatarBlobUrl     String?
   isVerified        Boolean   @default(false)
   isGold            Boolean   @default(false)
   verificationToken String?
@@ -32,6 +33,7 @@ model User {
 model Post {
   id        Int         @id @default(autoincrement())
   imageUrl  String
+  imageBlobUrl String?
   comment   String?
   createdAt DateTime    @default(now())
   userId    Int
@@ -45,6 +47,7 @@ model Post {
 model PostImage {
   id     Int    @id @default(autoincrement())
   url    String
+  blobUrl String?
   order  Int
   postId Int
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)

@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { USERNAME_REGEX, PASSWORD_REGEX } from '@/lib/validation';
 import bcrypt from 'bcryptjs';
+import { put } from '@vercel/blob';
 
 export async function updateProfile(prevState: unknown, formData: FormData) {
   const session = await getSession();
@@ -48,11 +49,25 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
       return { message: 'このユーザー名は既に使用されています' };
     }
 
+    let avatarBlobUrl = undefined;
+    if (avatarUrl && avatarUrl.startsWith('data:')) {
+        // Upload new avatar to Blob
+        const filename = `avatar-${session.id}-${Date.now()}.png`;
+        const matches = avatarUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+            const contentType = matches[1];
+            const buffer = Buffer.from(matches[2], 'base64');
+            const blob = await put(filename, buffer, { access: 'public', contentType });
+            avatarBlobUrl = blob.url;
+        }
+    }
+
     const updatedUser = await db.user.update({
       where: { id: session.id },
       data: {
         username,
-        avatarUrl: avatarUrl || undefined, // Only update if provided
+        avatarUrl: avatarUrl || undefined, // Keep old logic/column
+        avatarBlobUrl: avatarBlobUrl, // Update new column if new avatar
         bio: bio || null,
         oshi: oshi || null,
       },

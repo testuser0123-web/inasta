@@ -19,7 +19,7 @@ type Comment = {
 
 type Post = {
   id: number;
-  // imageUrl: string; // Removed from payload
+  imageUrl: string; // Now contains either Blob URL or Fallback URL
   comment: string | null;
   createdAt: Date;
   likesCount: number;
@@ -33,7 +33,7 @@ type Post = {
   };
   comments?: Comment[];
   hashtags?: { name: string }[];
-  images?: { id: number; order: number }[];
+  images?: { id: number; order: number; url: string }[];
 };
 
 export default function Feed({ initialPosts, currentUserId, feedType, searchQuery, targetUserId }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search' | 'user_posts' | 'user_likes', searchQuery?: string, targetUserId?: number }) {
@@ -112,8 +112,9 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
   };
 
-  const handleShare = async (postId: number) => {
-      const url = `${window.location.origin}/api/image/${postId}.jpg`;
+  const handleShare = async (post: Post) => {
+      // Use the actual image URL
+      const url = post.imageUrl;
       try {
           await navigator.clipboard.writeText(url);
           setShareFeedback('Link copied!');
@@ -158,9 +159,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`/api/image/${post.id}.jpg`}
+              src={post.imageUrl}
               alt=""
               className="w-full h-full object-contain"
+              loading="lazy"
             />
             {post.images && post.images.length > 0 && (
                 <div className="absolute top-2 right-2 z-10">
@@ -227,7 +229,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                     </button>
                     {/* Share Button */}
                     <button
-                        onClick={() => handleShare(selectedPost.id)}
+                        onClick={() => handleShare(selectedPost)}
                         className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white relative"
                     >
                         <Share2 className="w-6 h-6" />
@@ -356,8 +358,8 @@ function ImageCarousel({ post }: { post: Post }) {
 
     // Construct list of all image URLs
     const imageUrls = [
-        `/api/image/${post.id}.jpg`,
-        ...(post.images || []).map(img => `/api/post_image/${img.id}.jpg`)
+        post.imageUrl,
+        ...(post.images || []).map(img => img.url)
     ];
 
     const scrollTo = (index: number) => {

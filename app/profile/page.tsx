@@ -19,6 +19,7 @@ export default async function ProfilePage() {
       id: true,
       username: true,
       avatarUrl: true,
+      avatarBlobUrl: true,
       updatedAt: true,
       isVerified: true,
       isGold: true,
@@ -35,9 +36,14 @@ export default async function ProfilePage() {
 
   if (!userData) redirect('/login');
 
+  const userAvatar = userData.avatarBlobUrl ||
+       (userData.avatarUrl ?
+         (userData.avatarUrl.startsWith("data:") ? userData.avatarUrl : `/api/avatar/${userData.username}?v=${userData.updatedAt.getTime()}`)
+         : null);
+
   const user = {
       ...userData,
-      avatarUrl: userData.avatarUrl ? `/api/avatar/${userData.username}?v=${userData.updatedAt.getTime()}` : null
+      avatarUrl: userAvatar
   };
 
   // Fetch my posts
@@ -47,7 +53,8 @@ export default async function ProfilePage() {
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
-      // imageUrl: true,
+      imageUrl: true,
+      imageBlobUrl: true,
       comment: true,
       createdAt: true,
       userId: true,
@@ -59,7 +66,9 @@ export default async function ProfilePage() {
       images: {
           select: {
               id: true,
-              order: true
+              order: true,
+              url: true,
+              blobUrl: true
           },
           orderBy: {
               order: 'asc'
@@ -73,7 +82,8 @@ export default async function ProfilePage() {
             user: {
                 select: {
                     username: true,
-                    avatarUrl: true
+                    avatarUrl: true,
+                    avatarBlobUrl: true
                 }
             }
         },
@@ -83,6 +93,7 @@ export default async function ProfilePage() {
           select: {
               username: true,
               avatarUrl: true,
+              avatarBlobUrl: true,
               updatedAt: true,
               isVerified: true,
               isGold: true,
@@ -98,17 +109,30 @@ export default async function ProfilePage() {
     },
   });
 
-  const myPosts = myPostsData.map(post => ({
-      ...post,
-      user: {
-          ...post.user,
-          avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
-      },
-      likesCount: post._count.likes,
-      hasLiked: post.likes.length > 0,
-      likes: undefined,
-      _count: undefined
-  }));
+  const myPosts = myPostsData.map(post => {
+      let displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+      const userAvatar = post.user.avatarBlobUrl ||
+       (post.user.avatarUrl ?
+         (post.user.avatarUrl.startsWith("data:") ? post.user.avatarUrl : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
+         : null);
+
+      return {
+          ...post,
+          imageUrl: displayImageUrl,
+          user: {
+              ...post.user,
+              avatarUrl: userAvatar
+          },
+          images: post.images.map(img => ({
+              ...img,
+              url: img.blobUrl || img.url
+          })),
+          likesCount: post._count.likes,
+          hasLiked: post.likes.length > 0,
+          likes: undefined,
+          _count: undefined
+      };
+  });
 
   // Fetch liked posts
   const likedPostsData = await db.like.findMany({
@@ -119,7 +143,8 @@ export default async function ProfilePage() {
           post: {
               select: {
                 id: true,
-                // imageUrl: true,
+                imageUrl: true,
+                imageBlobUrl: true,
                 comment: true,
                 createdAt: true,
                 userId: true,
@@ -131,7 +156,9 @@ export default async function ProfilePage() {
                 images: {
                     select: {
                         id: true,
-                        order: true
+                        order: true,
+                        url: true,
+                        blobUrl: true
                     },
                     orderBy: {
                         order: 'asc'
@@ -145,7 +172,8 @@ export default async function ProfilePage() {
                         user: {
                             select: {
                                 username: true,
-                                avatarUrl: true
+                                avatarUrl: true,
+                                avatarBlobUrl: true
                             }
                         }
                     },
@@ -155,6 +183,7 @@ export default async function ProfilePage() {
                     select: {
                         username: true,
                         avatarUrl: true,
+                        avatarBlobUrl: true,
                         updatedAt: true,
                         isVerified: true,
                         isGold: true,
@@ -172,17 +201,31 @@ export default async function ProfilePage() {
       }
   });
 
-  const likedPosts = likedPostsData.map(item => ({
-      ...item.post,
-      user: {
-          ...item.post.user,
-          avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}` : null
-      },
-      likesCount: item.post._count.likes,
-      hasLiked: item.post.likes.length > 0,
-      likes: undefined,
-      _count: undefined
-  }));
+  const likedPosts = likedPostsData.map(item => {
+      const post = item.post;
+      let displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+      const userAvatar = post.user.avatarBlobUrl ||
+       (post.user.avatarUrl ?
+         (post.user.avatarUrl.startsWith("data:") ? post.user.avatarUrl : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
+         : null);
+
+      return {
+          ...post,
+          imageUrl: displayImageUrl,
+          user: {
+              ...post.user,
+              avatarUrl: userAvatar
+          },
+          images: post.images.map(img => ({
+              ...img,
+              url: img.blobUrl || img.url
+          })),
+          likesCount: post._count.likes,
+          hasLiked: post.likes.length > 0,
+          likes: undefined,
+          _count: undefined
+      };
+  });
 
   return (
     <main className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">

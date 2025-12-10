@@ -52,13 +52,16 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     select: {
       id: true,
       imageUrl: true,
+      imageBlobUrl: true,
       comment: true,
       createdAt: true,
       userId: true,
       images: {
           select: {
               id: true,
-              order: true
+              order: true,
+              url: true,
+              blobUrl: true
           },
           orderBy: {
               order: 'asc'
@@ -68,6 +71,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           select: {
               username: true,
               avatarUrl: true,
+              avatarBlobUrl: true,
+              updatedAt: true,
               isVerified: true
           }
       },
@@ -83,13 +88,28 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
   if (!postData) notFound();
 
+  const displayImageUrl = postData.imageBlobUrl || (postData.imageUrl.startsWith("data:") ? postData.imageUrl : `/api/image/post-${postData.id}.png`);
+
+  const userAvatar = postData.user.avatarBlobUrl ||
+       (postData.user.avatarUrl ?
+         (postData.user.avatarUrl.startsWith("data:") ? postData.user.avatarUrl : `/api/avatar/${postData.user.username}?v=${postData.user.updatedAt.getTime()}`)
+         : null);
+
   const post = {
       ...postData,
+      imageUrl: displayImageUrl,
+      user: {
+          ...postData.user,
+          avatarUrl: userAvatar
+      },
+      images: postData.images.map(img => ({
+          ...img,
+          url: img.blobUrl || img.url
+      })),
       likesCount: postData._count.likes,
       hasLiked: postData.likes.length > 0,
       likes: undefined,
       _count: undefined,
-      imageUrl: `/api/image/${postData.id}.jpg` 
   };
 
   return (

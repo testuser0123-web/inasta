@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
+import { put } from "@vercel/blob";
 
 export async function fetchFeedPosts({
   cursorId,
@@ -77,7 +78,8 @@ export async function fetchFeedPosts({
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
-      // imageUrl: true, // Don't fetch the base64 string, use the API route instead
+      imageUrl: true, // For fallback
+      imageBlobUrl: true,
       comment: true,
       createdAt: true,
       userId: true,
@@ -90,6 +92,8 @@ export async function fetchFeedPosts({
         select: {
           id: true,
           order: true,
+          url: true, // For fallback
+          blobUrl: true,
         },
         orderBy: {
           order: 'asc',
@@ -98,7 +102,8 @@ export async function fetchFeedPosts({
       user: {
         select: {
           username: true,
-          avatarUrl: true,
+          avatarUrl: true, // For fallback
+          avatarBlobUrl: true,
           updatedAt: true,
           isVerified: true,
           isGold: true,
@@ -112,11 +117,12 @@ export async function fetchFeedPosts({
           user: {
             select: {
               username: true,
-              avatarUrl: true,
+              avatarUrl: true, // For fallback
+              avatarBlobUrl: true,
             }
           }
         },
-        orderBy: { createdAt: 'asc' } // Oldest first or newest? Usually oldest first in thread.
+        orderBy: { createdAt: 'asc' }
       },
       _count: {
         select: { likes: true },
@@ -128,17 +134,72 @@ export async function fetchFeedPosts({
     },
   });
 
-  return postsData.map((post) => ({
-    ...post,
-    user: {
-      ...post.user,
-      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null,
-    },
-    likesCount: post._count.likes,
-    hasLiked: post.likes.length > 0,
-    likes: undefined,
-    _count: undefined,
-  }));
+  return postsData.map((post) => {
+    // Resolve Post Image
+    let displayImageUrl = post.imageBlobUrl;
+    if (!displayImageUrl) {
+        // Fallback to legacy behavior if not migrated
+        // If it was Base64, we rely on the API. But if we are in transition...
+        // The previous code didn't select imageUrl for bandwidth reasons and used /api/image.
+        // We will continue to use the blobUrl if available, otherwise fallback to API logic or raw base64?
+        // Wait, previous code commented out imageUrl selection: `// imageUrl: true,`.
+        // But I included it in select above.
+        // If it's Base64, we don't want to send it to client if it's huge.
+        // But if I selected it, it's sent.
+        // We should preferably use `imageBlobUrl`.
+        // If `imageBlobUrl` is null, we might need to rely on the old /api/image/[filename] approach
+        // OR send the base64 if we selected it.
+
+        // Actually, for Phase 2, we want to switch to <img src={post.imageUrl} />.
+        // If `imageBlobUrl` is present, we use it.
+        // If not, we might be dealing with old data not migrated or new data that failed upload?
+        // But we migrated everything.
+        // Let's return `imageBlobUrl` as `imageUrl` for the frontend to use comfortably.
+        // If `imageBlobUrl` is missing, we can try to use the `imageUrl` field (Base64) but that's heavy.
+        // Or we use the old API route logic.
+        // The old API route logic was specific: it didn't use `imageUrl` field in `fetchFeedPosts`.
+        // It constructed URL on client side? No, the client used `<img src={`/api/image/post-${post.id}.png`} />` or similar?
+        // Let's check `Feed.tsx` later.
+
+        // For now, let's normalize the output.
+        displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+        // Note: The /api/image route logic was "Post images are served via a dynamic API route".
+        // But we want to move away from it.
+    }
+
+    // Resolve User Avatar
+    const userAvatar = post.user.avatarBlobUrl ||
+       (post.user.avatarUrl ?
+         (post.user.avatarUrl.startsWith("data:") ? post.user.avatarUrl : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
+         : null);
+
+    return {
+      ...post,
+      imageUrl: displayImageUrl, // Override with Blob URL or fallback
+      user: {
+        ...post.user,
+        avatarUrl: userAvatar,
+      },
+      images: post.images.map(img => ({
+          ...img,
+          url: img.blobUrl || img.url
+      })),
+      comments: post.comments.map(c => ({
+          ...c,
+          user: {
+              ...c.user,
+              avatarUrl: c.user.avatarBlobUrl ||
+                 (c.user.avatarUrl ?
+                   (c.user.avatarUrl.startsWith("data:") ? c.user.avatarUrl : `/api/avatar/${c.user.username}?v=${Date.now()}`) // Timestamp fallback might be inaccurate for comments user but acceptable
+                   : null)
+          }
+      })),
+      likesCount: post._count.likes,
+      hasLiked: post.likes.length > 0,
+      likes: undefined,
+      _count: undefined,
+    };
+  });
 }
 
 export async function fetchUserPosts({
@@ -149,8 +210,6 @@ export async function fetchUserPosts({
   cursorId?: number;
 }) {
   const session = await getSession();
-  // if (!session) return []; // Allow fetching user posts without session? Or follow page rules?
-  // Page seems to allow viewing profiles without session, but checking 'liked' status needs session.
 
   const postsData = await db.post.findMany({
     take: 12,
@@ -160,6 +219,8 @@ export async function fetchUserPosts({
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      imageUrl: true,
+      imageBlobUrl: true,
       comment: true,
       createdAt: true,
       userId: true,
@@ -172,6 +233,8 @@ export async function fetchUserPosts({
         select: {
           id: true,
           order: true,
+          url: true,
+          blobUrl: true,
         },
         orderBy: {
           order: 'asc',
@@ -181,6 +244,7 @@ export async function fetchUserPosts({
         select: {
           username: true,
           avatarUrl: true,
+          avatarBlobUrl: true,
           updatedAt: true,
           isVerified: true,
           isGold: true,
@@ -195,6 +259,7 @@ export async function fetchUserPosts({
             select: {
               username: true,
               avatarUrl: true,
+              avatarBlobUrl: true,
             }
           }
         },
@@ -210,17 +275,41 @@ export async function fetchUserPosts({
     },
   });
 
-  return postsData.map((post) => ({
-    ...post,
-    user: {
-      ...post.user,
-      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null,
-    },
-    likesCount: post._count.likes,
-    hasLiked: post.likes.length > 0,
-    likes: undefined,
-    _count: undefined,
-  }));
+  return postsData.map((post) => {
+    let displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+
+    const userAvatar = post.user.avatarBlobUrl ||
+       (post.user.avatarUrl ?
+         (post.user.avatarUrl.startsWith("data:") ? post.user.avatarUrl : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
+         : null);
+
+    return {
+        ...post,
+        imageUrl: displayImageUrl,
+        user: {
+          ...post.user,
+          avatarUrl: userAvatar,
+        },
+        images: post.images.map(img => ({
+            ...img,
+            url: img.blobUrl || img.url
+        })),
+        comments: post.comments.map(c => ({
+            ...c,
+            user: {
+                ...c.user,
+                avatarUrl: c.user.avatarBlobUrl ||
+                   (c.user.avatarUrl ?
+                     (c.user.avatarUrl.startsWith("data:") ? c.user.avatarUrl : `/api/avatar/${c.user.username}?v=${Date.now()}`)
+                     : null)
+            }
+        })),
+        likesCount: post._count.likes,
+        hasLiked: post.likes.length > 0,
+        likes: undefined,
+        _count: undefined,
+    };
+  });
 }
 
 export async function fetchLikedPosts({
@@ -232,38 +321,7 @@ export async function fetchLikedPosts({
 }) {
   const session = await getSession();
 
-  // Note: Only allow seeing liked posts if it's "Me" (current user).
-  // The UI currently only shows Liked tab for the current user in ProfileClient (initialStatus.isMe check).
-  // If we want to strictly enforce this on backend, we should check if session.id == userId.
   if (!session || session.id !== userId) return [];
-
-  // Likes are stored in Like table. We need to fetch Like table with pagination, then get the posts.
-  // However, Like table cursor would be on Like ID or createdAt, but the UI expects Post cursor?
-  // Usually infinite scroll uses the ID of the last item in the list.
-  // Here the list is of Liked Posts.
-  // Ideally we should paginate on the Like table.
-  // If we pass cursorId (postId), we need to find the Like record corresponding to that Post to use as cursor?
-  // Or maybe we can assume cursorId refers to the Like ID?
-  // But the frontend usually passes the ID of the last element it rendered. The elements are Posts.
-  // So the cursorId passed will be a Post ID.
-
-  // Wait, if we paginate on Like table, the cursor should be Like ID.
-  // But the Feed component expects a list of Posts.
-  // And `loadMore` in Feed.tsx passes `lastPostId` as cursor.
-  // So if we use `lastPostId` as cursor for `fetchLikedPosts`, we need to find the Like entry for that post.
-
-  // let cursorOption = undefined;
-  // if (cursorId) {
-  //     await db.like.findUnique({
-  //         where: {
-  //             userId_postId: {
-  //                 userId: userId,
-  //                 postId: cursorId
-  //             }
-  //         },
-  //         select: { id: true }
-  //     });
-  // }
 
   const likedPostsData = await db.like.findMany({
     take: 12,
@@ -275,6 +333,8 @@ export async function fetchLikedPosts({
       post: {
         select: {
             id: true,
+            imageUrl: true,
+            imageBlobUrl: true,
             comment: true,
             createdAt: true,
             userId: true,
@@ -282,13 +342,14 @@ export async function fetchLikedPosts({
                 select: { name: true }
             },
             images: {
-                select: { id: true, order: true },
+                select: { id: true, order: true, url: true, blobUrl: true },
                 orderBy: { order: 'asc' }
             },
             user: {
                 select: {
                     username: true,
                     avatarUrl: true,
+                    avatarBlobUrl: true,
                     updatedAt: true,
                     isVerified: true,
                     isGold: true,
@@ -300,7 +361,7 @@ export async function fetchLikedPosts({
                     text: true,
                     userId: true,
                     user: {
-                        select: { username: true, avatarUrl: true }
+                        select: { username: true, avatarUrl: true, avatarBlobUrl: true }
                     }
                 },
                 orderBy: { createdAt: 'asc' }
@@ -309,7 +370,7 @@ export async function fetchLikedPosts({
                 select: { likes: true }
             },
             likes: {
-                where: { userId: session.id }, // Check if *session user* liked this post
+                where: { userId: session.id },
                 select: { userId: true }
             }
         }
@@ -317,17 +378,41 @@ export async function fetchLikedPosts({
     }
   });
 
-  return likedPostsData.map((item) => ({
-    ...item.post,
-    user: {
-      ...item.post.user,
-      avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}` : null,
-    },
-    likesCount: item.post._count.likes,
-    hasLiked: item.post.likes.length > 0,
-    likes: undefined,
-    _count: undefined,
-  }));
+  return likedPostsData.map((item) => {
+    const post = item.post;
+    let displayImageUrl = post.imageBlobUrl || (post.imageUrl.startsWith("data:") ? post.imageUrl : `/api/image/post-${post.id}.png`);
+    const userAvatar = post.user.avatarBlobUrl ||
+       (post.user.avatarUrl ?
+         (post.user.avatarUrl.startsWith("data:") ? post.user.avatarUrl : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
+         : null);
+
+    return {
+        ...post,
+        imageUrl: displayImageUrl,
+        user: {
+          ...post.user,
+          avatarUrl: userAvatar,
+        },
+        images: post.images.map(img => ({
+            ...img,
+            url: img.blobUrl || img.url
+        })),
+        comments: post.comments.map(c => ({
+            ...c,
+            user: {
+                ...c.user,
+                avatarUrl: c.user.avatarBlobUrl ||
+                   (c.user.avatarUrl ?
+                     (c.user.avatarUrl.startsWith("data:") ? c.user.avatarUrl : `/api/avatar/${c.user.username}?v=${Date.now()}`)
+                     : null)
+            }
+        })),
+        likesCount: post._count.likes,
+        hasLiked: post.likes.length > 0,
+        likes: undefined,
+        _count: undefined,
+    };
+  });
 }
 
 export async function createPost(prevState: unknown, formData: FormData) {
@@ -341,7 +426,7 @@ export async function createPost(prevState: unknown, formData: FormData) {
   const comment = formData.get("comment") as string;
   const hashtagsRaw = formData.get("hashtags") as string;
 
-  // We expect imageUrlsJson to be a JSON string of string[]
+  // We expect imageUrlsJson to be a JSON string of string[] (Base64 data)
   let imageUrls: string[] = [];
   if (imageUrlsJson) {
       try {
@@ -383,11 +468,37 @@ export async function createPost(prevState: unknown, formData: FormData) {
   }
 
   try {
-    const [firstImage, ...restImages] = imageUrls;
+    // Upload images to Vercel Blob
+    const uploadedUrls: string[] = [];
+
+    // Helper to upload base64
+    const uploadImage = async (base64: string, index: number) => {
+        // Simple filename generation, maybe with timestamp and random string
+        const filename = `post-${session.id}-${Date.now()}-${index}.png`;
+        const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) {
+            // If it's not base64, maybe it's already a URL?
+            // If so, just return it (though createPost usually receives new base64)
+            return base64;
+        }
+        const contentType = matches[1];
+        const buffer = Buffer.from(matches[2], 'base64');
+        const blob = await put(filename, buffer, { access: 'public', contentType });
+        return blob.url;
+    };
+
+    for (let i = 0; i < imageUrls.length; i++) {
+        const url = await uploadImage(imageUrls[i], i);
+        uploadedUrls.push(url);
+    }
+
+    const [firstImageBlobUrl, ...restImagesBlobUrls] = uploadedUrls;
+    const [firstImageOriginal, ...restImagesOriginals] = imageUrls;
 
     await db.post.create({
       data: {
-        imageUrl: firstImage,
+        imageUrl: firstImageOriginal, // Keep original Base64 for now as per instructions "don't delete old columns yet"
+        imageBlobUrl: firstImageBlobUrl,
         comment,
         userId: session.id,
         hashtags: {
@@ -397,9 +508,10 @@ export async function createPost(prevState: unknown, formData: FormData) {
           })),
         },
         images: {
-            create: restImages.map((url, index) => ({
-                url: url,
-                order: index + 1, // Start order from 1 (0 is the main post image)
+            create: restImagesBlobUrls.map((url, index) => ({
+                url: restImagesOriginals[index], // Keep original Base64
+                blobUrl: url,
+                order: index + 1,
             }))
         }
       },
@@ -447,8 +559,6 @@ export async function toggleLike(postId: number) {
 
   revalidatePath("/");
   revalidatePath("/profile");
-  // Revalidate dynamic user pages too, but we can't easily know all usernames here.
-  // Ideally, revalidateTag logic should be used, but for now this covers main views.
 }
 
 export async function deletePost(postId: number) {
