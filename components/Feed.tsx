@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, ChevronLeft, ChevronRight, Layers, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
@@ -22,6 +22,7 @@ type Post = {
   id: number;
   // imageUrl: string; // Removed from payload
   comment: string | null;
+  isSpoiler?: boolean;
   createdAt: Date;
   likesCount: number;
   hasLiked: boolean;
@@ -87,6 +88,16 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   }, [initialPosts]);
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
+
+  const handlePostClick = (post: Post) => {
+    if (post.isSpoiler) {
+      if (window.confirm("この投稿にはネタバレが含まれている可能性があります。本当に表示しますか？")) {
+        setSelectedPostId(post.id);
+      }
+    } else {
+      setSelectedPostId(post.id);
+    }
+  };
 
   const handleLike = async (post: Post) => {
     // Optimistic update
@@ -186,14 +197,20 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
         {posts.map((post) => (
           <div
             key={post.id}
-            onClick={() => setSelectedPostId(post.id)}
+            onClick={() => handlePostClick(post)}
             className="aspect-square relative cursor-pointer bg-gray-100 dark:bg-gray-800 overflow-hidden"
           >
-            <ImageWithSpinner
-              src={`/api/image/${post.id}.jpg`}
-              alt=""
-              className="w-full h-full object-cover"
-            />
+            {post.isSpoiler ? (
+              <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                <AlertTriangle className="w-8 h-8 text-yellow-500" />
+              </div>
+            ) : (
+              <ImageWithSpinner
+                src={`/api/image/${post.id}.jpg`}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            )}
             {post.images && post.images.length > 0 && (
                 <div className="absolute top-2 right-2 z-10">
                     <Layers className="w-5 h-5 text-white drop-shadow-md" />

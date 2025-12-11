@@ -79,6 +79,7 @@ export async function fetchFeedPosts({
       id: true,
       // imageUrl: true, // Don't fetch the base64 string, use the API route instead
       comment: true,
+      isSpoiler: true,
       createdAt: true,
       userId: true,
       hashtags: {
@@ -161,6 +162,7 @@ export async function fetchUserPosts({
     select: {
       id: true,
       comment: true,
+      isSpoiler: true,
       createdAt: true,
       userId: true,
       hashtags: {
@@ -276,6 +278,7 @@ export async function fetchLikedPosts({
         select: {
             id: true,
             comment: true,
+            isSpoiler: true,
             createdAt: true,
             userId: true,
             hashtags: {
@@ -340,6 +343,7 @@ export async function createPost(prevState: unknown, formData: FormData) {
   const imageUrl = formData.get("imageUrl") as string; // Fallback or first image
   const comment = formData.get("comment") as string;
   const hashtagsRaw = formData.get("hashtags") as string;
+  const isSpoiler = formData.get("isSpoiler") === "true";
 
   // We expect imageUrlsJson to be a JSON string of string[]
   let imageUrls: string[] = [];
@@ -389,6 +393,7 @@ export async function createPost(prevState: unknown, formData: FormData) {
       data: {
         imageUrl: firstImage,
         comment,
+        isSpoiler,
         userId: session.id,
         hashtags: {
           connectOrCreate: hashtagList.map((tag) => ({

@@ -18,6 +18,7 @@ export default function UploadForm() {
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
+  const [isSpoiler, setIsSpoiler] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
 
@@ -180,6 +181,7 @@ export default function UploadForm() {
   return (
     <form action={action} className="space-y-6 w-full max-w-md mx-auto p-4">
       <input type="hidden" name="imageUrls" value={JSON.stringify(croppedImages)} />
+      <input type="hidden" name="isSpoiler" value={String(isSpoiler)} />
 
       {/* Grid of selected images */}
       {croppedImages.length > 0 && (
@@ -268,6 +270,19 @@ export default function UploadForm() {
         <p className="text-xs text-gray-500">
           ハッシュタグはスペースで区切ってください。
         </p>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="isSpoiler"
+          checked={isSpoiler}
+          onChange={(e) => setIsSpoiler(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+        />
+        <label htmlFor="isSpoiler" className="text-sm font-medium text-gray-700">
+          ネタバレ注意 (画像を隠す)
+        </label>
       </div>
 
       {state?.message && (
