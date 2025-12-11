@@ -49,6 +49,7 @@ export default async function ProfilePage() {
       id: true,
       // imageUrl: true,
       comment: true,
+      isSpoiler: true,
       createdAt: true,
       userId: true,
       hashtags: {
@@ -121,6 +122,7 @@ export default async function ProfilePage() {
                 id: true,
                 // imageUrl: true,
                 comment: true,
+                isSpoiler: true,
                 createdAt: true,
                 userId: true,
                 hashtags: {

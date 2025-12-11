@@ -74,6 +74,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       id: true,
       // imageUrl: true,
       comment: true,
+      isSpoiler: true,
       createdAt: true,
       userId: true,
       hashtags: {
@@ -148,6 +149,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                     id: true,
                     // imageUrl: true,
                     comment: true,
+                    isSpoiler: true,
                     createdAt: true,
                     userId: true,
                 hashtags: {
