@@ -1,10 +1,9 @@
+import Feed from "@/components/Feed";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import Link from "next/link";
 import { User, Search } from "lucide-react";
-import FeedContent from "@/components/FeedContent";
-import { Suspense } from "react";
-import { Spinner } from "@/components/ui/spinner";
+import { fetchFeedPosts } from "@/app/actions/post";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +26,8 @@ export default async function Home({
   }
 
   const searchQuery = resolvedSearchParams.q || "";
+
+  const posts = await fetchFeedPosts({ feedType, searchQuery });
 
   return (
     <main className="min-h-screen bg-white dark:bg-black">
@@ -93,9 +94,18 @@ export default async function Home({
         </div>
       )}
 
-      <Suspense key={`${feedType}-${searchQuery}`} fallback={<div className="flex justify-center p-8"><Spinner /></div>}>
-        <FeedContent feedType={feedType} searchQuery={searchQuery} />
-      </Suspense>
+      {feedType === 'following' && posts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm">
+          <p>まだ誰もフォローしていません。</p>
+          <p>他のユーザーをフォローして投稿を見ましょう。</p>
+        </div>
+      ) : feedType === 'search' && searchQuery && posts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm">
+          <p>No posts found for &quot;{searchQuery}&quot;</p>
+        </div>
+      ) : (
+        <Feed key={`${feedType}-${searchQuery}`} initialPosts={posts} currentUserId={session.id} feedType={feedType} searchQuery={searchQuery} />
+      )}
     </main>
   );
 }
