@@ -13,6 +13,7 @@ type Post = {
     id: number;
     // imageUrl: string;
     comment: string | null;
+    isSpoiler?: boolean;
     createdAt: Date;
     likesCount: number;
     hasLiked: boolean;

@@ -32,6 +32,7 @@ model User {
 model Post {
   id        Int         @id @default(autoincrement())
   imageUrl  String
+  isSpoiler Boolean     @default(false)
   comment   String?
   createdAt DateTime    @default(now())
   userId    Int
