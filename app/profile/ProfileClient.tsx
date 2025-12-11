@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Settings, Grid, Heart, ShieldCheck, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import Feed from '@/components/Feed';
 import ProfileHeader from '@/components/ProfileHeader';
 import VerificationModal from '@/components/VerificationModal';
 import { useRouter } from 'next/navigation';
+import { Spinner } from '@/components/ui/spinner';
 
 type Post = {
     id: number;
@@ -54,7 +55,14 @@ type ProfileClientProps = {
 export default function ProfileClient({ user, currentUser, posts, likedPosts = [], initialStatus }: ProfileClientProps) {
   const [activeTab, setActiveTab] = useState<'posts' | 'likes'>('posts');
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  const handleTabChange = (tab: 'posts' | 'likes') => {
+    startTransition(() => {
+        setActiveTab(tab);
+    });
+  };
 
   return (
     <div>
@@ -103,7 +111,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
          {initialStatus.isMe ? (
              <div className="flex border-b dark:border-gray-800">
                 <button
-                    onClick={() => setActiveTab('posts')}
+                    onClick={() => handleTabChange('posts')}
                     className={`flex-1 flex items-center justify-center py-3 text-sm font-medium transition-colors ${
                         activeTab === 'posts' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
                     }`}
@@ -112,7 +120,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                     Posts
                 </button>
                 <button
-                    onClick={() => setActiveTab('likes')}
+                    onClick={() => handleTabChange('likes')}
                     className={`flex-1 flex items-center justify-center py-3 text-sm font-medium transition-colors ${
                         activeTab === 'likes' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
                     }`}
@@ -126,22 +134,28 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
          )}
       </div>
 
-      {activeTab === 'posts' ? (
-        <Feed
-            key="posts"
-            initialPosts={posts}
-            currentUserId={currentUser?.id ?? -1}
-            feedType="user_posts"
-            targetUserId={user.id}
-        />
+      {isPending ? (
+          <div className="flex justify-center p-10">
+              <Spinner />
+          </div>
       ) : (
-        <Feed
-            key="likes"
-            initialPosts={likedPosts}
-            currentUserId={currentUser?.id ?? -1}
-            feedType="user_likes"
-            targetUserId={user.id}
-        />
+        activeTab === 'posts' ? (
+            <Feed
+                key="posts"
+                initialPosts={posts}
+                currentUserId={currentUser?.id ?? -1}
+                feedType="user_posts"
+                targetUserId={user.id}
+            />
+        ) : (
+            <Feed
+                key="likes"
+                initialPosts={likedPosts}
+                currentUserId={currentUser?.id ?? -1}
+                feedType="user_likes"
+                targetUserId={user.id}
+            />
+        )
       )}
 
       <VerificationModal 
