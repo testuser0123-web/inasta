@@ -98,4 +98,3 @@ model Mute {
 
   @@unique([muterId, mutedId])
 }
-

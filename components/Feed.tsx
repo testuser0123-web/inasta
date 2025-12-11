@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment } from '@/app/actions/comment';
+import { Spinner } from '@/components/ui/spinner';
 
 type Comment = {
   id: number;
@@ -35,6 +36,38 @@ type Post = {
   hashtags?: { name: string }[];
   images?: { id: number; order: number }[];
 };
+
+function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, className?: string }) {
+    const [loaded, setLoaded] = useState(false);
+    const imgRef = useRef<HTMLImageElement>(null);
+
+    useEffect(() => {
+        if (imgRef.current && imgRef.current.complete) {
+            setLoaded(true);
+        }
+    }, []);
+
+    return (
+        <div className={`relative w-full h-full ${className}`}>
+            {!loaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
+                    <div className="scale-50">
+                        <Spinner />
+                    </div>
+                </div>
+            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+                ref={imgRef}
+                src={src}
+                alt={alt}
+                className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={() => setLoaded(true)}
+                onError={() => setLoaded(true)} // Hide spinner on error too
+            />
+        </div>
+    );
+}
 
 export default function Feed({ initialPosts, currentUserId, feedType, searchQuery, targetUserId }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search' | 'user_posts' | 'user_likes', searchQuery?: string, targetUserId?: number }) {
   const [posts, setPosts] = useState(initialPosts);
@@ -156,11 +189,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             onClick={() => setSelectedPostId(post.id)}
             className="aspect-square relative cursor-pointer bg-gray-100 dark:bg-gray-800 overflow-hidden"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <ImageWithSpinner
               src={`/api/image/${post.id}.jpg`}
               alt=""
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
             {post.images && post.images.length > 0 && (
                 <div className="absolute top-2 right-2 z-10">
