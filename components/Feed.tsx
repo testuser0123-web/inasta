@@ -91,7 +91,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
   const handlePostClick = (post: Post) => {
     if (post.isSpoiler) {
-      if (window.confirm("この投稿にはネタバレが含まれている可能性があります。本当に表示しますか？")) {
+      const confirmMessage = post.comment
+        ? `${post.comment}\n\n本当に表示してもいいですか？`
+        : "この投稿にはネタバレが含まれている可能性があります。本当に表示しますか？";
+
+      if (window.confirm(confirmMessage)) {
         setSelectedPostId(post.id);
       }
     } else {
