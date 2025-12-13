@@ -14,13 +14,13 @@ export default function CreateContestPage() {
         <Link href="/contests" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
             <ArrowLeft className="w-6 h-6" />
         </Link>
-        <h1 className="text-xl font-bold dark:text-white">Create Contest</h1>
+        <h1 className="text-xl font-bold dark:text-white">コンテスト作成</h1>
       </div>
 
       <form action={action} className="space-y-6 max-w-md mx-auto">
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Contest Title
+            タイトル
           </label>
           <input
             type="text"
@@ -34,7 +34,7 @@ export default function CreateContestPage() {
 
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Description
+            説明
           </label>
           <textarea
             id="description"
@@ -47,7 +47,7 @@ export default function CreateContestPage() {
 
         <div>
           <label htmlFor="duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Duration (Days)
+            期間
           </label>
           <select
             id="duration"
@@ -57,7 +57,7 @@ export default function CreateContestPage() {
           >
             {[1, 2, 3, 4, 5, 6, 7].map((d) => (
               <option key={d} value={d}>
-                {d} Day{d > 1 ? 's' : ''}
+                {d} 日間
               </option>
             ))}
           </select>
@@ -74,7 +74,7 @@ export default function CreateContestPage() {
           disabled={isPending}
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
-          {isPending ? 'Creating...' : 'Create Contest'}
+          {isPending ? '作成中...' : 'コンテストを作成'}
         </button>
       </form>
     </div>

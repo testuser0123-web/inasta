@@ -104,7 +104,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
         <div className="p-4 bg-white border-b flex flex-col gap-4 z-10">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <label className="text-xs text-gray-500 mb-1 block">Zoom</label>
+              <label className="text-xs text-gray-500 mb-1 block">ズーム</label>
               <input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(Number(e.target.value))} className="w-full" />
             </div>
             <div className="flex items-center gap-2">
@@ -113,8 +113,8 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
           <div className="flex justify-center gap-4">
-            <button type="button" onClick={() => setAspectRatio("1:1")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "1:1" ? "bg-black text-white" : "bg-white text-gray-700"}`}><Smartphone className="w-3 h-3" /> Square</button>
-            <button type="button" onClick={() => setAspectRatio("original")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "original" ? "bg-black text-white" : "bg-white text-gray-700"}`}><ImageIcon className="w-3 h-3" /> Original</button>
+            <button type="button" onClick={() => setAspectRatio("1:1")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "1:1" ? "bg-black text-white" : "bg-white text-gray-700"}`}><Smartphone className="w-3 h-3" /> 正方形</button>
+            <button type="button" onClick={() => setAspectRatio("original")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "original" ? "bg-black text-white" : "bg-white text-gray-700"}`}><ImageIcon className="w-3 h-3" /> 元の比率</button>
           </div>
         </div>
         <div className="relative flex-1 bg-black w-full">
@@ -130,7 +130,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
             <Link href={`/contests/${contestId}`} className="text-gray-700 dark:text-gray-300 hover:text-black">
                 <ArrowLeft className="w-6 h-6" />
             </Link>
-            <h1 className="text-lg font-semibold dark:text-white">Submit Entry</h1>
+            <h1 className="text-lg font-semibold dark:text-white">エントリー</h1>
         </div>
 
         <form action={action} className="space-y-6 w-full max-w-md mx-auto p-4">

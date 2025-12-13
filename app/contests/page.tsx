@@ -1,6 +1,8 @@
 import Link from 'next/link';
-import { getContests } from '@/app/actions/contest';
 import { Plus } from 'lucide-react';
+import { Suspense } from 'react';
+import ContestList from '@/components/ContestList';
+import { Spinner } from '@/components/ui/spinner';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,14 +13,13 @@ export default async function ContestsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const tab = resolvedSearchParams.tab === 'ended' ? 'ended' : 'active';
-  const contests = await getContests(tab);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm px-4 py-3 flex items-center justify-between">
         <div className="w-12 md:hidden" /> {/* Hamburger spacer */}
         <h1 className="text-xl font-bold dark:text-white absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">コンテスト</h1>
-        <div className="flex items-center justify-end w-20">
+        <div className="flex items-center justify-end w-20 min-h-[32px]">
             {tab === 'active' && (
                 <Link href="/contests/create" className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold hover:bg-indigo-700 flex items-center gap-1 z-10">
                     <Plus className="w-4 h-4" /> 作成
@@ -50,33 +51,9 @@ export default async function ContestsPage({
         </Link>
       </div>
 
-      <div className="p-4 space-y-4">
-        {contests.length === 0 ? (
-          <div className="text-center py-10 text-gray-500">
-            {tab === 'active' ? '開催中のコンテストはありません' : '終了したコンテストはありません'}
-          </div>
-        ) : (
-          contests.map((contest) => (
-            <Link
-              key={contest.id}
-              href={`/contests/${contest.id}`}
-              className="block bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors"
-            >
-              <h2 className="text-lg font-bold dark:text-white mb-1">{contest.title}</h2>
-              {contest.description && (
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">{contest.description}</p>
-              )}
-              <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-500">
-                <span>開催者: @{contest.creator.username}</span>
-                <div className="flex gap-3">
-                     <span>{contest._count.posts} 投稿</span>
-                     <span>終了: {contest.endDate.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}</span>
-                </div>
-              </div>
-            </Link>
-          ))
-        )}
-      </div>
+      <Suspense key={tab} fallback={<Spinner />}>
+        <ContestList tab={tab} />
+      </Suspense>
     </div>
   );
 }

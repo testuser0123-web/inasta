@@ -1,8 +1,10 @@
-import { getContest, fetchContestPosts, getContestWinners } from '@/app/actions/contest';
+import { getContest } from '@/app/actions/contest';
 import Link from 'next/link';
-import { ArrowLeft, Clock, Info, Trophy, Grid, Calendar } from 'lucide-react';
-import ContestFeed from '@/components/ContestFeed';
+import { ArrowLeft, Info, Calendar } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import ContestPostsFetcher from '@/components/ContestPostsFetcher';
+import { Spinner } from '@/components/ui/spinner';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,14 +24,6 @@ export default async function ContestDetailPage({
   if (!contest) return notFound();
 
   const isEnded = new Date() > contest.endDate;
-  const isTrophyView = isEnded && sort === 'trophy';
-
-  let posts: any[] = [];
-  if (isTrophyView) {
-      posts = await getContestWinners(contestId);
-  } else {
-      posts = await fetchContestPosts({ contestId, sortBy: sort });
-  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -42,31 +36,31 @@ export default async function ContestDetailPage({
              <h1 className="text-lg font-bold dark:text-white truncate flex-1">{contest.title}</h1>
              {!isEnded && (
                  <Link href={`/contests/${contest.id}/upload`} className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-indigo-700 whitespace-nowrap">
-                    Join
+                    参加する
                  </Link>
              )}
           </div>
 
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
              <div className="flex items-center gap-2 mb-2 text-xs uppercase tracking-wider font-semibold text-gray-500">
-                <Info className="w-3 h-3" /> Description
+                <Info className="w-3 h-3" /> 詳細
              </div>
-             <p className="mb-3">{contest.description || "No description provided."}</p>
+             <p className="mb-3">{contest.description || "説明はありません。"}</p>
              <div className="flex items-center gap-2 text-xs text-gray-500">
                 <Calendar className="w-3 h-3" />
-                <span>Ends: {contest.endDate.toLocaleString()}</span>
-                {isEnded && <span className="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold ml-2">ENDED</span>}
+                <span>終了: {contest.endDate.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}</span>
+                {isEnded && <span className="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold ml-2">終了</span>}
              </div>
           </div>
 
           {/* Sort Controls */}
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {[
-                  { id: 'newest', label: 'Newest' },
-                  { id: 'oldest', label: 'Oldest' },
-                  { id: 'likes_desc', label: 'Most Liked' },
-                  { id: 'likes_asc', label: 'Least Liked' },
-                  ...(isEnded ? [{ id: 'trophy', label: 'Trophy 🏆' }] : [])
+                  { id: 'newest', label: '新着順' },
+                  { id: 'oldest', label: '古い順' },
+                  { id: 'likes_desc', label: '人気順' },
+                  { id: 'likes_asc', label: 'マイナー順' },
+                  ...(isEnded ? [{ id: 'trophy', label: 'ランキング 🏆' }] : [])
               ].map(opt => (
                   <Link
                     key={opt.id}
@@ -84,12 +78,9 @@ export default async function ContestDetailPage({
        </div>
 
        {/* Feed */}
-       <ContestFeed
-         key={sort}
-         initialPosts={posts.map(p => ({...p, isEnded}))}
-         contestId={contestId}
-         isTrophyView={isTrophyView}
-       />
+       <Suspense key={sort} fallback={<div className="h-64"><Spinner /></div>}>
+         <ContestPostsFetcher contestId={contestId} sort={sort} isEnded={isEnded} />
+       </Suspense>
     </div>
   );
 }

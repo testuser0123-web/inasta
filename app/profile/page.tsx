@@ -186,49 +186,38 @@ export default async function ProfilePage() {
       _count: undefined
   }));
 
-  // Fetch trophies
-  // We need to find contests that have ended, and check ranks.
-  // This might be heavy if done naively.
-  // Ideally, we store "Winner" status in DB. But request says "Non-destructively".
-  // So we compute on fly or assume efficient enough for now.
-  // Optimization: Only fetch ended contests where user has posted.
+  // Fetch trophies using raw query for performance
+  const trophyCounts = await db.$queryRaw<Array<{ rank: bigint, count: bigint }>>`
+    SELECT
+      rank,
+      CAST(COUNT(*) AS INTEGER) as count
+    FROM (
+      SELECT
+        cp."contestId",
+        cp."userId",
+        RANK() OVER (
+          PARTITION BY cp."contestId"
+          ORDER BY COUNT(cl.id) DESC, cp."createdAt" ASC
+        ) as rank
+      FROM "ContestPost" cp
+      JOIN "Contest" c ON cp."contestId" = c.id
+      LEFT JOIN "ContestLike" cl ON cp.id = cl."contestPostId"
+      WHERE c."endDate" < NOW()
+      GROUP BY cp.id, cp."contestId", cp."userId", cp."createdAt"
+    ) ranking
+    WHERE "userId" = ${user.id} AND rank <= 3
+    GROUP BY rank
+  `;
 
-  const userContestPosts = await db.contestPost.findMany({
-    where: {
-        userId: user.id,
-        contest: {
-            endDate: { lt: new Date() }
-        }
-    },
-    select: {
-        id: true,
-        contestId: true
-    }
-  });
-
-  const contestIds = Array.from(new Set(userContestPosts.map(p => p.contestId)));
-
-  let trophies = { gold: 0, silver: 0, bronze: 0 };
-
-  for (const contestId of contestIds) {
-      // Get top 3 posts for this contest
-      const winners = await db.contestPost.findMany({
-          where: { contestId },
-          orderBy: [
-              { likes: { _count: 'desc' } },
-              { createdAt: 'asc' }
-          ],
-          take: 3,
-          select: { userId: true }
-      });
-
-      winners.forEach((winner, index) => {
-          if (winner.userId === user.id) {
-              if (index === 0) trophies.gold++;
-              else if (index === 1) trophies.silver++;
-              else if (index === 2) trophies.bronze++;
-          }
-      });
+  const trophies = { gold: 0, silver: 0, bronze: 0 };
+  if (Array.isArray(trophyCounts)) {
+    trophyCounts.forEach(t => {
+        const r = Number(t.rank);
+        const c = Number(t.count);
+        if (r === 1) trophies.gold = c;
+        else if (r === 2) trophies.silver = c;
+        else if (r === 3) trophies.bronze = c;
+    });
   }
 
   return (
