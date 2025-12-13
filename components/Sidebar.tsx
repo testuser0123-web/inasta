@@ -23,7 +23,7 @@ export default function Sidebar({ username }: { username?: string }) {
       {/* Mobile Hamburger Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="md:hidden fixed top-3 left-4 z-50 p-2 bg-white dark:bg-black rounded-md shadow-md border dark:border-gray-800"
+        className="md:hidden fixed bottom-6 right-6 z-[100] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
       >
         <Menu className="w-6 h-6" />
       </button>
