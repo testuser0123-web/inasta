@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "INASTA",
   description: "Share your moments",
+  icons: {
+    icon: "/icon.ico",
+  },
 };
 
 export default async function RootLayout({

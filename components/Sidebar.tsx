@@ -43,8 +43,19 @@ export default function Sidebar({ username }: { username?: string }) {
           md:translate-x-0 w-64 flex flex-col`}
       >
         <div className="p-6 border-b dark:border-gray-800">
-          <Link href="/" className="text-2xl font-bold tracking-wider">
-            INASTA
+          <Link href="/" className="block">
+            <div className="relative h-8 w-auto">
+              <img
+                src="/logo.png"
+                alt="INASTA"
+                className="h-full w-auto block dark:hidden"
+              />
+              <img
+                src="/logo-inverted.png"
+                alt="INASTA"
+                className="hidden h-full w-auto dark:block"
+              />
+            </div>
           </Link>
         </div>
 
