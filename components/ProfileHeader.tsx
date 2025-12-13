@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BadgeCheck, MoreHorizontal, Heart } from 'lucide-react';
+import { BadgeCheck, MoreHorizontal, Heart, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { followUser, unfollowUser, muteUser, unmuteUser } from '@/app/actions/user';
 
@@ -29,15 +29,19 @@ type ProfileHeaderProps = {
     isMuted: boolean;
     isMe: boolean;
   };
+  trophies?: {
+      gold: number;
+      silver: number;
+      bronze: number;
+  };
 };
 
-export default function ProfileHeader({ user, currentUser, initialCounts, initialStatus }: ProfileHeaderProps) {
+export default function ProfileHeader({ user, currentUser, initialCounts, initialStatus, trophies }: ProfileHeaderProps) {
   const [counts, setCounts] = useState(initialCounts);
   const [status, setStatus] = useState(initialStatus);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleFollowToggle = async () => {
-    // ... logic ...
     // Optimistic update
     setStatus(prev => ({ ...prev, isFollowing: !prev.isFollowing }));
     setCounts(prev => ({
@@ -53,7 +57,6 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
   };
 
   const handleMuteToggle = async () => {
-     // ... logic ...
     setStatus(prev => ({ ...prev, isMuted: !prev.isMuted }));
     setIsMenuOpen(false); // Close menu
     
@@ -90,6 +93,29 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
           <BadgeCheck className="w-5 h-5 text-blue-500" />
         ) : null}
       </div>
+
+      {trophies && (trophies.gold > 0 || trophies.silver > 0 || trophies.bronze > 0) && (
+          <div className="flex gap-3 mb-3 bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-full border border-gray-100 dark:border-gray-800">
+              {trophies.gold > 0 && (
+                  <div className="flex items-center gap-1 text-yellow-500 font-bold text-sm">
+                      <Trophy className="w-4 h-4 fill-yellow-500" />
+                      <span>{trophies.gold}</span>
+                  </div>
+              )}
+              {trophies.silver > 0 && (
+                  <div className="flex items-center gap-1 text-gray-400 font-bold text-sm">
+                      <Trophy className="w-4 h-4 fill-gray-400" />
+                      <span>{trophies.silver}</span>
+                  </div>
+              )}
+              {trophies.bronze > 0 && (
+                  <div className="flex items-center gap-1 text-amber-700 font-bold text-sm">
+                      <Trophy className="w-4 h-4 fill-amber-700" />
+                      <span>{trophies.bronze}</span>
+                  </div>
+              )}
+          </div>
+      )}
 
       {(user.bio || user.oshi) && (
           <div className="flex flex-col items-center gap-1 mb-4 max-w-md text-center px-4">

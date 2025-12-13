@@ -51,9 +51,14 @@ type ProfileClientProps = {
     isMuted: boolean;
     isMe: boolean;
   };
+  trophies?: {
+      gold: number;
+      silver: number;
+      bronze: number;
+  };
 };
 
-export default function ProfileClient({ user, currentUser, posts, likedPosts = [], initialStatus }: ProfileClientProps) {
+export default function ProfileClient({ user, currentUser, posts, likedPosts = [], initialStatus, trophies }: ProfileClientProps) {
   const [activeTab, setActiveTab] = useState<'posts' | 'likes'>('posts');
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -76,6 +81,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                  following: user._count.following
              }}
              initialStatus={initialStatus}
+             trophies={trophies}
          />
          
          {initialStatus.isMe && (

@@ -27,6 +27,9 @@ model User {
   mutedBy           Mute[]    @relation("mutedBy")
   muted             Mute[]    @relation("muted")
   posts             Post[]
+  contestPosts      ContestPost[]
+  contestLikes      ContestLike[]
+  createdContests   Contest[]
 }
 
 model Post {
@@ -98,4 +101,50 @@ model Mute {
   muter     User     @relation("muted", fields: [muterId], references: [id], onDelete: Cascade)
 
   @@unique([muterId, mutedId])
+}
+
+model Contest {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  creatorId   Int
+  creator     User     @relation(fields: [creatorId], references: [id])
+  posts       ContestPost[]
+  createdAt   DateTime @default(now())
+}
+
+model ContestPost {
+  id        Int      @id @default(autoincrement())
+  imageUrl  String // Primary image
+  comment   String?
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contestId Int
+  contest   Contest  @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  likes     ContestLike[]
+  images    ContestPostImage[]
+  createdAt DateTime @default(now())
+
+  @@index([contestId, createdAt])
+}
+
+model ContestPostImage {
+  id            Int         @id @default(autoincrement())
+  url           String
+  order         Int
+  contestPostId Int
+  contestPost   ContestPost @relation(fields: [contestPostId], references: [id], onDelete: Cascade)
+}
+
+model ContestLike {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contestPostId Int
+  contestPost   ContestPost @relation(fields: [contestPostId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, contestPostId])
 }
