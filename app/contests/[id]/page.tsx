@@ -42,8 +42,8 @@ export default async function ContestDetailPage({
           </div>
 
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
-             <div className="flex items-center gap-2 mb-2 text-xs uppercase tracking-wider font-semibold text-gray-500">
-                <Info className="w-3 h-3" /> 詳細
+             <div className="flex items-center gap-2 mb-2 text-xs tracking-wider font-semibold text-gray-500">
+                <Info className="w-3 h-3" /> 概要
              </div>
              <p className="mb-3">{contest.description || "説明はありません。"}</p>
              <div className="flex items-center gap-2 text-xs text-gray-500">
