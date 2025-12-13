@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getSession } from '@/lib/auth';
 import ProfileClient from '@/app/profile/ProfileClient';
+import { getUserTrophies } from '@/app/actions/trophy';
 
 export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
   const resolvedParams = await params;
@@ -38,6 +39,9 @@ export default async function UserPage({ params }: { params: Promise<{ username:
   if (!user) {
     notFound();
   }
+
+  // Fetch trophies
+  const trophies = await getUserTrophies(user.id);
 
   // Check relationship status if logged in
   let isFollowing = false;
@@ -234,6 +238,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
               isMuted,
               isMe
           }}
+          trophies={trophies}
       />
     </main>
   );

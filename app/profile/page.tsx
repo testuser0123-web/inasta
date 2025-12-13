@@ -4,6 +4,7 @@ import { getSession, logout } from '@/lib/auth';
 import Link from 'next/link';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import ProfileClient from './ProfileClient';
+import { getUserTrophies } from '@/app/actions/trophy';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +40,8 @@ export default async function ProfilePage() {
       ...userData,
       avatarUrl: userData.avatarUrl ? `/api/avatar/${userData.username}?v=${userData.updatedAt.getTime()}` : null
   };
+
+  const trophies = await getUserTrophies(user.id);
 
   // Fetch my posts
   const myPostsData = await db.post.findMany({
@@ -214,6 +217,7 @@ export default async function ProfilePage() {
               isMuted: false,
               isMe: true
           }}
+          trophies={trophies}
       />
     </main>
   );
