@@ -11,7 +11,7 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-3 left-4 z-50 p-2 bg-white dark:bg-black rounded-full shadow-md md:hidden"
+        className="fixed top-3 left-4 z-[60] p-2 bg-white dark:bg-black rounded-full shadow-md md:hidden"
       >
         {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
@@ -19,14 +19,14 @@ export default function Sidebar() {
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 z-50 md:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 h-full w-64 bg-white dark:bg-black border-r dark:border-gray-800 z-40 transition-transform duration-300 transform
+        fixed top-0 left-0 h-full w-64 bg-white dark:bg-black border-r dark:border-gray-800 z-50 transition-transform duration-300 transform
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:static md:block md:w-20 lg:w-64 md:h-screen md:shrink-0 overflow-y-auto
       `}>

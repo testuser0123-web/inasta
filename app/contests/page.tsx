@@ -15,7 +15,7 @@ export default async function ContestsPage({
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
-      <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm p-4 flex justify-between items-center">
+      <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm p-4 pl-14 md:pl-4 flex justify-between items-center">
         <h1 className="text-xl font-bold dark:text-white">Contests</h1>
         {tab === 'active' && (
              <Link href="/contests/create" className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold hover:bg-indigo-700 flex items-center gap-1">

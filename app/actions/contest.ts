@@ -3,6 +3,7 @@
 import { db as prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 const createContestSchema = z.object({
@@ -54,7 +55,7 @@ export async function createContest(prevState: any, formData: FormData) {
   }
 
   revalidatePath('/contests');
-  return { success: true };
+  redirect('/contests?tab=active');
 }
 
 export async function getContests(filter: 'active' | 'ended') {
