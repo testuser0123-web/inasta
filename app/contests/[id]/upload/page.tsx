@@ -11,8 +11,10 @@ import Link from 'next/link';
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
 
-export default function ContestUploadPage({ params }: { params: { id: string } }) {
-  const contestId = params.id;
+import { use } from "react";
+
+export default function ContestUploadPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: contestId } = use(params);
   const [state, action, isPending] = useActionState(createContestPost, undefined);
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -127,37 +129,31 @@ export default function ContestUploadPage({ params }: { params: { id: string } }
             <input type="hidden" name="imageUrls" value={JSON.stringify(croppedImages)} />
             <input type="hidden" name="contestId" value={contestId} />
 
-            {croppedImages.length > 0 && (
-                <div className="grid grid-cols-2 gap-2">
-                    {croppedImages.map((img, index) => (
-                        <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={img} alt="" className="w-full h-full object-cover" />
-                            <button type="button" onClick={() => removeImage(index)} className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-4 h-4" /></button>
-                        </div>
-                    ))}
+            {croppedImages.length > 0 ? (
+                <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group w-full max-w-sm mx-auto">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={croppedImages[0]} alt="" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => setCroppedImages([])} className="absolute top-2 right-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"><X className="w-5 h-5" /></button>
                 </div>
-            )}
-
-            {croppedImages.length < 4 && (
-                <div onClick={() => fileInputRef.current?.click()} className="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-gray-400">
+            ) : (
+                <div onClick={() => fileInputRef.current?.click()} className="w-full h-64 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-gray-400">
                     <div className="text-gray-400 flex flex-col items-center">
-                        <Camera className="w-8 h-8 mb-2" />
-                        <span>Add Image</span>
+                        <Camera className="w-12 h-12 mb-2" />
+                        <span className="text-lg">画像を選択</span>
                     </div>
                     <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                 </div>
             )}
 
             <div>
-                <label htmlFor="comment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comment</label>
-                <input type="text" name="comment" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={200} className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border" placeholder="Describe your entry..." />
+                <label htmlFor="comment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">コメント</label>
+                <input type="text" name="comment" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={200} className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border" placeholder="エントリーの説明..." />
             </div>
 
-            {state?.message && <div className="text-red-500 text-sm text-center">{typeof state.message === 'string' ? state.message : 'Error'}</div>}
+            {state?.message && <div className="text-red-500 text-sm text-center">{typeof state.message === 'string' ? state.message : 'エラーが発生しました'}</div>}
 
-            <button type="submit" disabled={isPending || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50">
-                {isPending ? "Submitting..." : "Submit Entry"}
+            <button type="submit" disabled={isPending || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-bold">
+                {isPending ? "投稿中..." : "投稿する"}
             </button>
         </form>
     </div>

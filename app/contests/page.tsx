@@ -15,13 +15,14 @@ export default async function ContestsPage({
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
-      <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm p-4 pl-14 md:pl-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold dark:text-white">Contests</h1>
-        {tab === 'active' && (
-             <Link href="/contests/create" className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold hover:bg-indigo-700 flex items-center gap-1">
-                <Plus className="w-4 h-4" /> Create
+      <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm p-4 flex items-center justify-between">
+        <div className="w-12 md:hidden" /> {/* Hamburger spacer */}
+        <h1 className="text-xl font-bold dark:text-white absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">コンテスト</h1>
+        {tab === 'active' ? (
+             <Link href="/contests/create" className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold hover:bg-indigo-700 flex items-center gap-1 z-10">
+                <Plus className="w-4 h-4" /> 作成
              </Link>
-        )}
+        ) : <div className="w-16" />}
       </div>
 
       <div className="flex border-b dark:border-gray-800">
@@ -33,7 +34,7 @@ export default async function ContestsPage({
               : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800'
           }`}
         >
-          Active
+          開催中
         </Link>
         <Link
           href="/contests?tab=ended"
@@ -43,14 +44,14 @@ export default async function ContestsPage({
               : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800'
           }`}
         >
-          Ended
+          終了
         </Link>
       </div>
 
       <div className="p-4 space-y-4">
         {contests.length === 0 ? (
           <div className="text-center py-10 text-gray-500">
-            No {tab} contests found.
+            {tab === 'active' ? '開催中のコンテストはありません' : '終了したコンテストはありません'}
           </div>
         ) : (
           contests.map((contest) => (
@@ -64,10 +65,10 @@ export default async function ContestsPage({
                 <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">{contest.description}</p>
               )}
               <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-500">
-                <span>By @{contest.creator.username}</span>
+                <span>開催者: @{contest.creator.username}</span>
                 <div className="flex gap-3">
-                     <span>{contest._count.posts} posts</span>
-                     <span>Ends: {contest.endDate.toLocaleDateString()}</span>
+                     <span>{contest._count.posts} 投稿</span>
+                     <span>終了: {contest.endDate.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}</span>
                 </div>
               </div>
             </Link>
