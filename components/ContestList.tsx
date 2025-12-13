@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getContests } from '@/app/actions/contest';
 
-export default async function ContestList({ tab }: { tab: string }) {
+export default async function ContestList({ tab }: { tab: 'active' | 'ended' }) {
   const contests = await getContests(tab);
 
   return (

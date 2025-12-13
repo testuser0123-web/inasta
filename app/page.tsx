@@ -31,11 +31,10 @@ export default async function Home({
   return (
     <main className="min-h-screen bg-white dark:bg-black">
       <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm">
-        <div className="relative px-4 py-3 flex items-center justify-between md:pl-4">
-          <div className="w-6 hidden md:block" /> {/* Spacer */}
-          <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold tracking-tighter italic dark:text-white md:hidden">INASTA</h1>
-          <div className="w-6 md:hidden" /> {/* Spacer for hamburger */}
-          <Link href="/profile" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white z-10">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="w-6" /> {/* Spacer */}
+          <h1 className="text-xl font-bold tracking-tighter italic dark:text-white">INASTA</h1>
+          <Link href="/profile" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
             <User className="w-6 h-6" />
           </Link>
         </div>

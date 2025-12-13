@@ -9,29 +9,4 @@
 
  ✓ Starting...
  ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
- ✓ Ready in 3.7s
- ○ Compiling /login ...
- GET /login 200 in 7.6s (compile: 7.1s, proxy.ts: 9ms, render: 569ms)
- GET /login 200 in 88ms (compile: 8ms, proxy.ts: 5ms, render: 74ms)
- GET /robots.txt 404 in 774ms (compile: 676ms, proxy.ts: 5ms, render: 92ms)
- GET /login 200 in 72ms (compile: 5ms, proxy.ts: 4ms, render: 62ms)
- ✓ Compiled in 181ms
-prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
-prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9) OFFSET $10
- GET /contests 200 in 2.6s (compile: 1375ms, proxy.ts: 62ms, render: 1185ms)
-prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
-prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9) OFFSET $10
- GET /contests 200 in 450ms (compile: 5ms, proxy.ts: 6ms, render: 439ms)
-prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" <= $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
-prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
- GET /contests?tab=ended 200 in 122ms (compile: 5ms, proxy.ts: 5ms, render: 111ms)
- ✓ Compiled in 36ms
- GET /login 200 in 219ms (compile: 13ms, proxy.ts: 7ms, render: 199ms)
- ✓ Compiled in 49ms
-prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
-prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9) OFFSET $10
- GET /contests 200 in 574ms (compile: 8ms, proxy.ts: 22ms, render: 544ms)
-prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" <= $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
-prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
- GET /contests?tab=ended 200 in 117ms (compile: 6ms, proxy.ts: 7ms, render: 104ms)
- ✓ Compiled in 39ms
+ ✓ Ready in 1990ms

@@ -1,28 +1,64 @@
 'use server';
 
-import { db as prisma } from '@/lib/db';
+import { db } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+export async function getContests(tab: 'active' | 'ended') {
+  const now = new Date();
+  const where = tab === 'active'
+    ? { endDate: { gt: now } }
+    : { endDate: { lte: now } };
+
+  const contests = await db.contest.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      creator: {
+        select: {
+          username: true,
+        },
+      },
+      _count: {
+        select: {
+          posts: true,
+        },
+      },
+    },
+  });
+
+  return contests;
+}
+
+export async function getContest(id: number) {
+  return db.contest.findUnique({
+    where: { id },
+    include: {
+      creator: {
+        select: {
+          username: true,
+        },
+      },
+      _count: {
+        select: {
+          posts: true,
+        },
+      },
+    },
+  });
+}
+
 const createContestSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(100),
+  title: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
   duration: z.coerce.number().min(1).max(7),
 });
 
-const createPostSchema = z.object({
-  imageUrl: z.string().url(),
-  comment: z.string().max(200).optional(),
-  contestId: z.coerce.number(),
-});
-
 export async function createContest(prevState: any, formData: FormData) {
   const session = await getSession();
-  if (!session) {
-    return { message: 'Unauthorized' };
-  }
+  if (!session) return { message: 'ログインが必要です' };
 
   const validatedFields = createContestSchema.safeParse({
     title: formData.get('title'),
@@ -31,148 +67,181 @@ export async function createContest(prevState: any, formData: FormData) {
   });
 
   if (!validatedFields.success) {
-    return { message: validatedFields.error.flatten().fieldErrors };
+    return { message: '入力内容が正しくありません' };
   }
 
   const { title, description, duration } = validatedFields.data;
   const startDate = new Date();
-  const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + duration);
+  const endDate = new Date(startDate.getTime() + duration * 24 * 60 * 60 * 1000);
 
   try {
-    await prisma.contest.create({
+    await db.contest.create({
       data: {
         title,
         description,
         startDate,
         endDate,
-        creator: { connect: { id: session.id } },
+        creator: {
+            connect: { id: session.id }
+        },
       },
     });
-  } catch (error) {
-    console.error('Failed to create contest:', error);
-    return { message: 'Failed to create contest' };
+  } catch (e) {
+    console.error(e);
+    return { message: 'コンテストの作成に失敗しました' };
   }
 
   revalidatePath('/contests');
-  redirect('/contests?tab=active');
+  redirect('/contests');
 }
 
-export async function getContests(filter: 'active' | 'ended') {
-  const now = new Date();
-
-  return prisma.contest.findMany({
-    where: {
-      endDate: filter === 'active' ? { gt: now } : { lte: now },
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-    include: {
-      creator: {
-        select: { username: true },
-      },
-      _count: {
-        select: { posts: true },
-      },
-    },
-  });
-}
-
-export async function getContest(id: number) {
-  return prisma.contest.findUnique({
-    where: { id },
-    include: {
-      creator: { select: { username: true } },
-    },
-  });
-}
+const createPostSchema = z.object({
+  contestId: z.coerce.number(),
+  imageUrls: z.string().transform(str => {
+      try {
+          return JSON.parse(str);
+      } catch {
+          return [];
+      }
+  }).pipe(z.array(z.string()).min(1).max(1)),
+  comment: z.string().max(200).optional(),
+});
 
 export async function createContestPost(prevState: any, formData: FormData) {
-    const session = await getSession();
-    if (!session) {
-        return { message: 'Unauthorized' };
-    }
+  const session = await getSession();
+  if (!session) return { message: 'ログインが必要です', success: false };
 
-    const contestId = Number(formData.get('contestId'));
-    const contest = await prisma.contest.findUnique({ where: { id: contestId } });
+  const validatedFields = createPostSchema.safeParse({
+    contestId: formData.get('contestId'),
+    imageUrls: formData.get('imageUrls'),
+    comment: formData.get('comment'),
+  });
 
-    if (!contest) {
-        return { message: 'Contest not found' };
-    }
+  if (!validatedFields.success) {
+    return { message: '入力内容が正しくありません', success: false };
+  }
 
-    if (new Date() > contest.endDate) {
-        return { message: 'Contest has ended' };
-    }
+  const { contestId, imageUrls, comment } = validatedFields.data;
 
-    const imageUrlsJson = formData.get('imageUrls') as string;
-    let imageUrls: string[] = [];
-    try {
-        imageUrls = JSON.parse(imageUrlsJson);
-    } catch {
-        return { message: 'Invalid image data' };
-    }
+  // Check if contest is active
+  const contest = await db.contest.findUnique({ where: { id: contestId } });
+  if (!contest || new Date() > contest.endDate) {
+      return { message: 'コンテストは終了しています', success: false };
+  }
 
-    if (imageUrls.length === 0) {
-        return { message: 'At least one image is required' };
-    }
+  try {
+    await db.contestPost.create({
+      data: {
+        imageUrl: imageUrls[0], // Primary image
+        comment,
+        user: { connect: { id: session.id } },
+        contest: { connect: { id: contestId } },
+      },
+    });
+  } catch (e) {
+    console.error(e);
+    return { message: '投稿に失敗しました', success: false };
+  }
 
-    const comment = formData.get('comment') as string;
-
-    try {
-        await prisma.contestPost.create({
-            data: {
-                imageUrl: imageUrls[0], // Main image
-                comment,
-                user: { connect: { id: session.id } },
-                contest: { connect: { id: contestId } },
-                images: {
-                    create: imageUrls.slice(1).map((url, index) => ({
-                        url,
-                        order: index,
-                    })),
-                },
-            },
-        });
-    } catch (error) {
-        console.error("Failed to create contest post", error);
-        return { message: 'Failed to create post' };
-    }
-
-    revalidatePath(`/contests/${contestId}`);
-    return { success: true };
+  revalidatePath(`/contests/${contestId}`);
+  return { message: '投稿しました', success: true };
 }
 
-export async function fetchContestPosts({ contestId, sortBy = 'newest', cursorId }: { contestId: number, sortBy?: string, cursorId?: number }) {
-    const session = await getSession();
-    const currentUserId = session?.id;
+export async function fetchContestPosts({ contestId, sortBy }: { contestId: number; sortBy: string }) {
+  const session = await getSession();
 
-    const contest = await prisma.contest.findUnique({ where: { id: contestId } });
-    if (!contest) throw new Error("Contest not found");
+  let orderBy: any = { createdAt: 'desc' };
+  if (sortBy === 'oldest') orderBy = { createdAt: 'asc' };
+  if (sortBy === 'likes_desc') orderBy = { likes: { _count: 'desc' } };
+  if (sortBy === 'likes_asc') orderBy = { likes: { _count: 'asc' } };
 
-    const isEnded = new Date() > contest.endDate;
+  const posts = await db.contestPost.findMany({
+    where: { contestId },
+    orderBy,
+    include: {
+      user: {
+        select: {
+          username: true,
+          avatarUrl: true,
+          isVerified: true,
+          isGold: true,
+          updatedAt: true,
+        },
+      },
+      images: {
+          orderBy: { order: 'asc' }
+      },
+      _count: {
+        select: {
+          likes: true,
+        },
+      },
+      likes: {
+          where: { userId: session?.id ?? -1 },
+          select: { userId: true }
+      }
+    },
+  });
 
-    let orderBy: any = { createdAt: 'desc' };
-    if (sortBy === 'oldest') {
-        orderBy = { createdAt: 'asc' };
-    } else if (sortBy === 'likes_desc') {
-        orderBy = [
-            { likes: { _count: 'desc' } },
-            { createdAt: 'desc' }
-        ];
-    } else if (sortBy === 'likes_asc') {
-        orderBy = [
-            { likes: { _count: 'asc' } },
-            { createdAt: 'desc' }
-        ];
-    }
+  return posts.map(post => ({
+      ...post,
+      user: {
+          ...post.user,
+          avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
+      },
+      likesCount: post._count.likes,
+      hasLiked: post.likes.length > 0,
+      likes: undefined,
+      _count: undefined
+  }));
+}
 
-    const posts = await prisma.contestPost.findMany({
+export async function toggleContestLike(postId: number) {
+  const session = await getSession();
+  if (!session) return;
+
+  const post = await db.contestPost.findUnique({
+      where: { id: postId },
+      include: { contest: true }
+  });
+
+  if (!post) return;
+  if (new Date() > post.contest.endDate) return; // Cannot like ended contests
+
+  const existing = await db.contestLike.findUnique({
+    where: {
+      userId_contestPostId: {
+        userId: session.id,
+        contestPostId: postId,
+      },
+    },
+  });
+
+  if (existing) {
+    await db.contestLike.delete({
+      where: { id: existing.id },
+    });
+  } else {
+    await db.contestLike.create({
+      data: {
+        userId: session.id,
+        contestPostId: postId,
+      },
+    });
+  }
+
+  revalidatePath(`/contests/${post.contestId}`);
+}
+
+export async function getContestWinners(contestId: number) {
+    // Top 3 by likes
+    const posts = await db.contestPost.findMany({
         where: { contestId },
-        take: 12,
-        skip: cursorId ? 1 : 0,
-        cursor: cursorId ? { id: cursorId } : undefined,
-        orderBy,
+        orderBy: [
+            { likes: { _count: 'desc' } },
+            { createdAt: 'asc' }
+        ],
+        take: 3,
         include: {
             user: {
                 select: {
@@ -180,97 +249,33 @@ export async function fetchContestPosts({ contestId, sortBy = 'newest', cursorId
                     avatarUrl: true,
                     isVerified: true,
                     isGold: true,
-                }
+                    updatedAt: true,
+                },
             },
             images: {
                 orderBy: { order: 'asc' }
             },
-            likes: currentUserId ? {
-                where: { userId: currentUserId }
-            } : false,
             _count: {
-                select: { likes: true }
+                select: {
+                    likes: true,
+                },
+            },
+            likes: {
+                where: { userId: -1 }, // Winners view doesn't need 'hasLiked' usually, or we can pass session if needed
+                select: { userId: true }
             }
-        }
+        },
     });
 
     return posts.map(post => ({
         ...post,
-        likesCount: post._count.likes,
-        hasLiked: currentUserId ? post.likes.length > 0 : false,
-        isEnded
-    }));
-}
-
-export async function toggleContestLike(postId: number) {
-    const session = await getSession();
-    if (!session) return { message: 'Unauthorized' };
-
-    const post = await prisma.contestPost.findUnique({
-        where: { id: postId },
-        include: { contest: true }
-    });
-
-    if (!post) return { message: 'Post not found' };
-
-    if (new Date() > post.contest.endDate) {
-        return { message: 'Contest has ended' };
-    }
-
-    const existingLike = await prisma.contestLike.findUnique({
-        where: {
-            userId_contestPostId: {
-                userId: session.id,
-                contestPostId: postId
-            }
-        }
-    });
-
-    if (existingLike) {
-        await prisma.contestLike.delete({
-            where: { id: existingLike.id }
-        });
-    } else {
-        await prisma.contestLike.create({
-            data: {
-                user: { connect: { id: session.id } },
-                contestPost: { connect: { id: postId } }
-            }
-        });
-    }
-
-    revalidatePath(`/contests/${post.contestId}`);
-    return { success: true };
-}
-
-export async function getContestWinners(contestId: number) {
-    const winners = await prisma.contestPost.findMany({
-        where: { contestId },
-        include: {
-             user: {
-                select: {
-                    username: true,
-                    avatarUrl: true,
-                    isVerified: true,
-                    isGold: true,
-                }
-            },
-            images: {
-                 orderBy: { order: 'asc' }
-            },
-            _count: {
-                select: { likes: true }
-            }
+        user: {
+            ...post.user,
+            avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
         },
-        orderBy: [
-            { likes: { _count: 'desc' } },
-            { createdAt: 'asc' }
-        ],
-        take: 3
-    });
-
-    return winners.map(post => ({
-        ...post,
-        likesCount: post._count.likes
+        likesCount: post._count.likes,
+        hasLiked: false,
+        likes: undefined,
+        _count: undefined
     }));
 }

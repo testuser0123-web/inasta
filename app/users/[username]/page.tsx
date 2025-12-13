@@ -214,40 +214,6 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       }));
   }
 
-  // Fetch trophies using raw query for performance
-  const trophyCounts = await db.$queryRaw<Array<{ rank: bigint, count: bigint }>>`
-    SELECT
-      rank,
-      CAST(COUNT(*) AS INTEGER) as count
-    FROM (
-      SELECT
-        cp."contestId",
-        cp."userId",
-        RANK() OVER (
-          PARTITION BY cp."contestId"
-          ORDER BY COUNT(cl.id) DESC, cp."createdAt" ASC
-        ) as rank
-      FROM "ContestPost" cp
-      JOIN "Contest" c ON cp."contestId" = c.id
-      LEFT JOIN "ContestLike" cl ON cp.id = cl."contestPostId"
-      WHERE c."endDate" < NOW()
-      GROUP BY cp.id, cp."contestId", cp."userId", cp."createdAt"
-    ) ranking
-    WHERE "userId" = ${user.id} AND rank <= 3
-    GROUP BY rank
-  `;
-
-  const trophies = { gold: 0, silver: 0, bronze: 0 };
-  if (Array.isArray(trophyCounts)) {
-    trophyCounts.forEach(t => {
-        const r = Number(t.rank);
-        const c = Number(t.count);
-        if (r === 1) trophies.gold = c;
-        else if (r === 2) trophies.silver = c;
-        else if (r === 3) trophies.bronze = c;
-    });
-  }
-
   return (
     <main className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
       <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 px-4 py-3 flex items-center shadow-sm">
@@ -268,7 +234,6 @@ export default async function UserPage({ params }: { params: Promise<{ username:
               isMuted,
               isMe
           }}
-          trophies={trophies}
       />
     </main>
   );
