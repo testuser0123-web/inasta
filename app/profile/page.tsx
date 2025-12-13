@@ -186,6 +186,51 @@ export default async function ProfilePage() {
       _count: undefined
   }));
 
+  // Fetch trophies
+  // We need to find contests that have ended, and check ranks.
+  // This might be heavy if done naively.
+  // Ideally, we store "Winner" status in DB. But request says "Non-destructively".
+  // So we compute on fly or assume efficient enough for now.
+  // Optimization: Only fetch ended contests where user has posted.
+
+  const userContestPosts = await db.contestPost.findMany({
+    where: {
+        userId: user.id,
+        contest: {
+            endDate: { lt: new Date() }
+        }
+    },
+    select: {
+        id: true,
+        contestId: true
+    }
+  });
+
+  const contestIds = Array.from(new Set(userContestPosts.map(p => p.contestId)));
+
+  let trophies = { gold: 0, silver: 0, bronze: 0 };
+
+  for (const contestId of contestIds) {
+      // Get top 3 posts for this contest
+      const winners = await db.contestPost.findMany({
+          where: { contestId },
+          orderBy: [
+              { likes: { _count: 'desc' } },
+              { createdAt: 'asc' }
+          ],
+          take: 3,
+          select: { userId: true }
+      });
+
+      winners.forEach((winner, index) => {
+          if (winner.userId === user.id) {
+              if (index === 0) trophies.gold++;
+              else if (index === 1) trophies.silver++;
+              else if (index === 2) trophies.bronze++;
+          }
+      });
+  }
+
   return (
     <main className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
       <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 px-4 py-3 flex items-center justify-between shadow-sm">
@@ -214,6 +259,7 @@ export default async function ProfilePage() {
               isMuted: false,
               isMe: true
           }}
+          trophies={trophies}
       />
     </main>
   );

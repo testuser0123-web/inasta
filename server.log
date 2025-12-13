@@ -1,0 +1,612 @@
+
+> inasta@0.1.0 dev
+> next dev
+
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.0.2:3000
+   - Environments: .env
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 1532ms
+ ○ Compiling /signup ...
+ GET /signup 200 in 6.7s (compile: 6.1s, proxy.ts: 177ms, render: 399ms)
+ GET /signup 200 in 122ms (compile: 7ms, proxy.ts: 8ms, render: 107ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."User" ("username","password","createdAt","isVerified","isGold","updatedAt","excludeUnverifiedPosts") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts"
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)) OFFSET $13
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4) OFFSET $5
+ GET / 200 in 2.5s (compile: 1796ms, proxy.ts: 14ms, render: 662ms)
+ POST /signup 303 in 3.2s (compile: 5ms, proxy.ts: 8ms, render: 3.2s)
+ ⨯ ./app/actions/contest.ts:3:1
+Module not found: Can't resolve '@/lib/prisma'
+[0m [90m 1 |[39m [32m'use server'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m prisma [36mfrom[39m [32m'@/lib/prisma'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { getSession } [36mfrom[39m [32m'@/lib/auth'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { revalidatePath } [36mfrom[39m [32m'next/cache'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { z } [36mfrom[39m [32m'zod'[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/prisma' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/actions/contest.ts
+    ./app/contests/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ GET /api/image/310.jpg 500 in 3.1s (compile: 2.7s, render: 377ms)
+ GET /api/image/309.jpg 500 in 3.1s (compile: 3.0s, render: 80ms)
+ GET /api/image/313.jpg 500 in 3.1s (compile: 3.0s, render: 65ms)
+ GET /api/image/312.jpg 500 in 3.1s (compile: 3.0s, render: 45ms)
+ GET /api/image/311.jpg 500 in 3.1s (compile: 3.0s, render: 33ms)
+ GET /contests 500 in 3.5s (compile: 3.4s, proxy.ts: 16ms, render: 27ms)
+ GET /api/image/306.jpg 500 in 152ms (compile: 76ms, render: 76ms)
+ GET /api/image/305.jpg 500 in 151ms (compile: 86ms, render: 65ms)
+ GET /api/image/308.jpg 500 in 149ms (compile: 96ms, render: 53ms)
+ GET /api/image/307.jpg 500 in 148ms (compile: 109ms, render: 39ms)
+ GET /api/image/304.jpg 500 in 151ms (compile: 123ms, render: 29ms)
+ GET /api/image/303.jpg 500 in 34ms (compile: 21ms, render: 14ms)
+ ⨯ ./app/actions/contest.ts:3:1
+Module not found: Can't resolve '@/lib/prisma'
+[0m [90m 1 |[39m [32m'use server'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m prisma [36mfrom[39m [32m'@/lib/prisma'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { getSession } [36mfrom[39m [32m'@/lib/auth'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { revalidatePath } [36mfrom[39m [32m'next/cache'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { z } [36mfrom[39m [32m'zod'[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/prisma' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/actions/contest.ts
+    ./app/contests/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ GET /contests 500 in 78ms (compile: 28ms, proxy.ts: 20ms, render: 31ms)
+ GET /api/image/302.jpg 500 in 52ms (compile: 28ms, render: 24ms)
+ GET /signup 200 in 104ms (compile: 5ms, proxy.ts: 6ms, render: 93ms)
+ GET /signup 200 in 81ms (compile: 4ms, proxy.ts: 5ms, render: 73ms)
+ ✓ Compiled in 135ms
+ GET /signup 200 in 87ms (compile: 4ms, proxy.ts: 6ms, render: 78ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."User" ("username","password","createdAt","isVerified","isGold","updatedAt","excludeUnverifiedPosts") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts"
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)) OFFSET $13
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 602ms (compile: 196ms, proxy.ts: 7ms, render: 399ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4) OFFSET $5
+ GET / 200 in 811ms (compile: 4ms, proxy.ts: 6ms, render: 800ms)
+ POST /signup 303 in 1295ms (compile: 5ms, proxy.ts: 7ms, render: 1283ms)
+ GET /contests/create 200 in 606ms (compile: 564ms, proxy.ts: 8ms, render: 35ms)
+Failed to create contest: Error [PrismaClientValidationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].contest.create()` invocation in
+/app/.next/dev/server/chunks/ssr/[root-of-the-server]__f3ad8fd6._.js:162:144
+
+  159 const endDate = new Date(startDate);
+  160 endDate.setDate(endDate.getDate() + duration);
+  161 try {
+→ 162     await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].contest.create({
+            data: {
+              title: "Screenshot Contest",
+              description: "A contest to test screenshots",
+              startDate: new Date("2025-12-13T02:21:08.032Z"),
+              endDate: new Date("2025-12-14T02:21:08.032Z"),
+              creatorId: undefined,
+          +   creator: {
+          +     create: UserCreateWithoutCreatedContestsInput | UserUncheckedCreateWithoutCreatedContestsInput,
+          +     connectOrCreate: UserCreateOrConnectWithoutCreatedContestsInput,
+          +     connect: UserWhereUniqueInput
+          +   }
+            }
+          })
+
+Argument `creator` is missing.
+    at <unknown> (app/actions/contest.ts:42:26)
+    at async createContest (app/actions/contest.ts:42:5)
+  40 |
+  41 |   try {
+> 42 |     await prisma.contest.create({
+     |                          ^
+  43 |       data: {
+  44 |         title,
+  45 |         description, {
+  clientVersion: '7.1.0'
+}
+ POST /contests/create 200 in 785ms (compile: 4ms, proxy.ts: 8ms, render: 773ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 375ms (compile: 4ms, proxy.ts: 7ms, render: 364ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 153ms (compile: 4ms, proxy.ts: 7ms, render: 142ms)
+ GET /signup 200 in 103ms (compile: 5ms, proxy.ts: 5ms, render: 93ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."User" ("username","password","createdAt","isVerified","isGold","updatedAt","excludeUnverifiedPosts") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts"
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)) OFFSET $13
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+ GET /contests 200 in 316ms (compile: 7ms, proxy.ts: 5ms, render: 304ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4) OFFSET $5
+ GET /contests/create 200 in 31ms (compile: 4ms, proxy.ts: 6ms, render: 22ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) OFFSET $13
+ GET / 200 in 593ms (compile: 4ms, proxy.ts: 7ms, render: 582ms)
+ POST /signup 303 in 1040ms (compile: 5ms, proxy.ts: 4ms, render: 1031ms)
+Failed to create contest: Error [PrismaClientValidationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].contest.create()` invocation in
+/app/.next/dev/server/chunks/ssr/[root-of-the-server]__f3ad8fd6._.js:162:144
+
+  159 const endDate = new Date(startDate);
+  160 endDate.setDate(endDate.getDate() + duration);
+  161 try {
+→ 162     await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].contest.create({
+            data: {
+              title: "Contest 1765592520",
+              description: "A contest to test screenshots",
+              startDate: new Date("2025-12-13T02:22:00.622Z"),
+              endDate: new Date("2025-12-14T02:22:00.622Z"),
+              creatorId: undefined,
+          +   creator: {
+          +     create: UserCreateWithoutCreatedContestsInput | UserUncheckedCreateWithoutCreatedContestsInput,
+          +     connectOrCreate: UserCreateOrConnectWithoutCreatedContestsInput,
+          +     connect: UserWhereUniqueInput
+          +   }
+            }
+          })
+
+Argument `creator` is missing.
+    at <unknown> (app/actions/contest.ts:42:26)
+    at async createContest (app/actions/contest.ts:42:5)
+  40 |
+  41 |   try {
+> 42 |     await prisma.contest.create({
+     |                          ^
+  43 |       data: {
+  44 |         title,
+  45 |         description, {
+  clientVersion: '7.1.0'
+}
+ POST /contests/create 200 in 558ms (compile: 4ms, proxy.ts: 7ms, render: 547ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 162ms (compile: 4ms, proxy.ts: 7ms, render: 152ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 151ms (compile: 4ms, proxy.ts: 5ms, render: 143ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."bio", "public"."User"."oshi", COALESCE("aggr_selection_0_Follow"."_aggr_count_followers", 0) AS "_aggr_count_followers", COALESCE("aggr_selection_1_Follow"."_aggr_count_following", 0) AS "_aggr_count_following" FROM "public"."User" LEFT JOIN (SELECT "public"."Follow"."followingId", COUNT(*) AS "_aggr_count_followers" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followingId") AS "aggr_selection_0_Follow" ON ("public"."User"."id" = "aggr_selection_0_Follow"."followingId") LEFT JOIN (SELECT "public"."Follow"."followerId", COUNT(*) AS "_aggr_count_following" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followerId") AS "aggr_selection_1_Follow" ON ("public"."User"."id" = "aggr_selection_1_Follow"."followerId") WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."userId" = $1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN (NULL) ORDER BY "public"."PostImage"."order" ASC OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN (NULL) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN (NULL)) OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."postId" FROM "public"."Like" WHERE "public"."Like"."userId" = $1 ORDER BY "public"."Like"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN (NULL) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN (NULL)) OFFSET $1
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN (NULL) ORDER BY "public"."PostImage"."order" ASC OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."ContestPost"."id", "public"."ContestPost"."contestId" FROM "public"."ContestPost" LEFT JOIN "public"."Contest" AS "j0" ON ("j0"."id") = ("public"."ContestPost"."contestId") WHERE ("public"."ContestPost"."userId" = $1 AND ("j0"."endDate" < $2 AND ("j0"."id" IS NOT NULL))) OFFSET $3
+ GET /profile 200 in 1352ms (compile: 770ms, proxy.ts: 6ms, render: 577ms)
+ ✓ Compiled in 54ms
+ GET /signup 200 in 94ms (compile: 7ms, proxy.ts: 6ms, render: 81ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."User" ("username","password","createdAt","isVerified","isGold","updatedAt","excludeUnverifiedPosts") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts"
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)) OFFSET $13
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 620ms (compile: 197ms, proxy.ts: 6ms, render: 417ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4) OFFSET $5
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) OFFSET $13
+ GET / 200 in 840ms (compile: 4ms, proxy.ts: 6ms, render: 830ms)
+ POST /signup 303 in 1299ms (compile: 6ms, proxy.ts: 4ms, render: 1289ms)
+ GET /contests/create 200 in 265ms (compile: 211ms, proxy.ts: 6ms, render: 47ms)
+Failed to create contest: Error [PrismaClientValidationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].contest.create()` invocation in
+/app/.next/dev/server/chunks/ssr/[root-of-the-server]__e22677eb._.js:162:144
+
+  159 const endDate = new Date(startDate);
+  160 endDate.setDate(endDate.getDate() + duration);
+  161 try {
+→ 162     await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].contest.create({
+            data: {
+              title: "Contest 1765592856",
+              description: "A contest to test screenshots",
+              startDate: new Date("2025-12-13T02:27:37.065Z"),
+              endDate: new Date("2025-12-14T02:27:37.065Z"),
+              creator: {
+                connect: {
+                  id: undefined,
+          ?       username?: String,
+          ?       AND?: UserWhereInput | UserWhereInput[],
+          ?       OR?: UserWhereInput[],
+          ?       NOT?: UserWhereInput | UserWhereInput[],
+          ?       password?: StringFilter | String,
+          ?       createdAt?: DateTimeFilter | DateTime,
+          ?       avatarUrl?: StringNullableFilter | String | Null,
+          ?       isVerified?: BoolFilter | Boolean,
+          ?       isGold?: BoolFilter | Boolean,
+          ?       verificationToken?: StringNullableFilter | String | Null,
+          ?       updatedAt?: DateTimeFilter | DateTime,
+          ?       bio?: StringNullableFilter | String | Null,
+          ?       oshi?: StringNullableFilter | String | Null,
+          ?       excludeUnverifiedPosts?: BoolFilter | Boolean,
+          ?       comments?: CommentListRelationFilter,
+          ?       following?: FollowListRelationFilter,
+          ?       followers?: FollowListRelationFilter,
+          ?       likes?: LikeListRelationFilter,
+          ?       mutedBy?: MuteListRelationFilter,
+          ?       muted?: MuteListRelationFilter,
+          ?       posts?: PostListRelationFilter,
+          ?       contestPosts?: ContestPostListRelationFilter,
+          ?       contestLikes?: ContestLikeListRelationFilter,
+          ?       createdContests?: ContestListRelationFilter
+                }
+              }
+            }
+          })
+
+Argument `connect` of type UserWhereUniqueInput needs at least one of `id` or `username` arguments. Available options are marked with ?.
+    at <unknown> (app/actions/contest.ts:42:26)
+    at async createContest (app/actions/contest.ts:42:5)
+  40 |
+  41 |   try {
+> 42 |     await prisma.contest.create({
+     |                          ^
+  43 |       data: {
+  44 |         title,
+  45 |         description, {
+  clientVersion: '7.1.0'
+}
+ POST /contests/create 200 in 657ms (compile: 4ms, proxy.ts: 7ms, render: 646ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 232ms (compile: 4ms, proxy.ts: 8ms, render: 219ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 164ms (compile: 11ms, proxy.ts: 8ms, render: 144ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."bio", "public"."User"."oshi", COALESCE("aggr_selection_0_Follow"."_aggr_count_followers", 0) AS "_aggr_count_followers", COALESCE("aggr_selection_1_Follow"."_aggr_count_following", 0) AS "_aggr_count_following" FROM "public"."User" LEFT JOIN (SELECT "public"."Follow"."followingId", COUNT(*) AS "_aggr_count_followers" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followingId") AS "aggr_selection_0_Follow" ON ("public"."User"."id" = "aggr_selection_0_Follow"."followingId") LEFT JOIN (SELECT "public"."Follow"."followerId", COUNT(*) AS "_aggr_count_following" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followerId") AS "aggr_selection_1_Follow" ON ("public"."User"."id" = "aggr_selection_1_Follow"."followerId") WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."userId" = $1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN (NULL) ORDER BY "public"."PostImage"."order" ASC OFFSET $1
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN (NULL)) OFFSET $1
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN (NULL) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."postId" FROM "public"."Like" WHERE "public"."Like"."userId" = $1 ORDER BY "public"."Like"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN (NULL)) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN (NULL) ORDER BY "public"."PostImage"."order" ASC OFFSET $1
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN (NULL) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."ContestPost"."id", "public"."ContestPost"."contestId" FROM "public"."ContestPost" LEFT JOIN "public"."Contest" AS "j0" ON ("j0"."id") = ("public"."ContestPost"."contestId") WHERE ("public"."ContestPost"."userId" = $1 AND ("j0"."endDate" < $2 AND ("j0"."id" IS NOT NULL))) OFFSET $3
+ GET /profile 200 in 429ms (compile: 5ms, proxy.ts: 7ms, render: 417ms)
+ GET /signup 200 in 74ms (compile: 3ms, proxy.ts: 4ms, render: 67ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."User" ("username","password","createdAt","isVerified","isGold","updatedAt","excludeUnverifiedPosts") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts"
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)) OFFSET $13
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 336ms (compile: 7ms, proxy.ts: 9ms, render: 321ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4) OFFSET $5
+ GET /contests/create 200 in 29ms (compile: 3ms, proxy.ts: 6ms, render: 20ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) OFFSET $13
+ GET / 200 in 573ms (compile: 3ms, proxy.ts: 5ms, render: 564ms)
+ POST /signup 303 in 1016ms (compile: 4ms, proxy.ts: 4ms, render: 1008ms)
+Failed to create contest: Error [PrismaClientValidationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].contest.create()` invocation in
+/app/.next/dev/server/chunks/ssr/[root-of-the-server]__e22677eb._.js:162:144
+
+  159 const endDate = new Date(startDate);
+  160 endDate.setDate(endDate.getDate() + duration);
+  161 try {
+→ 162     await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].contest.create({
+            data: {
+              title: "Contest 1765592878",
+              description: "A contest to test screenshots",
+              startDate: new Date("2025-12-13T02:27:58.810Z"),
+              endDate: new Date("2025-12-14T02:27:58.810Z"),
+              creator: {
+                connect: {
+                  id: undefined,
+          ?       username?: String,
+          ?       AND?: UserWhereInput | UserWhereInput[],
+          ?       OR?: UserWhereInput[],
+          ?       NOT?: UserWhereInput | UserWhereInput[],
+          ?       password?: StringFilter | String,
+          ?       createdAt?: DateTimeFilter | DateTime,
+          ?       avatarUrl?: StringNullableFilter | String | Null,
+          ?       isVerified?: BoolFilter | Boolean,
+          ?       isGold?: BoolFilter | Boolean,
+          ?       verificationToken?: StringNullableFilter | String | Null,
+          ?       updatedAt?: DateTimeFilter | DateTime,
+          ?       bio?: StringNullableFilter | String | Null,
+          ?       oshi?: StringNullableFilter | String | Null,
+          ?       excludeUnverifiedPosts?: BoolFilter | Boolean,
+          ?       comments?: CommentListRelationFilter,
+          ?       following?: FollowListRelationFilter,
+          ?       followers?: FollowListRelationFilter,
+          ?       likes?: LikeListRelationFilter,
+          ?       mutedBy?: MuteListRelationFilter,
+          ?       muted?: MuteListRelationFilter,
+          ?       posts?: PostListRelationFilter,
+          ?       contestPosts?: ContestPostListRelationFilter,
+          ?       contestLikes?: ContestLikeListRelationFilter,
+          ?       createdContests?: ContestListRelationFilter
+                }
+              }
+            }
+          })
+
+Argument `connect` of type UserWhereUniqueInput needs at least one of `id` or `username` arguments. Available options are marked with ?.
+    at <unknown> (app/actions/contest.ts:42:26)
+    at async createContest (app/actions/contest.ts:42:5)
+  40 |
+  41 |   try {
+> 42 |     await prisma.contest.create({
+     |                          ^
+  43 |       data: {
+  44 |         title,
+  45 |         description, {
+  clientVersion: '7.1.0'
+}
+ POST /contests/create 200 in 625ms (compile: 5ms, proxy.ts: 19ms, render: 600ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 159ms (compile: 4ms, proxy.ts: 6ms, render: 149ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+ GET /contests 200 in 154ms (compile: 5ms, proxy.ts: 5ms, render: 144ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."bio", "public"."User"."oshi", COALESCE("aggr_selection_0_Follow"."_aggr_count_followers", 0) AS "_aggr_count_followers", COALESCE("aggr_selection_1_Follow"."_aggr_count_following", 0) AS "_aggr_count_following" FROM "public"."User" LEFT JOIN (SELECT "public"."Follow"."followingId", COUNT(*) AS "_aggr_count_followers" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followingId") AS "aggr_selection_0_Follow" ON ("public"."User"."id" = "aggr_selection_0_Follow"."followingId") LEFT JOIN (SELECT "public"."Follow"."followerId", COUNT(*) AS "_aggr_count_following" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followerId") AS "aggr_selection_1_Follow" ON ("public"."User"."id" = "aggr_selection_1_Follow"."followerId") WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."userId" = $1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN (NULL) ORDER BY "public"."PostImage"."order" ASC OFFSET $1
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN (NULL)) OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN (NULL) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."postId" FROM "public"."Like" WHERE "public"."Like"."userId" = $1 ORDER BY "public"."Like"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN (NULL) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $1
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN (NULL) ORDER BY "public"."PostImage"."order" ASC OFFSET $1
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN (NULL)) OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."ContestPost"."id", "public"."ContestPost"."contestId" FROM "public"."ContestPost" LEFT JOIN "public"."Contest" AS "j0" ON ("j0"."id") = ("public"."ContestPost"."contestId") WHERE ("public"."ContestPost"."userId" = $1 AND ("j0"."endDate" < $2 AND ("j0"."id" IS NOT NULL))) OFFSET $3
+ GET /profile 200 in 427ms (compile: 4ms, proxy.ts: 5ms, render: 418ms)
+ ✓ Compiled in 55ms
+ GET /signup 200 in 88ms (compile: 6ms, proxy.ts: 5ms, render: 77ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."User" ("username","password","createdAt","isVerified","isGold","updatedAt","excludeUnverifiedPosts") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts"
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)) OFFSET $13
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+ GET /contests 200 in 557ms (compile: 189ms, proxy.ts: 9ms, render: 359ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4) OFFSET $5
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) OFFSET $13
+ GET / 200 in 809ms (compile: 3ms, proxy.ts: 5ms, render: 801ms)
+ POST /signup 303 in 1250ms (compile: 4ms, proxy.ts: 5ms, render: 1242ms)
+ GET /contests/create 200 in 243ms (compile: 192ms, proxy.ts: 6ms, render: 45ms)
+prisma:query SELECT "public"."User"."id" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."Contest" ("title","description","startDate","endDate","creatorId","createdAt") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "public"."Contest"."id"
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt" FROM "public"."Contest" WHERE "public"."Contest"."id" = $1 LIMIT $2 OFFSET $3
+prisma:query COMMIT
+ POST /contests/create 200 in 287ms (compile: 4ms, proxy.ts: 7ms, render: 277ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN ($1) OFFSET $2
+ GET /contests 200 in 432ms (compile: 4ms, proxy.ts: 6ms, render: 423ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN ($1) OFFSET $2
+ GET /contests 200 in 167ms (compile: 3ms, proxy.ts: 6ms, render: 158ms)
+ GET /signup 200 in 65ms (compile: 4ms, proxy.ts: 4ms, render: 57ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."User" ("username","password","createdAt","isVerified","isGold","updatedAt","excludeUnverifiedPosts") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts"
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)) OFFSET $13
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN ($1) OFFSET $2
+ GET /contests 200 in 310ms (compile: 3ms, proxy.ts: 5ms, render: 301ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4) OFFSET $5
+ GET / 200 in 540ms (compile: 7ms, proxy.ts: 6ms, render: 528ms)
+ POST /signup 303 in 965ms (compile: 10ms, proxy.ts: 4ms, render: 951ms)
+ GET /contests/create 200 in 31ms (compile: 4ms, proxy.ts: 9ms, render: 18ms)
+prisma:query SELECT "public"."User"."id" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query INSERT INTO "public"."Contest" ("title","description","startDate","endDate","creatorId","createdAt") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "public"."Contest"."id"
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt" FROM "public"."Contest" WHERE "public"."Contest"."id" = $1 LIMIT $2 OFFSET $3
+prisma:query COMMIT
+ POST /contests/create 200 in 213ms (compile: 3ms, proxy.ts: 6ms, render: 203ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ GET /contests 200 in 160ms (compile: 4ms, proxy.ts: 5ms, render: 152ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."username" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ GET /contests 200 in 163ms (compile: 4ms, proxy.ts: 6ms, render: 153ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."bio", "public"."User"."oshi", COALESCE("aggr_selection_0_Follow"."_aggr_count_followers", 0) AS "_aggr_count_followers", COALESCE("aggr_selection_1_Follow"."_aggr_count_following", 0) AS "_aggr_count_following" FROM "public"."User" LEFT JOIN (SELECT "public"."Follow"."followingId", COUNT(*) AS "_aggr_count_followers" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followingId") AS "aggr_selection_0_Follow" ON ("public"."User"."id" = "aggr_selection_0_Follow"."followingId") LEFT JOIN (SELECT "public"."Follow"."followerId", COUNT(*) AS "_aggr_count_following" FROM "public"."Follow" WHERE 1=1 GROUP BY "public"."Follow"."followerId") AS "aggr_selection_1_Follow" ON ("public"."User"."id" = "aggr_selection_1_Follow"."followerId") WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."userId" = $1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN (NULL) ORDER BY "public"."PostImage"."order" ASC OFFSET $1
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN (NULL) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN (NULL)) OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."postId" FROM "public"."Like" WHERE "public"."Like"."userId" = $1 ORDER BY "public"."Like"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE "public"."Post"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN (NULL)) OFFSET $2
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name", "t0"."B" AS "HashtagToPost@Post" FROM "public"."Hashtag" INNER JOIN "public"."_HashtagToPost" AS "t0" ON "t0"."A" = "public"."Hashtag"."id" WHERE (1=1 AND "t0"."B" IN (NULL)) OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN (NULL) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $1
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN (NULL) ORDER BY "public"."PostImage"."order" ASC OFFSET $1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."ContestPost"."id", "public"."ContestPost"."contestId" FROM "public"."ContestPost" LEFT JOIN "public"."Contest" AS "j0" ON ("j0"."id") = ("public"."ContestPost"."contestId") WHERE ("public"."ContestPost"."userId" = $1 AND ("j0"."endDate" < $2 AND ("j0"."id" IS NOT NULL))) OFFSET $3
+ GET /profile 200 in 437ms (compile: 4ms, proxy.ts: 5ms, render: 428ms)
+ ⨯ ./app/actions/contest.ts:3:1
+Module not found: Can't resolve '@/lib/prisma'
+[0m [90m 1 |[39m [32m'use server'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m prisma [36mfrom[39m [32m'@/lib/prisma'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { getSession } [36mfrom[39m [32m'@/lib/auth'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { revalidatePath } [36mfrom[39m [32m'next/cache'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { z } [36mfrom[39m [32m'zod'[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/prisma' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/actions/contest.ts
+    ./app/contests/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./app/actions/contest.ts:3:1
+Module not found: Can't resolve '@/lib/prisma'
+[0m [90m 1 |[39m [32m'use server'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m prisma [36mfrom[39m [32m'@/lib/prisma'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { getSession } [36mfrom[39m [32m'@/lib/auth'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { revalidatePath } [36mfrom[39m [32m'next/cache'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { z } [36mfrom[39m [32m'zod'[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/prisma' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/actions/contest.ts
+    ./app/contests/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./app/actions/contest.ts:3:1
+Module not found: Can't resolve '@/lib/prisma'
+[0m [90m 1 |[39m [32m'use server'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m prisma [36mfrom[39m [32m'@/lib/prisma'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { getSession } [36mfrom[39m [32m'@/lib/auth'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { revalidatePath } [36mfrom[39m [32m'next/cache'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { z } [36mfrom[39m [32m'zod'[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/prisma' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./app/actions/contest.ts:3:1
+Module not found: Can't resolve '@/lib/prisma'
+[0m [90m 1 |[39m [32m'use server'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m prisma [36mfrom[39m [32m'@/lib/prisma'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { getSession } [36mfrom[39m [32m'@/lib/auth'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { revalidatePath } [36mfrom[39m [32m'next/cache'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { z } [36mfrom[39m [32m'zod'[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/prisma' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./app/profile/page.tsx:2:1
+Module not found: Can't resolve '@/lib/prisma'
+[0m [90m 1 |[39m [36mimport[39m { db } [36mfrom[39m [32m'@/lib/db'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m prisma [36mfrom[39m [32m'@/lib/prisma'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mimport[39m { redirect } [36mfrom[39m [32m'next/navigation'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { getSession[33m,[39m logout } [36mfrom[39m [32m'@/lib/auth'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/prisma' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./app/profile/page.tsx:2:1
+Module not found: Can't resolve '@/lib/prisma'
+[0m [90m 1 |[39m [36mimport[39m { db } [36mfrom[39m [32m'@/lib/db'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m prisma [36mfrom[39m [32m'@/lib/prisma'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mimport[39m { redirect } [36mfrom[39m [32m'next/navigation'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { getSession[33m,[39m logout } [36mfrom[39m [32m'@/lib/auth'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/prisma' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ✓ Compiled in 57ms
+ ✓ Compiled in 42ms

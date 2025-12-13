@@ -29,9 +29,14 @@ type ProfileHeaderProps = {
     isMuted: boolean;
     isMe: boolean;
   };
+  trophies?: {
+    gold: number;
+    silver: number;
+    bronze: number;
+  };
 };
 
-export default function ProfileHeader({ user, currentUser, initialCounts, initialStatus }: ProfileHeaderProps) {
+export default function ProfileHeader({ user, currentUser, initialCounts, initialStatus, trophies }: ProfileHeaderProps) {
   const [counts, setCounts] = useState(initialCounts);
   const [status, setStatus] = useState(initialStatus);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -115,6 +120,29 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
              <span className="text-gray-500 dark:text-gray-400">Following</span>
          </Link>
       </div>
+
+      {trophies && (trophies.gold > 0 || trophies.silver > 0 || trophies.bronze > 0) && (
+          <div className="flex gap-4 mb-6 bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-lg border border-gray-100 dark:border-gray-800">
+             {trophies.gold > 0 && (
+                <div className="flex flex-col items-center">
+                   <span className="text-xl">🥇</span>
+                   <span className="text-xs font-bold">{trophies.gold}</span>
+                </div>
+             )}
+             {trophies.silver > 0 && (
+                <div className="flex flex-col items-center">
+                   <span className="text-xl">🥈</span>
+                   <span className="text-xs font-bold">{trophies.silver}</span>
+                </div>
+             )}
+             {trophies.bronze > 0 && (
+                <div className="flex flex-col items-center">
+                   <span className="text-xl">🥉</span>
+                   <span className="text-xs font-bold">{trophies.bronze}</span>
+                </div>
+             )}
+          </div>
+      )}
 
       {!status.isMe && currentUser && (
         <div className="flex items-center gap-2">

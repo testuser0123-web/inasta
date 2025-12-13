@@ -33,7 +33,7 @@ export default async function Home({
       <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="w-6" /> {/* Spacer */}
-          <h1 className="text-xl font-bold tracking-tighter italic dark:text-white">INASTA</h1>
+          <h1 className="text-xl font-bold tracking-tighter italic dark:text-white md:hidden">INASTA</h1>
           <Link href="/profile" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
             <User className="w-6 h-6" />
           </Link>
