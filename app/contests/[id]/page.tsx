@@ -85,6 +85,7 @@ export default async function ContestDetailPage({
 
        {/* Feed */}
        <ContestFeed
+         key={sort}
          initialPosts={posts.map(p => ({...p, isEnded}))}
          contestId={contestId}
          isTrophyView={isTrophyView}

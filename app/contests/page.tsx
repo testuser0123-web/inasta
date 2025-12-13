@@ -15,14 +15,16 @@ export default async function ContestsPage({
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
-      <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm p-4 flex items-center justify-between">
+      <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm px-4 py-3 flex items-center justify-between">
         <div className="w-12 md:hidden" /> {/* Hamburger spacer */}
         <h1 className="text-xl font-bold dark:text-white absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">コンテスト</h1>
-        {tab === 'active' ? (
-             <Link href="/contests/create" className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold hover:bg-indigo-700 flex items-center gap-1 z-10">
-                <Plus className="w-4 h-4" /> 作成
-             </Link>
-        ) : <div className="w-16" />}
+        <div className="flex items-center justify-end w-20">
+            {tab === 'active' && (
+                <Link href="/contests/create" className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold hover:bg-indigo-700 flex items-center gap-1 z-10">
+                    <Plus className="w-4 h-4" /> 作成
+                </Link>
+            )}
+        </div>
       </div>
 
       <div className="flex border-b dark:border-gray-800">

@@ -153,9 +153,19 @@ export async function fetchContestPosts({ contestId, sortBy = 'newest', cursorId
     const isEnded = new Date() > contest.endDate;
 
     let orderBy: any = { createdAt: 'desc' };
-    if (sortBy === 'oldest') orderBy = { createdAt: 'asc' };
-    else if (sortBy === 'likes_desc') orderBy = { likes: { _count: 'desc' } };
-    else if (sortBy === 'likes_asc') orderBy = { likes: { _count: 'asc' } };
+    if (sortBy === 'oldest') {
+        orderBy = { createdAt: 'asc' };
+    } else if (sortBy === 'likes_desc') {
+        orderBy = [
+            { likes: { _count: 'desc' } },
+            { createdAt: 'desc' }
+        ];
+    } else if (sortBy === 'likes_asc') {
+        orderBy = [
+            { likes: { _count: 'asc' } },
+            { createdAt: 'desc' }
+        ];
+    }
 
     const posts = await prisma.contestPost.findMany({
         where: { contestId },
