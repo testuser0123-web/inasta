@@ -140,7 +140,7 @@ export async function createContestPost(prevState: any, formData: FormData) {
     }
 
     revalidatePath(`/contests/${contestId}`);
-    return { success: true };
+    redirect(`/contests/${contestId}`);
 }
 
 export async function fetchContestPosts({ contestId, sortBy = 'newest', cursorId }: { contestId: number, sortBy?: string, cursorId?: number }) {

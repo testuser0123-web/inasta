@@ -54,7 +54,7 @@ export default function Sidebar() {
                     onClick={() => setIsOpen(false)}
                 >
                     <Trophy className="w-6 h-6 shrink-0" />
-                    <span className="font-semibold text-lg md:hidden lg:block">Contests</span>
+                    <span className="font-semibold text-lg md:hidden lg:block">コンテスト</span>
                 </Link>
             </nav>
 
