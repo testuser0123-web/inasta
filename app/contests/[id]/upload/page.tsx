@@ -1,12 +1,13 @@
 'use client';
 
-import { useActionState, useState, useRef, useCallback } from "react";
+import { useActionState, useState, useRef, useCallback, useEffect } from "react";
 import { createContestPost } from "@/app/actions/contest";
 import { Camera, Check, X, Smartphone, Image as ImageIcon } from "lucide-react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/image";
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
@@ -16,6 +17,13 @@ import { use } from "react";
 export default function ContestUploadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: contestId } = use(params);
   const [state, action, isPending] = useActionState(createContestPost, undefined);
+  const router = useRouter();
+
+  useEffect(() => {
+      if (state?.success) {
+          router.push(`/contests/${contestId}`);
+      }
+  }, [state, contestId, router]);
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });

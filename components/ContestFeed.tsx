@@ -27,6 +27,14 @@ type ContestPost = {
 
 function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, className?: string }) {
     const [loaded, setLoaded] = useState(false);
+    const imgRef = useRef<HTMLImageElement>(null);
+
+    useEffect(() => {
+        if (imgRef.current && imgRef.current.complete) {
+            setLoaded(true);
+        }
+    }, []);
+
     return (
         <div className={`relative w-full h-full ${className}`}>
             {!loaded && (
@@ -36,6 +44,7 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
+                ref={imgRef}
                 src={src}
                 alt={alt}
                 className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
