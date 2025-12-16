@@ -23,6 +23,7 @@ export default async function ProfilePage() {
       updatedAt: true,
       isVerified: true,
       isGold: true,
+      roles: true,
       bio: true,
       oshi: true,
       _count: {
@@ -90,6 +91,7 @@ export default async function ProfilePage() {
               updatedAt: true,
               isVerified: true,
               isGold: true,
+              roles: true,
           }
       },
       _count: {
@@ -163,6 +165,7 @@ export default async function ProfilePage() {
                         updatedAt: true,
                         isVerified: true,
                         isGold: true,
+                        roles: true,
                     }
                 },
                 _count: {

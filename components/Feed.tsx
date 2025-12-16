@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment } from '@/app/actions/comment';
 import { Spinner } from '@/components/ui/spinner';
+import { RoleBadge } from '@/components/RoleBadge';
 
 type Comment = {
   id: number;
@@ -32,6 +33,7 @@ type Post = {
       avatarUrl: string | null;
       isVerified?: boolean;
       isGold?: boolean;
+      roles?: string[];
   };
   comments?: Comment[];
   hashtags?: { name: string }[];
@@ -311,6 +313,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                              ) : selectedPost.user.isVerified ? (
                                <BadgeCheck className="w-4 h-4 text-blue-500" />
                              ) : null}
+                             {selectedPost.user.roles?.map(roleId => (
+                                <div key={roleId} className="scale-75 origin-left">
+                                    <RoleBadge roleId={roleId} />
+                                </div>
+                             ))}
                         </div>
                     )}
                 </div>
