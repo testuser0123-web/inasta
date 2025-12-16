@@ -1,4 +1,4 @@
-import { Palette, Star, Bug } from 'lucide-react';
+import { Palette, Star, Bug, Aperture } from 'lucide-react';
 import { getRole } from '@/lib/roles';
 
 export function RoleBadge({ roleId }: { roleId: string }) {
@@ -15,6 +15,9 @@ export function RoleBadge({ roleId }: { roleId: string }) {
       break;
     case 'bughunter':
       Icon = Bug;
+      break;
+    case 'inastagrammer':
+      Icon = Aperture;
       break;
     default:
       return null;

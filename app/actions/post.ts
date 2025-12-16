@@ -411,6 +411,29 @@ export async function createPost(prevState: unknown, formData: FormData) {
         }
       },
     });
+
+    // Role assignment logic: Check if user qualifies for 'inastagrammer' role
+    const user = await db.user.findUnique({
+      where: { id: session.id },
+      select: { roles: true },
+    });
+
+    if (user && !user.roles.includes('inastagrammer')) {
+      const postCount = await db.post.count({
+        where: { userId: session.id },
+      });
+
+      if (postCount >= 17) {
+        await db.user.update({
+          where: { id: session.id },
+          data: {
+            roles: {
+              push: 'inastagrammer',
+            },
+          },
+        });
+      }
+    }
   } catch (error) {
     console.error("Failed to create post:", error);
     return { message: "Failed to create post" };
