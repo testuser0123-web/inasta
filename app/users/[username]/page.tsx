@@ -20,6 +20,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       updatedAt: true,
       isVerified: true,
       isGold: true,
+      roles: true,
       bio: true,
       oshi: true,
       _count: {
@@ -116,6 +117,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
               updatedAt: true,
               isVerified: true,
               isGold: true,
+              roles: true,
           }
       },
       _count: {
@@ -191,6 +193,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                             updatedAt: true,
                             isVerified: true,
                             isGold: true,
+                            roles: true,
                         }
                     },
                     _count: {

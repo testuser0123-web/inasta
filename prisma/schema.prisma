@@ -15,6 +15,7 @@ model User {
   avatarUrl         String?
   isVerified        Boolean   @default(false)
   isGold            Boolean   @default(false)
+  roles             String[]  @default([])
   verificationToken String?
   updatedAt         DateTime  @default(now()) @updatedAt
   bio               String?

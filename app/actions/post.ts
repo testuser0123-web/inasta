@@ -103,6 +103,7 @@ export async function fetchFeedPosts({
           updatedAt: true,
           isVerified: true,
           isGold: true,
+          roles: true,
         },
       },
       comments: {
@@ -295,6 +296,7 @@ export async function fetchLikedPosts({
                     updatedAt: true,
                     isVerified: true,
                     isGold: true,
+                    roles: true,
                 }
             },
             comments: {

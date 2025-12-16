@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { BadgeCheck, MoreHorizontal, Heart, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { followUser, unfollowUser, muteUser, unmuteUser } from '@/app/actions/user';
+import { RoleBadge } from '@/components/RoleBadge';
 
 type ProfileHeaderProps = {
   user: {
@@ -12,6 +13,7 @@ type ProfileHeaderProps = {
     avatarUrl: string | null;
     isVerified?: boolean;
     isGold?: boolean;
+    roles?: string[];
     bio?: string | null;
     oshi?: string | null;
   };
@@ -92,6 +94,9 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
         ) : user.isVerified ? (
           <BadgeCheck className="w-5 h-5 text-blue-500" />
         ) : null}
+        {user.roles?.map(roleId => (
+          <RoleBadge key={roleId} roleId={roleId} />
+        ))}
       </div>
 
       {trophies && (trophies.gold > 0 || trophies.silver > 0 || trophies.bronze > 0) && (
