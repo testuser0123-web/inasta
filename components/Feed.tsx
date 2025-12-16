@@ -314,7 +314,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                                <BadgeCheck className="w-4 h-4 text-blue-500" />
                              ) : null}
                              {selectedPost.user.roles?.map(roleId => (
-                                <div key={roleId} className="scale-75 origin-left">
+                                <div key={roleId} className="scale-75 origin-left flex item-center">
                                     <RoleBadge roleId={roleId} />
                                 </div>
                              ))}
