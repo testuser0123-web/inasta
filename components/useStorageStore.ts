@@ -83,7 +83,8 @@ export function useStorageStore({
       // Sync tldraw changes with Storage
       unsubs.push(
         store.listen(
-          ({ changes }: TLStoreEventInfo) => {
+          ({ changes, source }: TLStoreEventInfo) => {
+            if (source !== "user") return;
             room.batch(() => {
               Object.values(changes.added).forEach((record) => {
                 liveRecords.set(record.id, record);
