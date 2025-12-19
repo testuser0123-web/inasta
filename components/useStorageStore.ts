@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRoom } from "@liveblocks/react/suspense";
 import { LiveMap } from "@liveblocks/client";
 import {
@@ -47,19 +47,39 @@ export function useStorageStore({
     status: "loading",
   });
 
+  // Flag to prevent infinite loops
+  const isApplyingRemoteChanges = useRef(false);
+
   useEffect(() => {
     const unsubs: (() => void)[] = [];
     setStoreWithStatus({ status: "loading" });
 
     async function setup() {
       // Get Liveblocks Storage values
-      const { root } = await room.getStorage();
+      let root;
+      try {
+          const storage = await room.getStorage();
+          root = storage.root;
+      } catch (e) {
+          console.error("Failed to get storage", e);
+          setStoreWithStatus({ status: "error", error: e as Error }); // Show error status
+          return;
+      }
 
       // Ensure records LiveMap exists
       let liveRecords = root.get("records");
       if (!liveRecords) {
         // This should be handled by initialStorage, but safe check
         console.warn("LiveRecords not found in storage");
+        // If we can't find it, we can't sync.
+        // We could try to create it if we have permission?
+        // But for now, just return or error.
+        // If we return, status stays "loading", which explains spinner.
+        // But if Room.tsx set it, it should be there.
+        // Maybe wait?
+        // I will return for now but log error.
+        console.error("LiveRecords missing!");
+        setStoreWithStatus({ status: "error", error: new Error("LiveRecords missing") });
         return;
       }
 
@@ -85,6 +105,8 @@ export function useStorageStore({
         store.listen(
           ({ changes, source }: TLStoreEventInfo) => {
             if (source !== "user") return;
+            if (isApplyingRemoteChanges.current) return; // Explicit guard
+
             room.batch(() => {
               Object.values(changes.added).forEach((record) => {
                 liveRecords.set(record.id, record);
@@ -104,7 +126,10 @@ export function useStorageStore({
       );
 
       // Sync tldraw changes with Presence
-      function syncStoreWithPresence({ changes }: TLStoreEventInfo) {
+      function syncStoreWithPresence({ changes, source }: TLStoreEventInfo) {
+        if (source !== "user") return;
+        if (isApplyingRemoteChanges.current) return;
+
         room.batch(() => {
           Object.values(changes.added).forEach((record) => {
             room.updatePresence({ [record.id]: record });
@@ -139,45 +164,48 @@ export function useStorageStore({
         room.subscribe(
           liveRecords,
           (storageChanges) => {
-            const toRemove: TLRecord["id"][] = [];
-            const toPut: TLRecord[] = [];
+            isApplyingRemoteChanges.current = true; // Set flag
+            try {
+                const toRemove: TLRecord["id"][] = [];
+                const toPut: TLRecord[] = [];
 
-            for (const update of storageChanges) {
-              if (update.type !== "LiveMap") {
-                return;
-              }
-
-              for (const [id, { type }] of Object.entries(update.updates)) {
-                switch (type) {
-                  // Object deleted from Liveblocks, remove from tldraw
-                  case "delete": {
-                    toRemove.push(id as TLRecord["id"]);
-                    break;
+                for (const update of storageChanges) {
+                  if (update.type !== "LiveMap") {
+                    return;
                   }
 
-                  // Object updated on Liveblocks, update tldraw
-                  case "update": {
-                    const curr = update.node.get(id);
-                    if (curr) {
-                      toPut.push(curr as any as TLRecord);
+                  for (const [id, { type }] of Object.entries(update.updates)) {
+                    switch (type) {
+                      // Object deleted from Liveblocks, remove from tldraw
+                      case "delete": {
+                        toRemove.push(id as TLRecord["id"]);
+                        break;
+                      }
+
+                      // Object updated on Liveblocks, update tldraw
+                      case "update": {
+                        const curr = update.node.get(id);
+                        if (curr) {
+                          toPut.push(curr as any as TLRecord);
+                        }
+                        break;
+                      }
                     }
-                    break;
                   }
                 }
-              }
-            }
 
-            // Update tldraw with changes
-            store.mergeRemoteChanges(() => {
-              if (toRemove.length) {
-                // @ts-ignore
-                store.remove(toRemove, 'remote');
-              }
-              if (toPut.length) {
-                // @ts-ignore
-                store.put(toPut, 'remote');
-              }
-            });
+                // Update tldraw with changes
+                store.mergeRemoteChanges(() => {
+                  if (toRemove.length) {
+                    store.remove(toRemove);
+                  }
+                  if (toPut.length) {
+                    store.put(toPut);
+                  }
+                });
+            } finally {
+                isApplyingRemoteChanges.current = false; // Reset flag
+            }
           },
           { isDeep: true }
         )
@@ -190,7 +218,6 @@ export function useStorageStore({
         name: string;
       }>("userPreferences", () => {
         if (!user) {
-           // Fallback if user is missing (should not happen if guarded)
            return { id: 'anon', color: 'black', name: 'Anonymous' };
         }
         return {
@@ -217,6 +244,7 @@ export function useStorageStore({
       // Update Liveblocks when tldraw presence changes
       unsubs.push(
         react("when presence changes", () => {
+          if (isApplyingRemoteChanges.current) return;
           const presence = presenceDerivation.get() ?? null;
           requestAnimationFrame(() => {
             room.updatePresence({ presence });
@@ -227,53 +255,56 @@ export function useStorageStore({
       // Sync Liveblocks presence with tldraw
       unsubs.push(
         room.subscribe("others", (others, event) => {
-          const toRemove: TLInstancePresence["id"][] = [];
-          const toPut: TLInstancePresence[] = [];
+          isApplyingRemoteChanges.current = true;
+          try {
+              const toRemove: TLInstancePresence["id"][] = [];
+              const toPut: TLInstancePresence[] = [];
 
-          switch (event.type) {
-            // A user disconnected from Liveblocks
-            case "leave": {
-              if (event.user.connectionId) {
-                toRemove.push(
-                  InstancePresenceRecordType.createId(
-                    `${event.user.connectionId}`
-                  )
-                );
+              switch (event.type) {
+                // A user disconnected from Liveblocks
+                case "leave": {
+                  if (event.user.connectionId) {
+                    toRemove.push(
+                      InstancePresenceRecordType.createId(
+                        `${event.user.connectionId}`
+                      )
+                    );
+                  }
+                  break;
+                }
+
+                // Others was reset, e.g. after losing connection and returning
+                case "reset": {
+                  others.forEach((other) => {
+                    toRemove.push(
+                      InstancePresenceRecordType.createId(`${other.connectionId}`)
+                    );
+                  });
+                  break;
+                }
+
+                // A user entered or their presence updated
+                case "enter":
+                case "update": {
+                  const presence = event?.user?.presence;
+                  if (presence?.presence) {
+                    toPut.push(event.user.presence.presence);
+                  }
+                }
               }
-              break;
-            }
 
-            // Others was reset, e.g. after losing connection and returning
-            case "reset": {
-              others.forEach((other) => {
-                toRemove.push(
-                  InstancePresenceRecordType.createId(`${other.connectionId}`)
-                );
+              // Update tldraw with changes
+              store.mergeRemoteChanges(() => {
+                if (toRemove.length) {
+                  store.remove(toRemove);
+                }
+                if (toPut.length) {
+                  store.put(toPut);
+                }
               });
-              break;
-            }
-
-            // A user entered or their presence updated
-            case "enter":
-            case "update": {
-              const presence = event?.user?.presence;
-              if (presence?.presence) {
-                toPut.push(event.user.presence.presence);
-              }
-            }
+          } finally {
+              isApplyingRemoteChanges.current = false;
           }
-
-          // Update tldraw with changes
-          store.mergeRemoteChanges(() => {
-            if (toRemove.length) {
-              // @ts-ignore
-              store.remove(toRemove, 'remote');
-            }
-            if (toPut.length) {
-              // @ts-ignore
-              store.put(toPut, 'remote');
-            }
-          });
         })
       );
 
