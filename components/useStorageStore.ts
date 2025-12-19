@@ -169,10 +169,12 @@ export function useStorageStore({
             // Update tldraw with changes
             store.mergeRemoteChanges(() => {
               if (toRemove.length) {
-                store.remove(toRemove);
+                // @ts-ignore
+                store.remove(toRemove, 'remote');
               }
               if (toPut.length) {
-                store.put(toPut);
+                // @ts-ignore
+                store.put(toPut, 'remote');
               }
             });
           },
@@ -263,10 +265,12 @@ export function useStorageStore({
           // Update tldraw with changes
           store.mergeRemoteChanges(() => {
             if (toRemove.length) {
-              store.remove(toRemove);
+              // @ts-ignore
+              store.remove(toRemove, 'remote');
             }
             if (toPut.length) {
-              store.put(toPut);
+              // @ts-ignore
+              store.put(toPut, 'remote');
             }
           });
         })

@@ -9,7 +9,11 @@ import {
 import { LiveMap } from "@liveblocks/client";
 
 export function Room({ children }: { children: ReactNode }) {
-  const publicKey = "pk_dev_DF8yGSbEVe_on3bzkv2-QJ9a-EhUKoP5Qke3scCrPcx6kFgrgnzIBU3b-waMQ3DL";
+  const publicKey = process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY || "pk_dev_DF8yGSbEVe_on3bzkv2-QJ9a-EhUKoP5Qke3scCrPcx6kFgrgnzIBU3b-waMQ3DL";
+
+  if (!process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY) {
+      console.warn("Using hardcoded Liveblocks public key. Please set NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY in your environment variables.");
+  }
 
   return (
     <LiveblocksProvider publicApiKey={publicKey}>
