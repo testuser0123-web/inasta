@@ -4,30 +4,45 @@ import { Tldraw } from 'tldraw';
 import 'tldraw/tldraw.css';
 import { useStorageStore } from './useStorageStore';
 import { useSelf } from '@liveblocks/react/suspense';
+import { Spinner } from '@/components/ui/spinner';
+import { useMemo } from 'react';
 
 export default function Board() {
   const id = useSelf((me) => me.id);
-  // We can use info from connection or defaults
-  // The 'info' property is set when using secret key auth with custom metadata.
-  // With public key, we might get random ID and empty info.
-  // We can simulate a user info for now.
 
-  // Since we are using public key, Liveblocks generates random IDs.
-  // We can just use a random color/name or derive from id.
-  const user = {
+  // Memoize user object to prevent infinite re-renders in useStorageStore
+  const user = useMemo(() => ({
       id,
       name: id,
-      color: 'black' // We can improve this later
-  };
+      color: 'black'
+  }), [id]);
 
-  const store = useStorageStore({
+  const storeWithStatus = useStorageStore({
       user
   });
+
+  const { status } = storeWithStatus;
+
+  if (status === 'loading') {
+    return (
+      <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center">
+        <p className="text-red-500">Error: {(storeWithStatus as any).error?.message || 'Unknown error'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100vh-4rem)] w-full relative">
       <Tldraw
-        store={store}
+        store={storeWithStatus.store}
         autoFocus
       />
     </div>

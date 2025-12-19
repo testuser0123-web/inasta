@@ -12,7 +12,7 @@ export function Room({ children }: { children: ReactNode }) {
   return (
     <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
       <RoomProvider
-        id="board-room-v3"
+        id="board-room-v4"
         initialStorage={{
             records: new LiveMap(),
         }}
