@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useRoom } from "@liveblocks/react/suspense";
-import { LiveMap } from "@liveblocks/client";
+// LiveMap is used in type definition, but implicitly via liveblocks.config.ts global augmentation?
+// No, it is imported here but not used in code body, only in type logic or inferred.
+// Actually, `root.get("records")` returns a LiveMap.
 import {
   computed,
   createPresenceStateDerivation,
@@ -25,6 +27,7 @@ export function useStorageStore({
 }: Partial<{
   hostUrl: string;
   version: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   shapeUtils: any[];
   user: {
     id: string;
@@ -67,7 +70,7 @@ export function useStorageStore({
       }
 
       // Ensure records LiveMap exists
-      let liveRecords = root.get("records");
+      const liveRecords = root.get("records");
       if (!liveRecords) {
         // This should be handled by initialStorage, but safe check
         console.warn("LiveRecords not found in storage");
@@ -112,7 +115,7 @@ export function useStorageStore({
                 liveRecords.set(record.id, record);
               });
 
-              Object.values(changes.updated).forEach(([_, record]) => {
+              Object.values(changes.updated).forEach(([, record]) => {
                 liveRecords.set(record.id, record);
               });
 
@@ -135,7 +138,7 @@ export function useStorageStore({
             room.updatePresence({ [record.id]: record });
           });
 
-          Object.values(changes.updated).forEach(([_, record]) => {
+          Object.values(changes.updated).forEach(([, record]) => {
             room.updatePresence({ [record.id]: record });
           });
 
@@ -186,6 +189,7 @@ export function useStorageStore({
                       case "update": {
                         const curr = update.node.get(id);
                         if (curr) {
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           toPut.push(curr as any as TLRecord);
                         }
                         break;
