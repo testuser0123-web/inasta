@@ -41,25 +41,105 @@ export default function Board() {
 
   // Custom CSS to:
   // 1. Hide the Liveblocks watermark and Tldraw branding
-  // 2. Move bottom-left UI up
-  // 3. Hide unwanted toolbar items (keeping Select, Hand, Draw, Eraser)
-  //    The toolbar items usually have data-testid="tools.select", etc.
-  //    We want to keep: select, hand, draw, eraser.
-  //    We hide others.
+  // 2. Move Toolbar to Top Right (Vertical) to avoid Sidebar overlap
+  // 3. Move Actions (Undo/Redo) near the toolbar
+  // 4. Hide unwanted toolbar items (keeping Select, Hand, Draw, Eraser)
   const customCss = `
-    .tl-watermark, .tl-powered-by {
+    /* Hide Branding */
+    .tl-watermark, .tl-powered-by, .tl-watermark_SEE-LICENSE {
       display: none !important;
     }
-    .tl-ui-layout__bottom-left {
-      bottom: 90px !important;
-      left: 10px !important;
+
+    /* Move Toolbar Container to Top Right */
+    .tlui-toolbar {
+        position: fixed !important;
+        top: 70px !important; /* Below "Online" badge */
+        right: 10px !important;
+        bottom: auto !important;
+        left: auto !important;
+        transform: none !important;
+        width: auto !important;
+        max-width: none !important;
+        z-index: 200 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        pointer-events: none; /* Let clicks pass through container gaps */
     }
 
-    /* Hide specific tools. This is a bit brittle but works without 'toolbar' override support */
-    /* Select (arrow), Hand, Draw (pencil), Eraser are usually the first few. */
-    /* Let's try to target by data-testid if possible, but we don't know exact IDs without DOM. */
-    /* Standard IDs: tools.select, tools.hand, tools.draw, tools.eraser */
+    .tlui-toolbar * {
+        pointer-events: auto; /* Re-enable clicks on children */
+    }
 
+    /* Inner Layout: Vertical Column */
+    .tlui-toolbar__inner {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 8px !important;
+        height: auto !important;
+        width: auto !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* Tools Section: Vertical */
+    .tlui-toolbar__tools {
+        order: 1 !important; /* Tools first (Top) */
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        width: auto !important;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+        background: var(--color-panel) !important;
+        border-radius: 8px !important;
+        padding: 4px !important;
+        box-shadow: var(--shadow-2) !important;
+    }
+
+    /* The Tools List inside tools container */
+    .tlui-toolbar__tools__list {
+        flex-direction: column !important;
+        display: flex !important;
+        gap: 4px !important;
+    }
+
+    .tlui-button {
+        margin: 0 !important;
+    }
+
+    /* Extras (Undo/Redo) Section: Vertical below Tools */
+    .tlui-toolbar__left {
+        order: 2 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: auto !important;
+    }
+
+    .tlui-toolbar__extras {
+        display: flex !important;
+        flex-direction: column !important;
+        background: var(--color-panel) !important;
+        border-radius: 8px !important;
+        padding: 4px !important;
+        box-shadow: var(--shadow-2) !important;
+    }
+
+    .tlui-toolbar__extras__controls {
+        flex-direction: column !important;
+        display: flex !important;
+        gap: 4px !important;
+    }
+
+    /* Move Bottom Left UI (Zoom/Page) to Bottom Right to avoid Sidebar FAB */
+    .tlui-layout__bottom__left {
+      bottom: 10px !important;
+      left: auto !important;
+      right: 10px !important;
+    }
+
+    /* Hide specific tools */
     [data-testid="tools.text"],
     [data-testid="tools.asset"],
     [data-testid="tools.note"],
@@ -91,8 +171,7 @@ export default function Board() {
         store={storeWithStatus.store}
         autoFocus
         components={{
-            SharePanel: () => null, // Remove Share button
-            // TopPanel removed from overrides to keep default Menu (Undo/Redo) accessible
+            SharePanel: () => null,
         }}
       />
     </div>
