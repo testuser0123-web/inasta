@@ -9,13 +9,10 @@ import {
 import { LiveMap } from "@liveblocks/client";
 
 export function Room({ children }: { children: ReactNode }) {
-  const publicKey = process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY;
-  if (!publicKey) {
-      console.error("NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY is missing");
-  }
+  const publicKey = "pk_dev_DF8yGSbEVe_on3bzkv2-QJ9a-EhUKoP5Qke3scCrPcx6kFgrgnzIBU3b-waMQ3DL";
 
   return (
-    <LiveblocksProvider publicApiKey={publicKey!}>
+    <LiveblocksProvider publicApiKey={publicKey}>
       <RoomProvider
         id="board-room-v1"
         initialStorage={{
