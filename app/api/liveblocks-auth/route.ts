@@ -4,7 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 // Authenticating your Liveblocks application
 // https://liveblocks.io/docs/authentication/access-token
 
-const secretKey = "sk_dev_uK4lNsHirt9XhlxrqZf3S-3V7T32NxYbQ9C4g7itkr-IE7-7wcoKbAMfi7OIRcOh";
+const secretKey = process.env.LIVEBLOCKS_SECRET_KEY || "sk_dev_uK4lNsHirt9XhlxrqZf3S-3V7T32NxYbQ9C4g7itkr-IE7-7wcoKbAMfi7OIRcOh";
+
+if (!process.env.LIVEBLOCKS_SECRET_KEY) {
+    console.warn("Using hardcoded Liveblocks secret key. Please set LIVEBLOCKS_SECRET_KEY in your environment variables.");
+}
 
 const liveblocks = new Liveblocks({
   secret: secretKey,
