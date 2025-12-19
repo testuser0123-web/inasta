@@ -14,7 +14,7 @@ export function Room({ children }: { children: ReactNode }) {
   return (
     <LiveblocksProvider publicApiKey={publicKey}>
       <RoomProvider
-        id="board-room-v1"
+        id="board-room-v3"
         initialStorage={{
             records: new LiveMap(),
         }}
