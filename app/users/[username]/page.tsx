@@ -130,7 +130,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
     },
   });
 
-  const posts = postsData.map(post => ({
+  const posts = postsData.map((post: any) => ({
       ...post,
       user: {
           ...post.user,
@@ -208,7 +208,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
           }
       });
 
-      likedPosts = likedPostsData.map(item => ({
+      likedPosts = likedPostsData.map((item: any) => ({
           ...item.post,
           user: {
               ...item.post.user,

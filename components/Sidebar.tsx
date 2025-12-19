@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy } from 'lucide-react';
+import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, PenTool } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { logout } from '@/app/actions/logout';
@@ -16,6 +16,7 @@ export default function Sidebar({ username }: { username?: string }) {
     { icon: Trophy, label: 'Contests', href: '/contests' },
     { icon: PlusSquare, label: 'Create', href: '/upload' },
     { icon: User, label: 'Profile', href: '/profile' },
+    { icon: PenTool, label: 'Board', href: '/board' },
   ];
 
   return (

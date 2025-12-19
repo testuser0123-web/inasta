@@ -32,7 +32,7 @@ export default async function FollowersPage({ params }: { params: Promise<{ user
     orderBy: { createdAt: 'desc' },
   });
 
-  const users = followers.map((f) => ({
+  const users = followers.map((f: any) => ({
     ...f.follower,
     avatarUrl: f.follower.avatarUrl ? `/api/avatar/${f.follower.username}?v=${f.follower.updatedAt.getTime()}` : null,
   }));

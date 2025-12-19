@@ -104,7 +104,7 @@ export default async function ProfilePage() {
     },
   });
 
-  const myPosts = myPostsData.map(post => ({
+  const myPosts = myPostsData.map((post: any) => ({
       ...post,
       user: {
           ...post.user,
@@ -180,7 +180,7 @@ export default async function ProfilePage() {
       }
   });
 
-  const likedPosts = likedPostsData.map(item => ({
+  const likedPosts = likedPostsData.map((item: any) => ({
       ...item.post,
       user: {
           ...item.post.user,

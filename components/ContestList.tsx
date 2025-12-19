@@ -11,7 +11,7 @@ export default async function ContestList({ tab }: { tab: 'active' | 'ended' }) 
           {tab === 'active' ? '開催中のコンテストはありません' : '終了したコンテストはありません'}
         </div>
       ) : (
-        contests.map((contest) => (
+        contests.map((contest: any) => (
           <Link
             key={contest.id}
             href={`/contests/${contest.id}`}

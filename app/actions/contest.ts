@@ -183,7 +183,7 @@ export async function fetchContestPosts({ contestId, sortBy }: { contestId: numb
     },
   });
 
-  return posts.map(post => ({
+  return posts.map((post: any) => ({
       ...post,
       imageUrl: post.imageUrl.startsWith('data:') ? `/api/contest_image/${post.id}.png` : post.imageUrl,
       user: {
@@ -268,7 +268,7 @@ export async function getContestWinners(contestId: number) {
         },
     });
 
-    return posts.map(post => ({
+    return posts.map((post: any) => ({
         ...post,
         imageUrl: post.imageUrl.startsWith('data:') ? `/api/contest_image/${post.id}.png` : post.imageUrl,
         user: {

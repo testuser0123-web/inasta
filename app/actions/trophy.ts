@@ -30,7 +30,7 @@ export async function getUserTrophies(userId: number): Promise<UserTrophies> {
   `;
 
   const result = { gold: 0, silver: 0, bronze: 0 };
-  trophies.forEach(t => {
+  trophies.forEach((t: any) => {
       const r = Number(t.rank);
       const c = Number(t.count);
       if (r === 1) result.gold += c;

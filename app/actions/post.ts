@@ -213,7 +213,7 @@ export async function fetchUserPosts({
     },
   });
 
-  return postsData.map((post) => ({
+  return postsData.map((post: any) => ({
     ...post,
     user: {
       ...post.user,
