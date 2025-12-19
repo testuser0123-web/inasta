@@ -1,6 +1,6 @@
 'use client';
 
-import { Tldraw, TldrawUiOverrides } from 'tldraw';
+import { Tldraw } from 'tldraw';
 import 'tldraw/tldraw.css';
 import { useStorageStore } from './useStorageStore';
 import { useSelf } from '@liveblocks/react/suspense';
@@ -23,15 +23,6 @@ export default function Board() {
 
   const { status } = storeWithStatus;
 
-  // Define overrides using useMemo to prevent unnecessary re-renders
-  const overrides: TldrawUiOverrides = useMemo(() => ({
-    toolbar(_app, toolbar, { tools }) {
-      // Keep only minimal tools: Select, Hand, Draw (Pen), Eraser
-      const keep = ['select', 'hand', 'draw', 'eraser'];
-      return toolbar.filter((item) => keep.includes(item.id));
-    },
-  }), []);
-
   if (status === 'loading') {
     return (
       <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center">
@@ -48,8 +39,13 @@ export default function Board() {
     );
   }
 
-  // Custom CSS to fix mobile overlap and hide watermark
-  // Moving .tl-ui-layout__bottom-left up to avoid Sidebar FAB (bottom-6 left-6)
+  // Custom CSS to:
+  // 1. Hide the Liveblocks watermark and Tldraw branding
+  // 2. Move bottom-left UI up
+  // 3. Hide unwanted toolbar items (keeping Select, Hand, Draw, Eraser)
+  //    The toolbar items usually have data-testid="tools.select", etc.
+  //    We want to keep: select, hand, draw, eraser.
+  //    We hide others.
   const customCss = `
     .tl-watermark, .tl-powered-by {
       display: none !important;
@@ -57,6 +53,34 @@ export default function Board() {
     .tl-ui-layout__bottom-left {
       bottom: 90px !important;
       left: 10px !important;
+    }
+
+    /* Hide specific tools. This is a bit brittle but works without 'toolbar' override support */
+    /* Select (arrow), Hand, Draw (pencil), Eraser are usually the first few. */
+    /* Let's try to target by data-testid if possible, but we don't know exact IDs without DOM. */
+    /* Standard IDs: tools.select, tools.hand, tools.draw, tools.eraser */
+
+    [data-testid="tools.text"],
+    [data-testid="tools.asset"],
+    [data-testid="tools.note"],
+    [data-testid="tools.rectangle"],
+    [data-testid="tools.ellipse"],
+    [data-testid="tools.triangle"],
+    [data-testid="tools.diamond"],
+    [data-testid="tools.hexagon"],
+    [data-testid="tools.oval"],
+    [data-testid="tools.rhombus"],
+    [data-testid="tools.star"],
+    [data-testid="tools.cloud"],
+    [data-testid="tools.heart"],
+    [data-testid="tools.x-box"],
+    [data-testid="tools.check-box"],
+    [data-testid="tools.arrow"],
+    [data-testid="tools.line"],
+    [data-testid="tools.frame"],
+    [data-testid="tools.laser"],
+    [data-testid="tools.highlight"] {
+      display: none !important;
     }
   `;
 
@@ -66,10 +90,9 @@ export default function Board() {
       <Tldraw
         store={storeWithStatus.store}
         autoFocus
-        overrides={overrides}
         components={{
             SharePanel: () => null, // Remove Share button
-            TopPanel: () => null, // Optional: reduce clutter
+            // TopPanel removed from overrides to keep default Menu (Undo/Redo) accessible
         }}
       />
     </div>
