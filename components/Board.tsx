@@ -42,8 +42,8 @@ export default function Board() {
   // Custom CSS to:
   // 1. Hide the Liveblocks watermark and Tldraw branding
   // 2. Move Toolbar to Top Right (Vertical) to avoid Sidebar overlap
-  // 3. Move Actions (Undo/Redo) near the toolbar
-  // 4. Hide unwanted toolbar items (keeping Select, Hand, Draw, Eraser)
+  // 3. Merge Styles, Undo/Redo, and Tools into one vertical pill
+  // 4. Fix touch sensitivity by managing pointer-events properly
   const customCss = `
     /* Hide Branding */
     .tl-watermark, .tl-powered-by, .tl-watermark_SEE-LICENSE {
@@ -64,41 +64,93 @@ export default function Board() {
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        pointer-events: none; /* Let clicks pass through container gaps */
+        pointer-events: none !important; /* Allow clicks pass through outside the pill */
     }
 
-    .tlui-toolbar * {
-        pointer-events: auto; /* Re-enable clicks on children */
-    }
-
-    /* Inner Layout: Vertical Column */
+    /* The visual container (Pill) */
     .tlui-toolbar__inner {
+        pointer-events: auto !important; /* Enable clicks inside */
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
-        gap: 8px !important;
+        gap: 0 !important; /* No gaps between sections */
         height: auto !important;
         width: auto !important;
-        background: transparent !important;
-        border: none !important;
-    }
 
-    /* Tools Section: Vertical */
-    .tlui-toolbar__tools {
-        order: 1 !important; /* Tools first (Top) */
-        display: flex !important;
-        flex-direction: column !important;
-        height: auto !important;
-        width: auto !important;
-        overflow-y: visible !important;
-        overflow-x: hidden !important;
+        /* Unified Look */
         background: var(--color-panel) !important;
         border-radius: 8px !important;
-        padding: 4px !important;
         box-shadow: var(--shadow-2) !important;
+        padding: 4px !important;
+        border: 1px solid var(--color-panel-contrast) !important; /* Optional border */
     }
 
-    /* The Tools List inside tools container */
+    /* Styles Button Section (Order 1) */
+    /* This targets the Styles container (which is a tlui-toolbar__tools sibling of Left) */
+    .tlui-toolbar > .tlui-toolbar__inner > .tlui-toolbar__tools {
+        order: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin-bottom: 4px !important; /* Small gap between Styles and Undo? or 0? */
+        /* Let's keep a small divider or just 0 */
+        margin: 0 !important;
+        border-bottom: 1px solid var(--color-divider, #e0e0e0) !important; /* Separator */
+        width: 100% !important;
+        align-items: center !important;
+        padding-bottom: 4px !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* Left Section (Order 2) - Contains Extras and ToolsMobile */
+    .tlui-toolbar__left {
+        order: 2 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+
+    /* Extras (Undo/Redo) */
+    .tlui-toolbar__extras {
+        display: flex !important;
+        flex-direction: column !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        align-items: center !important;
+
+        /* Separator below Extras? */
+        border-bottom: 1px solid var(--color-divider, #e0e0e0) !important;
+        padding-bottom: 4px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .tlui-toolbar__extras__controls {
+        flex-direction: column !important;
+        display: flex !important;
+        gap: 4px !important;
+    }
+
+    /* Tools Mobile (Select, Hand, etc) */
+    .tlui-toolbar__tools__mobile {
+        display: flex !important;
+        flex-direction: column !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        align-items: center !important;
+    }
+
     .tlui-toolbar__tools__list {
         flex-direction: column !important;
         display: flex !important;
@@ -109,34 +161,12 @@ export default function Board() {
         margin: 0 !important;
     }
 
-    /* Extras (Undo/Redo) Section: Vertical below Tools */
-    .tlui-toolbar__left {
-        order: 2 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        width: auto !important;
-    }
-
-    .tlui-toolbar__extras {
-        display: flex !important;
-        flex-direction: column !important;
-        background: var(--color-panel) !important;
-        border-radius: 8px !important;
-        padding: 4px !important;
-        box-shadow: var(--shadow-2) !important;
-    }
-
-    .tlui-toolbar__extras__controls {
-        flex-direction: column !important;
-        display: flex !important;
-        gap: 4px !important;
-    }
-
-    /* Move Bottom Left UI (Zoom/Page) to Bottom Right to avoid Sidebar FAB */
-    .tlui-layout__bottom__left {
-      bottom: 10px !important;
-      left: auto !important;
-      right: 10px !important;
+    /* Remove padding/margin/shadow from generic tools class to avoid double styling */
+    .tlui-toolbar__tools {
+        /* This selector targets BOTH Styles container and ToolsMobile container. */
+        /* But above we targeted the direct child of inner for Styles. */
+        /* And ToolsMobile overrides might need specificity. */
+        /* Let's ensure no conflict. */
     }
 
     /* Hide specific tools */
@@ -161,6 +191,19 @@ export default function Board() {
     [data-testid="tools.laser"],
     [data-testid="tools.highlight"] {
       display: none !important;
+    }
+
+    /* Move Bottom Left UI (Zoom/Page) to Bottom Right to avoid Sidebar FAB */
+    .tlui-layout__bottom__left {
+      bottom: 10px !important;
+      left: auto !important;
+      right: 10px !important;
+      pointer-events: auto !important;
+    }
+
+    /* Fix for touch sensitivity: Ensure buttons and children receive events */
+    .tlui-button, .tlui-icon {
+        pointer-events: auto !important;
     }
   `;
 
