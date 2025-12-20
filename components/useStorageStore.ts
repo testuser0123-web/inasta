@@ -189,6 +189,14 @@ export function useStorageStore({
                       case "update": {
                         const curr = update.node.get(id);
                         if (curr) {
+                          // Performance Optimization:
+                          // Check if the current local state is identical to the incoming remote state.
+                          // If so, skip the update to prevent unnecessary processing and "petit freeze" (echo).
+                          // This handles the case where Liveblocks echoes back changes made by the local user.
+                          const local = store.get(id as TLRecord['id']);
+                          if (local && JSON.stringify(local) === JSON.stringify(curr)) {
+                              break;
+                          }
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           toPut.push(curr as any as TLRecord);
                         }

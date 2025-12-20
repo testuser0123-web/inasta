@@ -25,13 +25,21 @@ export default function Sidebar({ username }: { username?: string }) {
   return (
     <>
       {/* Mobile Hamburger Button */}
-      {!isBoardPage && (
+      {!isBoardPage ? (
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="md:hidden fixed bottom-6 left-6 z-[100] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
         >
           <Menu className="w-6 h-6" />
         </button>
+      ) : (
+        /* Mobile Back to Home Button (for Board) */
+        <Link
+          href="/"
+          className="md:hidden fixed bottom-6 left-6 z-[300] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
+        >
+          <Home className="w-6 h-6" />
+        </Link>
       )}
 
       {/* Overlay for mobile */}
