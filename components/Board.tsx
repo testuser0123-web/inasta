@@ -9,13 +9,15 @@ import { useMemo } from 'react';
 
 export default function Board() {
   const id = useSelf((me) => me.id);
+  const info = useSelf((me) => me.info);
 
   // Memoize user object to prevent infinite re-renders in useStorageStore
+  // Use info.name (username) if available, fallback to id
   const user = useMemo(() => ({
       id,
-      name: id,
-      color: 'black'
-  }), [id]);
+      name: info?.name || id,
+      color: info?.color || 'black'
+  }), [id, info]);
 
   const storeWithStatus = useStorageStore({
       user
@@ -163,18 +165,6 @@ export default function Board() {
         autoFocus
         components={{
             SharePanel: () => null,
-            // Re-enable all tools to ensure toolbar is not empty
-            // We can refine this later if user explicitly asked to hide specific tools.
-            // For now, I'm removing the aggressive tool hiding to ensure basic tools are visible.
-        }}
-        // Use overrides to hide specific tools if needed, cleaner than CSS
-        overrides={{
-           tools(editor, tools) {
-               // If we wanted to hide tools, we would do:
-               // delete tools.card;
-               // But let's keep them default for now to fix the "missing toolbar" issue.
-               return tools;
-           }
         }}
       />
     </div>
