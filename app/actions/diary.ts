@@ -1,0 +1,238 @@
+'use server';
+
+import { z } from 'zod';
+import { db } from '@/lib/db';
+import { getSession } from '@/lib/auth'; // Using correct auth import
+import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+import { put } from '@vercel/blob';
+
+const diarySchema = z.object({
+  title: z.string().min(1, 'タイトルは必須です').max(100, 'タイトルが長すぎます'),
+  content: z.any(), // JSON content from Lexical
+  thumbnailUrl: z.string().optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日付の形式が正しくありません'),
+});
+
+export async function createDiary(formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    throw new Error('ログインが必要です');
+  }
+
+  const thumbnailFile = formData.get('thumbnailFile') as File;
+  let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
+
+  if (thumbnailFile && thumbnailFile.size > 0) {
+     const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
+        access: 'public',
+        token: process.env.BLOB_READ_WRITE_TOKEN
+     });
+     thumbnailUrl = blob.url;
+  }
+
+  const rawData = {
+    title: formData.get('title'),
+    content: JSON.parse(formData.get('content') as string),
+    thumbnailUrl,
+    date: formData.get('date'),
+  };
+
+  const validatedFields = diarySchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    throw new Error('入力内容に誤りがあります');
+  }
+
+  const { title, content, date } = validatedFields.data;
+  const targetDate = new Date(date);
+
+  // Check if user already posted for this date
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const existingDiary = await db.diary.findFirst({
+    where: {
+      userId: session.id,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+  });
+
+  if (existingDiary) {
+    throw new Error('この日付の日記は既に投稿されています');
+  }
+
+  await db.diary.create({
+    data: {
+      title,
+      content,
+      thumbnailUrl,
+      date: targetDate,
+      userId: session.id,
+    },
+  });
+
+  revalidatePath('/diary');
+  revalidatePath(`/profile`);
+  redirect('/diary?date=' + date);
+}
+
+export async function getDiariesByDate(dateStr: string) {
+  const date = new Date(dateStr);
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const diaries = await db.diary.findMany({
+    where: {
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          avatarUrl: true,
+          isVerified: true,
+          isGold: true,
+        },
+      },
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return diaries;
+}
+
+export async function checkHasPostedToday(userId: number, dateStr: string) {
+  const date = new Date(dateStr);
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const count = await db.diary.count({
+    where: {
+      userId,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+  });
+
+  return count > 0;
+}
+
+export async function getDiaryById(id: number) {
+  const diary = await db.diary.findUnique({
+    where: { id },
+    include: {
+      user: true,
+      likes: true,
+      comments: {
+        include: {
+          user: true,
+        },
+        orderBy: {
+          createdAt: 'asc',
+        }
+      },
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
+    },
+  });
+  return diary;
+}
+
+export async function uploadDiaryImage(formData: FormData) {
+  const session = await getSession();
+  if (!session) return { error: 'Unauthorized' };
+
+  const file = formData.get('file') as File;
+  if (!file) return { error: 'No file provided' };
+
+  const blob = await put(`diary/${session.id}/${Date.now()}-${file.name}`, file, {
+    access: 'public',
+    token: process.env.BLOB_READ_WRITE_TOKEN
+  });
+
+  return { url: blob.url };
+}
+
+export async function toggleDiaryLike(diaryId: number) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
+  const existingLike = await db.diaryLike.findUnique({
+    where: {
+      userId_diaryId: {
+        userId: session.id,
+        diaryId,
+      },
+    },
+  });
+
+  if (existingLike) {
+    await db.diaryLike.delete({
+      where: { id: existingLike.id },
+    });
+  } else {
+    await db.diaryLike.create({
+      data: {
+        userId: session.id,
+        diaryId,
+      },
+    });
+  }
+  revalidatePath(`/diary/${diaryId}`);
+}
+
+export async function addDiaryComment(diaryId: number, text: string) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
+  await db.diaryComment.create({
+    data: {
+      text,
+      userId: session.id,
+      diaryId,
+    },
+  });
+  revalidatePath(`/diary/${diaryId}`);
+}
+
+export async function getDiariesByUser(userId: number) {
+  const diaries = await db.diary.findMany({
+    where: { userId },
+    include: {
+      user: true,
+      _count: {
+        select: { likes: true, comments: true }
+      }
+    },
+    orderBy: { date: 'desc' }
+  });
+  return diaries;
+}

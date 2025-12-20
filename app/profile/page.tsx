@@ -1,15 +1,16 @@
 import { db } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getSession, logout } from '@/lib/auth';
+import ProfileClient from './ProfileClient';
 import Link from 'next/link';
 import { ArrowLeft, LogOut } from 'lucide-react';
-import ProfileClient from './ProfileClient';
+import { logout } from '@/app/actions/logout';
 import { getUserTrophies } from '@/app/actions/trophy';
-
-export const dynamic = 'force-dynamic';
+import { getDiariesByUser } from '@/app/actions/diary';
 
 export default async function ProfilePage() {
   const session = await getSession();
+
   if (!session) {
     redirect('/login');
   }
@@ -27,22 +28,25 @@ export default async function ProfilePage() {
       bio: true,
       oshi: true,
       _count: {
-        select: {
-          followers: true,
-          following: true,
-        },
-      },
+          select: {
+              followers: true,
+              following: true
+          }
+      }
     },
   });
 
-  if (!userData) redirect('/login');
+  if (!userData) {
+      redirect('/login');
+  }
 
   const user = {
       ...userData,
-      avatarUrl: userData.avatarUrl ? `/api/avatar/${userData.username}?v=${userData.updatedAt.getTime()}` : null
+      avatarUrl: userData?.avatarUrl ? `/api/avatar/${userData.username}?v=${userData.updatedAt.getTime()}` : null
   };
 
-  const trophies = await getUserTrophies(user.id);
+  const trophies = await getUserTrophies(session.id);
+  const diaries = await getDiariesByUser(session.id);
 
   // Fetch my posts
   const myPostsData = await db.post.findMany({
@@ -214,7 +218,8 @@ export default async function ProfilePage() {
           user={user} 
           currentUser={{ id: session.id, username: session.username }}
           posts={myPosts} 
-          likedPosts={likedPosts} 
+          likedPosts={likedPosts}
+          diaries={diaries}
           initialStatus={{
               isFollowing: false,
               isMuted: false,
