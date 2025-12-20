@@ -36,7 +36,14 @@ export default function Sidebar({ username }: { username?: string }) {
         /* Mobile Back to Home Button (for Board) - Moved to Top-Left to avoid Safe Area/Bottom Bar issues */
         <Link
           href="/"
-          className="md:hidden fixed top-4 left-4 z-[300] p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors pointer-events-auto touch-none"
+          // Stop propagation of touch/pointer events to prevent tldraw from capturing them
+          // pointer-events-auto ensures it receives events even if a parent has none
+          // touch-auto allows default behavior (click) but we might need explicit handling if tldraw interferes
+          // We use onPointerDown stopPropagation to prevent the canvas from seeing the click start
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="md:hidden fixed top-4 left-4 z-[300] p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors pointer-events-auto touch-auto cursor-pointer"
+          style={{ touchAction: 'manipulation' }}
         >
           <Home className="w-5 h-5" />
         </Link>

@@ -53,9 +53,6 @@ export function useStorageStore({
   // Flag to prevent infinite loops
   const isApplyingRemoteChanges = useRef(false);
 
-  // Track locally updated records to ignore echoes from Liveblocks
-  const pendingLocalUpdates = useRef(new Set<string>());
-
   useEffect(() => {
     const unsubs: (() => void)[] = [];
     setStoreWithStatus({ status: "loading" });
@@ -115,17 +112,14 @@ export function useStorageStore({
 
             room.batch(() => {
               Object.values(changes.added).forEach((record) => {
-                pendingLocalUpdates.current.add(record.id);
                 liveRecords.set(record.id, record);
               });
 
               Object.values(changes.updated).forEach(([, record]) => {
-                pendingLocalUpdates.current.add(record.id);
                 liveRecords.set(record.id, record);
               });
 
               Object.values(changes.removed).forEach((record) => {
-                pendingLocalUpdates.current.add(record.id);
                 liveRecords.delete(record.id);
               });
             });
@@ -193,14 +187,15 @@ export function useStorageStore({
 
                       // Object updated on Liveblocks, update tldraw
                       case "update": {
-                        // Check if this update was originated locally (echo)
-                        if (pendingLocalUpdates.current.has(id)) {
-                            pendingLocalUpdates.current.delete(id);
-                            break; // Skip applying this update
-                        }
-
                         const curr = update.node.get(id);
                         if (curr) {
+                          // Perform a deep equality check to ignore echoes or redundant updates.
+                          // This is critical to prevent the "micro-stutter" where the local client re-processes its own changes.
+                          const localRecord = store.get(id as TLRecord['id']);
+                          if (localRecord && JSON.stringify(localRecord) === JSON.stringify(curr)) {
+                              break;
+                          }
+
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           toPut.push(curr as any as TLRecord);
                         }
