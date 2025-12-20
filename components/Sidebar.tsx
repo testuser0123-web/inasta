@@ -42,10 +42,10 @@ export default function Sidebar({ username }: { username?: string }) {
           // We use onPointerDown stopPropagation to prevent the canvas from seeing the click start
           onPointerDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
-          className="md:hidden fixed top-4 left-4 z-[300] p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors pointer-events-auto touch-auto cursor-pointer"
+          className="md:hidden fixed bottom-6 left-6 z-[300] p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors pointer-events-auto touch-auto cursor-pointer"
           style={{ touchAction: 'manipulation' }}
         >
-          <Home className="w-5 h-5" />
+          <Home className="w-6 h-6" />
         </Link>
       )}
 
