@@ -33,12 +33,12 @@ export default function Sidebar({ username }: { username?: string }) {
           <Menu className="w-6 h-6" />
         </button>
       ) : (
-        /* Mobile Back to Home Button (for Board) */
+        /* Mobile Back to Home Button (for Board) - Moved to Top-Left to avoid Safe Area/Bottom Bar issues */
         <Link
           href="/"
-          className="md:hidden fixed bottom-6 left-6 z-[300] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
+          className="md:hidden fixed top-4 left-4 z-[300] p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors pointer-events-auto touch-none"
         >
-          <Home className="w-6 h-6" />
+          <Home className="w-5 h-5" />
         </Link>
       )}
 

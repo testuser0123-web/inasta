@@ -53,6 +53,9 @@ export function useStorageStore({
   // Flag to prevent infinite loops
   const isApplyingRemoteChanges = useRef(false);
 
+  // Track locally updated records to ignore echoes from Liveblocks
+  const pendingLocalUpdates = useRef(new Set<string>());
+
   useEffect(() => {
     const unsubs: (() => void)[] = [];
     setStoreWithStatus({ status: "loading" });
@@ -112,14 +115,17 @@ export function useStorageStore({
 
             room.batch(() => {
               Object.values(changes.added).forEach((record) => {
+                pendingLocalUpdates.current.add(record.id);
                 liveRecords.set(record.id, record);
               });
 
               Object.values(changes.updated).forEach(([, record]) => {
+                pendingLocalUpdates.current.add(record.id);
                 liveRecords.set(record.id, record);
               });
 
               Object.values(changes.removed).forEach((record) => {
+                pendingLocalUpdates.current.add(record.id);
                 liveRecords.delete(record.id);
               });
             });
@@ -187,16 +193,14 @@ export function useStorageStore({
 
                       // Object updated on Liveblocks, update tldraw
                       case "update": {
+                        // Check if this update was originated locally (echo)
+                        if (pendingLocalUpdates.current.has(id)) {
+                            pendingLocalUpdates.current.delete(id);
+                            break; // Skip applying this update
+                        }
+
                         const curr = update.node.get(id);
                         if (curr) {
-                          // Performance Optimization:
-                          // Check if the current local state is identical to the incoming remote state.
-                          // If so, skip the update to prevent unnecessary processing and "petit freeze" (echo).
-                          // This handles the case where Liveblocks echoes back changes made by the local user.
-                          const local = store.get(id as TLRecord['id']);
-                          if (local && JSON.stringify(local) === JSON.stringify(curr)) {
-                              break;
-                          }
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           toPut.push(curr as any as TLRecord);
                         }
