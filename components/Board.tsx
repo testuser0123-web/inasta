@@ -40,136 +40,106 @@ export default function Board() {
   }
 
   // Custom CSS to:
-  // 1. Hide the Liveblocks watermark and Tldraw branding
-  // 2. Move Toolbar to Top Right (Vertical) to avoid Sidebar overlap
-  // 3. Merge Styles, Undo/Redo, and Tools into one vertical pill
-  // 4. Fix touch sensitivity by managing pointer-events properly
+  // 1. Disable body scrolling (fixed, inset 0)
+  // 2. Reposition Toolbar to avoid overlapping elements
+  // 3. Clean up the toolbar layout
   const customCss = `
+    /* Disable body scroll on this page */
+    body {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
+        touch-action: none !important;
+    }
+
     /* Hide Branding */
     .tl-watermark, .tl-powered-by, .tl-watermark_SEE-LICENSE {
       display: none !important;
     }
 
-    /* Move Toolbar Container to Top Right */
+    /* Toolbar Container */
+    /* Mobile: Right Side Vertical to avoid FAB on Left */
     .tlui-toolbar {
         position: fixed !important;
-        top: 70px !important; /* Below "Online" badge */
-        right: 10px !important;
-        bottom: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
         left: auto !important;
-        transform: none !important;
+        right: 12px !important;
+        bottom: auto !important;
         width: auto !important;
         max-width: none !important;
         z-index: 200 !important;
-        background: transparent !important;
+        pointer-events: none !important;
         border: none !important;
         box-shadow: none !important;
-        pointer-events: none !important; /* Allow clicks pass through outside the pill */
+        background: transparent !important;
+    }
+
+    /* Desktop: Left Side Vertical (next to sidebar) */
+    @media (min-width: 768px) {
+        .tlui-toolbar {
+            left: 12px !important;
+            right: auto !important;
+        }
     }
 
     /* The visual container (Pill) */
     .tlui-toolbar__inner {
-        pointer-events: auto !important; /* Enable clicks inside */
+        pointer-events: auto !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
-        gap: 0 !important; /* No gaps between sections */
+        gap: 8px !important; /* Space between sections */
         height: auto !important;
         width: auto !important;
-
-        /* Unified Look */
         background: var(--color-panel) !important;
         border-radius: 8px !important;
         box-shadow: var(--shadow-2) !important;
         padding: 4px !important;
-        border: 1px solid var(--color-panel-contrast) !important; /* Optional border */
+        border: 1px solid var(--color-panel-contrast) !important;
     }
 
-    /* Styles Button Section (Order 1) */
-    /* This targets the Styles container (which is a tlui-toolbar__tools sibling of Left) */
-    .tlui-toolbar > .tlui-toolbar__inner > .tlui-toolbar__tools {
-        order: 1 !important;
+    /* Force tools to stack vertically */
+    .tlui-toolbar__tools {
         display: flex !important;
         flex-direction: column !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        padding: 0 !important;
-        margin-bottom: 4px !important; /* Small gap between Styles and Undo? or 0? */
-        /* Let's keep a small divider or just 0 */
-        margin: 0 !important;
-        border-bottom: 1px solid var(--color-divider, #e0e0e0) !important; /* Separator */
-        width: 100% !important;
-        align-items: center !important;
-        padding-bottom: 4px !important;
-        margin-bottom: 4px !important;
-    }
-
-    /* Left Section (Order 2) - Contains Extras and ToolsMobile */
-    .tlui-toolbar__left {
-        order: 2 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        width: 100% !important;
-        align-items: center !important;
-        gap: 4px !important;
-    }
-
-    /* Extras (Undo/Redo) */
-    .tlui-toolbar__extras {
-        display: flex !important;
-        flex-direction: column !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        width: 100% !important;
-        align-items: center !important;
-
-        /* Separator below Extras? */
-        border-bottom: 1px solid var(--color-divider, #e0e0e0) !important;
-        padding-bottom: 4px !important;
-        margin-bottom: 4px !important;
-    }
-
-    .tlui-toolbar__extras__controls {
-        flex-direction: column !important;
-        display: flex !important;
-        gap: 4px !important;
-    }
-
-    /* Tools Mobile (Select, Hand, etc) */
-    .tlui-toolbar__tools__mobile {
-        display: flex !important;
-        flex-direction: column !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        align-items: center !important;
+        width: auto !important;
+        height: auto !important;
     }
 
     .tlui-toolbar__tools__list {
-        flex-direction: column !important;
         display: flex !important;
+        flex-direction: column !important;
         gap: 4px !important;
     }
 
+    /* Ensure the Styles panel (if inside toolbar) or buttons behave */
+    .tlui-toolbar__tools__mobile {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .tlui-toolbar__extras {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .tlui-toolbar__extras__controls {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Fix button margins */
     .tlui-button {
         margin: 0 !important;
+        pointer-events: auto !important;
     }
 
-    /* Remove padding/margin/shadow from generic tools class to avoid double styling */
-    .tlui-toolbar__tools {
-        /* This selector targets BOTH Styles container and ToolsMobile container. */
-        /* But above we targeted the direct child of inner for Styles. */
-        /* And ToolsMobile overrides might need specificity. */
-        /* Let's ensure no conflict. */
-    }
-
-    /* Hide specific tools */
+    /* Hide specific tools (simplified set) */
     [data-testid="tools.text"],
     [data-testid="tools.asset"],
     [data-testid="tools.note"],
@@ -193,18 +163,30 @@ export default function Board() {
       display: none !important;
     }
 
-    /* Move Bottom Left UI (Zoom/Page) to Bottom Right to avoid Sidebar FAB */
+    /* Position Zoom/Page Menu (Bottom Left by default, move to avoid FAB) */
+    /* FAB is Bottom Left. Let's move this to Bottom Right or Top Left */
+    /* On Mobile, FAB is Left. Toolbar is Right. */
+    /* Zoom is usually Bottom Left. It conflicts with FAB. */
     .tlui-layout__bottom__left {
-      bottom: 10px !important;
-      left: auto !important;
-      right: 10px !important;
-      pointer-events: auto !important;
+        left: auto !important;
+        right: 12px !important; /* Move to right (under toolbar?) */
+        bottom: 12px !important;
+        flex-direction: row !important;
     }
 
-    /* Fix for touch sensitivity: Ensure buttons and children receive events */
-    .tlui-button, .tlui-icon {
-        pointer-events: auto !important;
+    @media (min-width: 768px) {
+        /* Desktop: Sidebar is Left. Toolbar is Left (top). */
+        /* Zoom can be Bottom Left (next to sidebar is fine). */
+        /* But the container is shifted by md:ml-64. */
+        .tlui-layout__bottom__left {
+             left: 12px !important;
+             right: auto !important;
+        }
     }
+
+    /* If Toolbar is Right on Mobile, make sure Zoom doesn't overlap if it's also Right */
+    /* Mobile: Toolbar is Right Center. Zoom is Bottom Right. They are far enough apart. */
+
   `;
 
   return (
