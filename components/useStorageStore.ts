@@ -189,6 +189,13 @@ export function useStorageStore({
                       case "update": {
                         const curr = update.node.get(id);
                         if (curr) {
+                          // Perform a deep equality check to ignore echoes or redundant updates.
+                          // This is critical to prevent the "micro-stutter" where the local client re-processes its own changes.
+                          const localRecord = store.get(id as TLRecord['id']);
+                          if (localRecord && JSON.stringify(localRecord) === JSON.stringify(curr)) {
+                              break;
+                          }
+
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           toPut.push(curr as any as TLRecord);
                         }

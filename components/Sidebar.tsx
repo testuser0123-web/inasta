@@ -10,6 +10,9 @@ export default function Sidebar({ username }: { username?: string }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Hide hamburger on board page
+  const isBoardPage = pathname === '/board';
+
   const navItems = [
     { icon: Home, label: 'Home', href: '/' },
     { icon: Search, label: 'Search', href: '/?feed=search' },
@@ -22,12 +25,29 @@ export default function Sidebar({ username }: { username?: string }) {
   return (
     <>
       {/* Mobile Hamburger Button */}
-      <button
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="md:hidden fixed bottom-6 left-6 z-[100] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
+      {!isBoardPage ? (
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden fixed bottom-6 left-6 z-[100] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+      ) : (
+        /* Mobile Back to Home Button (for Board) - Moved to Top-Left to avoid Safe Area/Bottom Bar issues */
+        <Link
+          href="/"
+          // Stop propagation of touch/pointer events to prevent tldraw from capturing them
+          // pointer-events-auto ensures it receives events even if a parent has none
+          // touch-auto allows default behavior (click) but we might need explicit handling if tldraw interferes
+          // We use onPointerDown stopPropagation to prevent the canvas from seeing the click start
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="md:hidden fixed bottom-6 left-6 z-[300] p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors pointer-events-auto touch-auto cursor-pointer"
+          style={{ touchAction: 'manipulation' }}
+        >
+          <Home className="w-6 h-6" />
+        </Link>
+      )}
 
       {/* Overlay for mobile */}
       {isMobileMenuOpen && (
