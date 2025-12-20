@@ -5,6 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -31,6 +32,9 @@ model User {
   contestPosts      ContestPost[]
   contestLikes      ContestLike[]
   createdContests   Contest[]
+  diaries           Diary[]
+  diaryLikes        DiaryLike[]
+  diaryComments     DiaryComment[]
 }
 
 model Post {
@@ -148,4 +152,42 @@ model ContestLike {
   createdAt     DateTime    @default(now())
 
   @@unique([userId, contestPostId])
+}
+
+model Diary {
+  id           Int      @id @default(autoincrement())
+  title        String
+  content      Json
+  thumbnailUrl String?
+  date         DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes        DiaryLike[]
+  comments     DiaryComment[]
+
+  @@unique([userId, date])
+  @@index([date])
+}
+
+model DiaryLike {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  diaryId   Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  diary     Diary    @relation(fields: [diaryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, diaryId])
+}
+
+model DiaryComment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  userId    Int
+  diaryId   Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  diary     Diary    @relation(fields: [diaryId], references: [id], onDelete: Cascade)
 }

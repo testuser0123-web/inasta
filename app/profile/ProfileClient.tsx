@@ -1,70 +1,40 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { Settings, Grid, Heart, ShieldCheck, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
+import { Grid, Heart, Settings, ShieldCheck, MoreHorizontal, Book } from 'lucide-react';
+import { useState, useTransition } from 'react';
 import Feed from '@/components/Feed';
-import ProfileHeader from '@/components/ProfileHeader';
-import VerificationModal from '@/components/VerificationModal';
 import { useRouter } from 'next/navigation';
+import VerificationModal from '@/components/VerificationModal';
+import ProfileHeader from '@/components/ProfileHeader';
 import { Spinner } from '@/components/ui/spinner';
-
-type Post = {
-    id: number;
-    // imageUrl: string;
-    comment: string | null;
-    isSpoiler?: boolean;
-    createdAt: Date;
-    likesCount: number;
-    hasLiked: boolean;
-    userId: number;
-    user?: {
-        username: string;
-        avatarUrl: string | null;
-        isVerified?: boolean;
-    };
-    hashtags?: { name: string }[];
-    images?: { id: number; order: number }[];
-};
+import { DiaryGrid } from '../diary/DiaryGrid';
 
 type ProfileClientProps = {
-  user: {
-    id: number;
-    username: string;
-    avatarUrl: string | null;
-    isVerified: boolean;
-    bio?: string | null;
-    oshi?: string | null;
-    _count: {
-        followers: number;
-        following: number;
-    }
-  };
-  currentUser: {
-    id: number;
-    username: string;
-  } | null;
-  posts: Post[];
-  likedPosts?: Post[];
+  user: any;
+  currentUser: any;
+  posts: any[];
+  likedPosts: any[];
+  diaries?: any[];
   initialStatus: {
-    isFollowing: boolean;
-    isMuted: boolean;
-    isMe: boolean;
+      isFollowing: boolean;
+      isMuted: boolean;
+      isMe: boolean;
   };
-  trophies?: {
+  trophies: {
       gold: number;
       silver: number;
       bronze: number;
   };
 };
 
-export default function ProfileClient({ user, currentUser, posts, likedPosts = [], initialStatus, trophies }: ProfileClientProps) {
-  const [activeTab, setActiveTab] = useState<'posts' | 'likes'>('posts');
+export default function ProfileClient({ user, currentUser, posts, likedPosts = [], diaries = [], initialStatus, trophies }: ProfileClientProps) {
+  const [activeTab, setActiveTab] = useState<'posts' | 'likes' | 'diaries'>('posts');
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const handleTabChange = (tab: 'posts' | 'likes') => {
+  const handleTabChange = (tab: 'posts' | 'likes' | 'diaries') => {
     startTransition(() => {
         setActiveTab(tab);
     });
@@ -114,18 +84,27 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
             </div>
          )}
 
-         {/* Tabs - only show for me */}
-         {initialStatus.isMe ? (
-             <div className="flex border-b dark:border-gray-800">
-                <button
-                    onClick={() => handleTabChange('posts')}
-                    className={`flex-1 flex items-center justify-center py-3 text-sm font-medium transition-colors ${
-                        activeTab === 'posts' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-                    }`}
-                >
-                    <Grid className="w-5 h-5 mr-2" />
-                    Posts
-                </button>
+         {/* Tabs */}
+         <div className="flex border-b dark:border-gray-800 mt-4">
+            <button
+                onClick={() => handleTabChange('posts')}
+                className={`flex-1 flex items-center justify-center py-3 text-sm font-medium transition-colors ${
+                    activeTab === 'posts' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+            >
+                <Grid className="w-5 h-5 mr-2" />
+                Posts
+            </button>
+            <button
+                onClick={() => handleTabChange('diaries')}
+                className={`flex-1 flex items-center justify-center py-3 text-sm font-medium transition-colors ${
+                    activeTab === 'diaries' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+            >
+                <Book className="w-5 h-5 mr-2" />
+                Diaries
+            </button>
+            {initialStatus.isMe && (
                 <button
                     onClick={() => handleTabChange('likes')}
                     className={`flex-1 flex items-center justify-center py-3 text-sm font-medium transition-colors ${
@@ -135,10 +114,8 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                     <Heart className="w-5 h-5 mr-2" />
                     Likes
                 </button>
-             </div>
-         ) : (
-             <div className="border-t border-gray-100 dark:border-gray-800 mt-4" />
-         )}
+            )}
+         </div>
       </div>
 
       {isPending ? (
@@ -146,23 +123,31 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
               <Spinner />
           </div>
       ) : (
-        activeTab === 'posts' ? (
-            <Feed
-                key="posts"
-                initialPosts={posts}
-                currentUserId={currentUser?.id ?? -1}
-                feedType="user_posts"
-                targetUserId={user.id}
-            />
-        ) : (
-            <Feed
-                key="likes"
-                initialPosts={likedPosts}
-                currentUserId={currentUser?.id ?? -1}
-                feedType="user_likes"
-                targetUserId={user.id}
-            />
-        )
+        <>
+            {activeTab === 'posts' && (
+                <Feed
+                    key="posts"
+                    initialPosts={posts}
+                    currentUserId={currentUser?.id ?? -1}
+                    feedType="user_posts"
+                    targetUserId={user.id}
+                />
+            )}
+            {activeTab === 'diaries' && (
+                <div className="p-4">
+                    <DiaryGrid diaries={diaries} />
+                </div>
+            )}
+            {activeTab === 'likes' && (
+                <Feed
+                    key="likes"
+                    initialPosts={likedPosts}
+                    currentUserId={currentUser?.id ?? -1}
+                    feedType="user_likes"
+                    targetUserId={user.id}
+                />
+            )}
+        </>
       )}
 
       <VerificationModal 
