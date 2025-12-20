@@ -17,7 +17,7 @@ import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPl
 import { TRANSFORMERS } from '@lexical/markdown';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ImageIcon, Loader2 } from 'lucide-react';
 import { uploadDiaryImage } from '@/app/actions/diary';
 import { $createParagraphNode, $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, TextFormatType } from 'lexical';
@@ -36,7 +36,7 @@ import {
   NodeKey,
 } from 'lexical';
 
-export class SimpleImageNode extends DecoratorNode<JSX.Element> {
+export class SimpleImageNode extends DecoratorNode<React.JSX.Element> {
   __src: string;
   __altText: string;
 
@@ -65,7 +65,7 @@ export class SimpleImageNode extends DecoratorNode<JSX.Element> {
     return false;
   }
 
-  decorate(): JSX.Element {
+  decorate(): React.JSX.Element {
     return <img src={this.__src} alt={this.__altText} className="max-w-full h-auto rounded-lg my-4" />;
   }
 
