@@ -116,7 +116,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="コメントを書く..."
-                  className="flex-1 px-4 py-2 rounded-lg border dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="flex-1 text-sm px-2 py-2 rounded-lg border dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-indigo-500 outline-none"
                />
                <button
                   type="submit"
