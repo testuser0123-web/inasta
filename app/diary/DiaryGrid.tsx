@@ -27,7 +27,7 @@ export function DiaryGrid({ diaries }: { diaries: DiaryEntry[] }) {
   if (diaries.length === 0) {
     return (
       <div className="text-center py-20 text-gray-500">
-        <p className="text-xl">No diaries found.</p>
+        <p className="text-xl">日記がありません。</p>
       </div>
     );
   }
@@ -47,7 +47,7 @@ export function DiaryGrid({ diaries }: { diaries: DiaryEntry[] }) {
               </div>
             ) : (
               <div className="aspect-video bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                <span className="text-gray-400">No Thumbnail</span>
+                <span className="text-gray-400">サムネイルなし</span>
               </div>
             )}
 

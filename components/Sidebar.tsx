@@ -14,7 +14,7 @@ export default function Sidebar({ username }: { username?: string }) {
     { icon: Home, label: 'Home', href: '/' },
     { icon: Search, label: 'Search', href: '/?feed=search' },
     { icon: Trophy, label: 'Contests', href: '/contests' },
-    { icon: Book, label: 'Diary', href: '/diary' },
+    { icon: Book, label: '日記', href: '/diary' },
     { icon: PlusSquare, label: 'Create', href: '/upload' },
     { icon: User, label: 'Profile', href: '/profile' },
   ];

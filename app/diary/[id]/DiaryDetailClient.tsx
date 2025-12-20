@@ -1,53 +1,52 @@
 'use client';
 
-import { useState } from 'react';
-import DiaryEditor from '@/components/DiaryEditor';
-import { Heart, MessageCircle, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { useState, useTransition } from 'react';
 import { format } from 'date-fns';
+import { Heart, MessageCircle } from 'lucide-react';
+import DiaryEditor from '@/components/DiaryEditor';
+import { toggleDiaryLike, addDiaryComment } from '@/app/actions/diary';
 
-interface DiaryDetailProps {
-  diary: any;
-  currentUserId?: number;
-  toggleLike: (id: number) => Promise<void>;
-  addComment: (id: number, text: string) => Promise<void>;
-}
-
-export function DiaryDetailClient({ diary, currentUserId, toggleLike, addComment }: DiaryDetailProps) {
-  const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
+export default function DiaryDetailClient({ diary, currentUserId }: { diary: any, currentUserId?: number }) {
+  const [hasLiked, setHasLiked] = useState(diary.likes.some((l: any) => l.userId === currentUserId));
   const [commentText, setCommentText] = useState('');
-
-  const hasLiked = diary.likes.some((like: any) => like.userId === currentUserId);
+  const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handleLike = async () => {
      if (!currentUserId) return;
-     await toggleLike(diary.id);
+     // Optimistic update
+     setHasLiked(!hasLiked);
+     try {
+        await toggleDiaryLike(diary.id);
+     } catch (error) {
+        setHasLiked(hasLiked); // Revert
+     }
   };
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentText.trim() || !currentUserId) return;
+     e.preventDefault();
+     if (!commentText.trim() || !currentUserId) return;
 
-    setIsCommentSubmitting(true);
-    await addComment(diary.id, commentText);
-    setCommentText('');
-    setIsCommentSubmitting(false);
+     setIsCommentSubmitting(true);
+     try {
+        await addDiaryComment(diary.id, commentText);
+        setCommentText('');
+     } catch (error) {
+        alert('コメントの送信に失敗しました');
+     } finally {
+        setIsCommentSubmitting(false);
+     }
   };
 
   return (
-    <div className="space-y-6">
-      <Link href={`/diary?date=${format(new Date(diary.date), 'yyyy-MM-dd')}`} className="inline-flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition-colors">
-        <ArrowLeft className="w-5 h-5" />
-        <span>Back to Diaries</span>
-      </Link>
-
-      <div className="bg-white dark:bg-black border dark:border-gray-800 rounded-xl p-8 shadow-sm">
-         <div className="flex items-center gap-4 mb-6 pb-6 border-b dark:border-gray-800">
+    <div className="max-w-4xl mx-auto p-4 pb-24">
+      <div className="bg-white dark:bg-black rounded-xl p-6 mb-6 border dark:border-gray-800">
+         <div className="flex items-center gap-4 mb-6">
              <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
                 {diary.user.avatarUrl ? (
                    <img src={diary.user.avatarUrl} alt={diary.user.username} className="w-full h-full object-cover" />
                 ) : (
-                   <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white font-bold">
+                   <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white text-lg">
                       {diary.user.username[0].toUpperCase()}
                    </div>
                 )}
@@ -83,11 +82,11 @@ export function DiaryDetailClient({ diary, currentUserId, toggleLike, addComment
       </div>
 
       <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6">
-         <h3 className="text-lg font-bold mb-4">Comments</h3>
+         <h3 className="text-lg font-bold mb-4">コメント</h3>
 
          <div className="space-y-4 mb-8">
             {diary.comments.length === 0 ? (
-               <p className="text-gray-500 italic">No comments yet.</p>
+               <p className="text-gray-500 italic">コメントはまだありません。</p>
             ) : (
                diary.comments.map((comment: any) => (
                   <div key={comment.id} className="flex gap-3">
@@ -116,7 +115,7 @@ export function DiaryDetailClient({ diary, currentUserId, toggleLike, addComment
                   type="text"
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Write a comment..."
+                  placeholder="コメントを書く..."
                   className="flex-1 px-4 py-2 rounded-lg border dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-indigo-500 outline-none"
                />
                <button
@@ -124,7 +123,7 @@ export function DiaryDetailClient({ diary, currentUserId, toggleLike, addComment
                   disabled={isCommentSubmitting || !commentText.trim()}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-50"
                >
-                  Send
+                  送信
                </button>
             </form>
          )}

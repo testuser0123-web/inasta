@@ -102,14 +102,14 @@ const Toolbar = ({ onInsertImage }: { onInsertImage: () => void }) => {
   };
 
   return (
-    <div className="flex items-center gap-2 border-b p-2 bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
+    <div className="flex items-center gap-2 border-t p-2 bg-gray-50 dark:bg-gray-900 z-10">
       <button type="button" onClick={() => format('bold')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded font-bold">B</button>
       <button type="button" onClick={() => format('italic')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded italic">I</button>
       <button type="button" onClick={() => format('underline')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded underline">U</button>
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 mx-2"></div>
       <button type="button" onClick={onInsertImage} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded flex items-center gap-2">
          <ImageIcon className="w-4 h-4" />
-         <span className="text-sm">Image</span>
+         <span className="text-sm">画像</span>
       </button>
     </div>
   );
@@ -201,6 +201,24 @@ export default function Editor({ onChange, initialContent, readOnly = false }: {
   return (
     <div className={`border rounded-lg overflow-hidden flex flex-col ${readOnly ? 'border-none' : 'min-h-[400px]'}`}>
       <LexicalComposer initialConfig={initialConfig}>
+        <div className="relative flex-1 p-4">
+          <RichTextPlugin
+            contentEditable={<ContentEditable className="outline-none min-h-[300px] h-full" />}
+            placeholder={!readOnly ? <div className="absolute top-4 left-4 text-gray-400 pointer-events-none">ここに日記を書く...</div> : null}
+            ErrorBoundary={LexicalErrorBoundary}
+          />
+          <HistoryPlugin />
+          <AutoFocusPlugin />
+          <ListPlugin />
+          <LinkPlugin />
+          <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+
+          <CaptureEditorRef editorRef={editorRef} />
+          {onChange && <OnChangePlugin onChange={(editorState) => onChange(JSON.stringify(editorState))} />}
+
+          {initialContent && <LoadInitialContent content={initialContent} />}
+        </div>
+
         {!readOnly && (
            <>
              <Toolbar onInsertImage={() => fileInputRef.current?.click()} />
@@ -218,24 +236,6 @@ export default function Editor({ onChange, initialContent, readOnly = false }: {
              )}
            </>
         )}
-
-        <div className="relative flex-1 p-4">
-          <RichTextPlugin
-            contentEditable={<ContentEditable className="outline-none min-h-[300px] h-full" />}
-            placeholder={!readOnly ? <div className="absolute top-4 left-4 text-gray-400 pointer-events-none">Start writing your diary...</div> : null}
-            ErrorBoundary={LexicalErrorBoundary}
-          />
-          <HistoryPlugin />
-          <AutoFocusPlugin />
-          <ListPlugin />
-          <LinkPlugin />
-          <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
-
-          <CaptureEditorRef editorRef={editorRef} />
-          {onChange && <OnChangePlugin onChange={(editorState) => onChange(JSON.stringify(editorState))} />}
-
-          {initialContent && <LoadInitialContent content={initialContent} />}
-        </div>
       </LexicalComposer>
     </div>
   );
