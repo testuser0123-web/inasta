@@ -8,16 +8,16 @@ import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
 
 const diarySchema = z.object({
-  title: z.string().min(1, 'Title is required').max(100, 'Title is too long'),
+  title: z.string().min(1, 'タイトルは必須です').max(100, 'タイトルが長すぎます'),
   content: z.any(), // JSON content from Lexical
   thumbnailUrl: z.string().optional(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日付の形式が正しくありません'),
 });
 
 export async function createDiary(formData: FormData) {
   const session = await getSession();
   if (!session) {
-    throw new Error('Unauthorized');
+    throw new Error('ログインが必要です');
   }
 
   const thumbnailFile = formData.get('thumbnailFile') as File;
@@ -41,7 +41,7 @@ export async function createDiary(formData: FormData) {
   const validatedFields = diarySchema.safeParse(rawData);
 
   if (!validatedFields.success) {
-    throw new Error('Invalid fields');
+    throw new Error('入力内容に誤りがあります');
   }
 
   const { title, content, date } = validatedFields.data;
@@ -64,7 +64,7 @@ export async function createDiary(formData: FormData) {
   });
 
   if (existingDiary) {
-    throw new Error('You have already posted a diary entry for this date.');
+    throw new Error('この日付の日記は既に投稿されています');
   }
 
   await db.diary.create({
