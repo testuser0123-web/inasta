@@ -54,3 +54,8 @@ prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."D
 prisma:query SELECT "public"."Diary"."id", "public"."Diary"."date" FROM "public"."Diary" WHERE "public"."Diary"."isDraft" = $1 ORDER BY "public"."Diary"."date" DESC OFFSET $2
 prisma:query SELECT COUNT(*) FROM (SELECT "public"."Diary"."id" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3 AND "public"."Diary"."isDraft" = $4) OFFSET $5) AS "sub"
  GET /diary?date=2025-12-23 200 in 576ms (compile: 9ms, proxy.ts: 7ms, render: 560ms)
+ GET /login 200 in 834ms (compile: 67ms, proxy.ts: 163ms, render: 604ms)
+prisma:query SELECT 1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."roles", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 496ms (compile: 26ms, proxy.ts: 11ms, render: 459ms)
+[?25h

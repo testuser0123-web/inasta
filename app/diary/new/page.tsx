@@ -79,6 +79,12 @@ export default function NewDiaryPage() {
       return;
     }
 
+    if (!thumbnailFile) {
+      if (!confirm('サムネイルがありませんがよろしいですか？')) {
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
