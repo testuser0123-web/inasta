@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { DiaryList } from './DiaryList';
-import { getDiariesByDate, checkHasPostedToday } from '@/app/actions/diary';
+import { getDiariesForRange, getPostedDiaryDates, checkHasPostedToday } from '@/app/actions/diary';
 import { Book } from 'lucide-react';
 
 export default async function DiaryPage(props: { searchParams: Promise<{ date?: string }> }) {
@@ -12,7 +12,8 @@ export default async function DiaryPage(props: { searchParams: Promise<{ date?: 
   }
 
   const dateParam = searchParams.date || new Date().toISOString().split('T')[0];
-  const diaries = await getDiariesByDate(dateParam);
+  const diaries = await getDiariesForRange(dateParam);
+  const postedDates = await getPostedDiaryDates();
   const hasPostedToday = await checkHasPostedToday(session.id, new Date().toISOString().split('T')[0]);
 
   return (
@@ -37,6 +38,7 @@ export default async function DiaryPage(props: { searchParams: Promise<{ date?: 
         dateParam={dateParam}
         currentUserId={session.id}
         diaries={diaries}
+        postedDates={postedDates}
         hasPostedToday={hasPostedToday}
       />
     </div>
