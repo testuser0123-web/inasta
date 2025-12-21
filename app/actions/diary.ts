@@ -82,6 +82,75 @@ export async function createDiary(formData: FormData) {
   redirect('/diary?date=' + date);
 }
 
+export async function getDiariesForRange(dateStr: string) {
+  const targetDate = new Date(dateStr);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  // 3 days before target date
+  const startOfRange = new Date(targetDate);
+  startOfRange.setDate(startOfRange.getDate() - 3);
+  startOfRange.setHours(0, 0, 0, 0);
+
+  const diaries = await db.diary.findMany({
+    where: {
+      date: {
+        gte: startOfRange,
+        lte: endOfDay,
+      },
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          avatarUrl: true,
+          isVerified: true,
+          isGold: true,
+        },
+      },
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
+    },
+    orderBy: {
+      date: 'desc', // Sort by date descending
+    },
+  });
+
+  return diaries;
+}
+
+export async function getPostedDiaryDates() {
+  // Return a list of YYYY-MM-DD strings that have diaries
+  const entries = await db.diary.findMany({
+    select: {
+      date: true
+    },
+    distinct: ['date'],
+    orderBy: {
+      date: 'desc'
+    }
+  });
+
+  // Convert dates to YYYY-MM-DD strings
+  // Using toISOString().split('T')[0] works if dates are stored as UTC midnight
+  const dates = entries.map(entry => {
+    // Ensure we handle the date correctly.
+    // If stored as Date, it might have time components or be UTC.
+    // Assuming standard storage from createDiary which uses new Date(string).
+    return entry.date.toISOString().split('T')[0];
+  });
+
+  // Deduplicate just in case time variations exist (though distinct should handle it if exact match)
+  return Array.from(new Set(dates));
+}
+
+// Keeping original function for backward compatibility if needed, or we can remove it.
+// The page uses it, but we will update the page.
 export async function getDiariesByDate(dateStr: string) {
   const date = new Date(dateStr);
   const startOfDay = new Date(date);
