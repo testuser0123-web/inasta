@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState, useState, useRef, useEffect, useCallback } from 'react';
+import { useActionState, useState, useRef, useEffect, useCallback, useTransition } from 'react';
 import { updateProfile } from '@/app/actions/user';
+import { uploadFile } from '@/app/actions/upload';
 import { Camera, Check, X } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '@/lib/image';
@@ -17,7 +18,9 @@ type Area = { x: number; y: number; width: number; height: number };
 
 export default function EditProfileForm({ user, onClose }: { user: User, onClose: () => void }) {
   const [state, action, isPending] = useActionState(updateProfile, undefined);
+  const [isUploading, setIsUploading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatarUrl);
+  const [avatarFile, setAvatarFile] = useState<Blob | null>(null); // To store the blob to be uploaded
   const [username, setUsername] = useState(user.username);
   const [bio, setBio] = useState(user.bio || '');
   const [oshi, setOshi] = useState(user.oshi || '');
@@ -59,7 +62,12 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
             croppedAreaPixels,
             128 // Output size for avatar
         );
-        setAvatarPreview(croppedImage);
+        if (croppedImage) {
+            setAvatarPreview(croppedImage);
+            // Convert base64 to blob for upload
+            const blob = await (await fetch(croppedImage)).blob();
+            setAvatarFile(blob);
+        }
         setImageSrc(null); // Close cropper
     } catch (e) {
         console.error(e);
@@ -68,6 +76,33 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
   const cancelCrop = () => {
       setImageSrc(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const formData = new FormData(e.currentTarget);
+
+      try {
+          if (avatarFile) {
+              setIsUploading(true);
+              const uploadFormData = new FormData();
+              // Append blob as 'file' and give it a name (e.g. avatar.jpg)
+              uploadFormData.append('file', avatarFile, 'avatar.jpg');
+              uploadFormData.append('pathPrefix', 'avatars');
+
+              const { url } = await uploadFile(uploadFormData);
+              formData.set('avatarUrl', url);
+          }
+      } catch (error) {
+          console.error("Upload failed", error);
+          setIsUploading(false);
+          // Optionally show error to user
+          return;
+      } finally {
+          setIsUploading(false);
+      }
+
+      action(formData);
   };
 
   // If in cropping mode
@@ -126,7 +161,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
         <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white">Edit Profile</h2>
 
-        <form action={action} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
             <input type="hidden" name="avatarUrl" value={avatarPreview || ''} />
 
             <div className="flex flex-col items-center">
@@ -211,10 +246,10 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
             <button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || isUploading}
                 className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
             >
-                {isPending ? 'Saving...' : 'Save Changes'}
+                {isUploading ? 'Uploading...' : (isPending ? 'Saving...' : 'Save Changes')}
             </button>
         </form>
       </div>

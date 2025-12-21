@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useRef, useCallback } from "react";
 import { createPost } from "@/app/actions/post";
+import { uploadFile } from "@/app/actions/upload";
 import { Camera, Check, X, Smartphone, Image as ImageIcon } from "lucide-react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/image";
@@ -11,6 +12,7 @@ type AspectRatio = "1:1" | "original";
 
 export default function UploadForm() {
   const [state, action, isPending] = useActionState(createPost, undefined);
+  const [isUploading, setIsUploading] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -101,6 +103,41 @@ export default function UploadForm() {
       setCroppedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setIsUploading(true);
+      const formData = new FormData(e.currentTarget);
+
+      try {
+          const uploadedUrls: string[] = [];
+
+          for (let i = 0; i < croppedImages.length; i++) {
+              const base64 = croppedImages[i];
+              const blob = await (await fetch(base64)).blob();
+              const uploadFormData = new FormData();
+              uploadFormData.append('file', blob, `image-${i}.jpg`);
+              uploadFormData.append('pathPrefix', 'posts');
+
+              const { url } = await uploadFile(uploadFormData);
+              uploadedUrls.push(url);
+          }
+
+          formData.set('imageUrls', JSON.stringify(uploadedUrls));
+          // First image is also used as 'imageUrl' fallback in action, though logic prefers imageUrls array.
+          // But action checks 'imageUrl' too.
+          if (uploadedUrls.length > 0) {
+              formData.set('imageUrl', uploadedUrls[0]);
+          }
+
+          action(formData);
+      } catch (error) {
+          console.error("Upload failed", error);
+          // Show error
+      } finally {
+          setIsUploading(false);
+      }
+  };
+
   // If we have an image source, show Cropper
   if (imageSrc) {
     return (
@@ -179,7 +216,7 @@ export default function UploadForm() {
   }
 
   return (
-    <form action={action} className="space-y-6 w-full max-w-md mx-auto p-4">
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
       <input type="hidden" name="imageUrls" value={JSON.stringify(croppedImages)} />
       <input type="hidden" name="isSpoiler" value={String(isSpoiler)} />
 
@@ -291,10 +328,10 @@ export default function UploadForm() {
 
       <button
         type="submit"
-        disabled={isPending || croppedImages.length === 0}
+        disabled={isPending || isUploading || croppedImages.length === 0}
         className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
       >
-        {isPending ? "Uploading..." : "Share"}
+        {isUploading ? "Uploading..." : (isPending ? "Sharing..." : "Share")}
       </button>
     </form>
   );

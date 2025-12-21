@@ -2,10 +2,10 @@
 
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { getSession } from '@/lib/auth'; // Using correct auth import
+import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { put } from '@vercel/blob';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const diarySchema = z.object({
   title: z.string().min(1, 'タイトルは必須です').max(100, 'タイトルが長すぎます'),
@@ -13,6 +13,29 @@ const diarySchema = z.object({
   thumbnailUrl: z.string().nullish(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日付の形式が正しくありません'),
 });
+
+async function uploadToSupabase(file: File, path: string) {
+  const arrayBuffer = await file.arrayBuffer();
+  const fileBuffer = Buffer.from(arrayBuffer);
+
+  const { error } = await supabaseAdmin.storage
+    .from('images')
+    .upload(path, fileBuffer, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (error) {
+    console.error('Supabase upload error:', error);
+    throw new Error('Upload failed');
+  }
+
+  const { data: { publicUrl } } = supabaseAdmin.storage
+    .from('images')
+    .getPublicUrl(path);
+
+  return publicUrl;
+}
 
 export async function createDiary(formData: FormData) {
   const session = await getSession();
@@ -24,11 +47,11 @@ export async function createDiary(formData: FormData) {
   let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
 
   if (thumbnailFile && thumbnailFile.size > 0) {
-     const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
-        access: 'public',
-        token: process.env.BLOB_READ_WRITE_TOKEN
-     });
-     thumbnailUrl = blob.url;
+     const timestamp = Date.now();
+     const safeName = thumbnailFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+     const path = `diary-thumbnail/${session.id}/${timestamp}-${safeName}`;
+
+     thumbnailUrl = await uploadToSupabase(thumbnailFile, path);
   }
 
   const rawData = {
@@ -262,12 +285,17 @@ export async function uploadDiaryImage(formData: FormData) {
   const file = formData.get('file') as File;
   if (!file) return { error: 'No file provided' };
 
-  const blob = await put(`diary/${session.id}/${Date.now()}-${file.name}`, file, {
-    access: 'public',
-    token: process.env.BLOB_READ_WRITE_TOKEN
-  });
+  try {
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const path = `diary/${session.id}/${timestamp}-${safeName}`;
 
-  return { url: blob.url };
+      const url = await uploadToSupabase(file, path);
+      return { url };
+  } catch (e) {
+      console.error(e);
+      return { error: 'Upload failed' };
+  }
 }
 
 export async function toggleDiaryLike(diaryId: number) {
@@ -336,11 +364,11 @@ export async function saveDraft(formData: FormData) {
   let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
 
   if (thumbnailFile && thumbnailFile.size > 0) {
-     const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
-        access: 'public',
-        token: process.env.BLOB_READ_WRITE_TOKEN
-     });
-     thumbnailUrl = blob.url;
+     const timestamp = Date.now();
+     const safeName = thumbnailFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+     const path = `diary-thumbnail/${session.id}/${timestamp}-${safeName}`;
+
+     thumbnailUrl = await uploadToSupabase(thumbnailFile, path);
   }
 
   const rawData = {

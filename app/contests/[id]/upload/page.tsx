@@ -2,21 +2,22 @@
 
 import { useActionState, useState, useRef, useCallback, useEffect } from "react";
 import { createContestPost } from "@/app/actions/contest";
+import { uploadFile } from "@/app/actions/upload";
 import { Camera, Check, X, Smartphone, Image as ImageIcon } from "lucide-react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/image";
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { use } from "react";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
 
-import { use } from "react";
-
 export default function ContestUploadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: contestId } = use(params);
   const [state, action, isPending] = useActionState(createContestPost, undefined);
+  const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -94,8 +95,32 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
     setZoom(1);
   };
 
-  const removeImage = (index: number) => {
-      setCroppedImages(prev => prev.filter((_, i) => i !== index));
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setIsUploading(true);
+      const formData = new FormData(e.currentTarget);
+
+      try {
+          const uploadedUrls: string[] = [];
+
+          for (let i = 0; i < croppedImages.length; i++) {
+              const base64 = croppedImages[i];
+              const blob = await (await fetch(base64)).blob();
+              const uploadFormData = new FormData();
+              uploadFormData.append('file', blob, `contest-image-${i}.jpg`);
+              uploadFormData.append('pathPrefix', 'contest-posts');
+
+              const { url } = await uploadFile(uploadFormData);
+              uploadedUrls.push(url);
+          }
+
+          formData.set('imageUrls', JSON.stringify(uploadedUrls));
+          action(formData);
+      } catch (error) {
+          console.error("Upload failed", error);
+      } finally {
+          setIsUploading(false);
+      }
   };
 
   if (imageSrc) {
@@ -133,7 +158,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
             <h1 className="text-lg font-semibold dark:text-white">エントリー</h1>
         </div>
 
-        <form action={action} className="space-y-6 w-full max-w-md mx-auto p-4">
+        <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
             <input type="hidden" name="imageUrls" value={JSON.stringify(croppedImages)} />
             <input type="hidden" name="contestId" value={contestId} />
 
@@ -160,8 +185,8 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
 
             {state?.message && <div className="text-red-500 text-sm text-center">{typeof state.message === 'string' ? state.message : 'エラーが発生しました'}</div>}
 
-            <button type="submit" disabled={isPending || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-bold">
-                {isPending ? "投稿中..." : "投稿する"}
+            <button type="submit" disabled={isPending || isUploading || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-bold">
+                {isUploading ? "アップロード中..." : (isPending ? "投稿中..." : "投稿する")}
             </button>
         </form>
     </div>
