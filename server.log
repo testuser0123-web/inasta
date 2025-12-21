@@ -1,0 +1,49 @@
+
+> inasta@0.1.0 dev
+> next dev -p 3000
+
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.0.2:3000
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 1929ms
+ ○ Compiling /login ...
+ GET /login 200 in 7.0s (compile: 6.3s, proxy.ts: 165ms, render: 502ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."roles", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 478ms (compile: 8ms, proxy.ts: 16ms, render: 454ms)
+ GET /login 200 in 133ms (compile: 8ms, proxy.ts: 9ms, render: 117ms)
+prisma:query SELECT 1
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."roles", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."_HashtagToPost"."B", "public"."_HashtagToPost"."A" FROM "public"."_HashtagToPost" WHERE "public"."_HashtagToPost"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name" FROM "public"."Hashtag" WHERE "public"."Hashtag"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) OFFSET $17
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."roles" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) OFFSET $11
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7) OFFSET $8
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+ GET / 200 in 2.8s (compile: 1694ms, proxy.ts: 15ms, render: 1067ms)
+ POST /login 303 in 3.1s (compile: 6ms, proxy.ts: 9ms, render: 3.1s)
+ ○ Compiling /diary/new ...
+ GET /api/image/522.jpg 200 in 2.8s (compile: 2.7s, render: 148ms)
+ GET /api/image/523.jpg 200 in 2.8s (compile: 2.7s, render: 149ms)
+ GET /api/image/519.jpg 200 in 2.8s (compile: 2.7s, render: 152ms)
+ GET /api/image/521.jpg 200 in 2.8s (compile: 2.7s, render: 152ms)
+ GET /api/image/520.jpg 200 in 2.8s (compile: 2.7s, render: 153ms)
+ GET /diary/new?date=2025-12-22 200 in 3.9s (compile: 3.3s, proxy.ts: 17ms, render: 489ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl" FROM "public"."Post" WHERE "public"."Post"."id" IN ($1,$2,$3,$4,$5) OFFSET $6
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3 AND "public"."Diary"."isDraft" = $4) LIMIT $5 OFFSET $6
+ POST /diary/new?date=2025-12-22 200 in 171ms (compile: 6ms, proxy.ts: 9ms, render: 156ms)
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3) LIMIT $4 OFFSET $5
+prisma:query INSERT INTO "public"."Diary" ("title","content","thumbnailUrl","date","isDraft","createdAt","updatedAt","userId") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId"
+ POST /diary/new?date=2025-12-22 200 in 169ms (compile: 5ms, proxy.ts: 8ms, render: 156ms)
+[?25h
