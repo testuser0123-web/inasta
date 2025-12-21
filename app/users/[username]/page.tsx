@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getSession } from '@/lib/auth';
 import ProfileClient from '@/app/profile/ProfileClient';
 import { getUserTrophies } from '@/app/actions/trophy';
+import { getDiariesByUser } from '@/app/actions/diary';
 
 export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
   const resolvedParams = await params;
@@ -43,6 +44,9 @@ export default async function UserPage({ params }: { params: Promise<{ username:
 
   // Fetch trophies
   const trophies = await getUserTrophies(user.id);
+
+  // Fetch diaries
+  const diaries = await getDiariesByUser(user.id);
 
   // Check relationship status if logged in
   let isFollowing = false;
@@ -236,6 +240,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
           currentUser={session ? { id: session.id, username: session.username } : null}
           posts={posts}
           likedPosts={likedPosts}
+          diaries={diaries}
           initialStatus={{
               isFollowing,
               isMuted,
