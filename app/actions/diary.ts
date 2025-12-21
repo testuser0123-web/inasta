@@ -10,7 +10,7 @@ import { put } from '@vercel/blob';
 const diarySchema = z.object({
   title: z.string().min(1, 'タイトルは必須です').max(100, 'タイトルが長すぎます'),
   content: z.any(), // JSON content from Lexical
-  thumbnailUrl: z.string().optional(),
+  thumbnailUrl: z.string().nullish(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日付の形式が正しくありません'),
 });
 
