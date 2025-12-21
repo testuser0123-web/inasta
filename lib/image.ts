@@ -97,3 +97,50 @@ export async function getCroppedImg(
   // As Base64 string
   return canvas.toDataURL('image/jpeg', 0.9);
 }
+
+export async function resizeImage(
+  file: File,
+  maxWidth: number = 1280,
+  maxHeight: number = 1280,
+  quality: number = 0.8
+): Promise<Blob> {
+  const imageSrc = URL.createObjectURL(file);
+  const image = await createImage(imageSrc);
+
+  let width = image.width;
+  let height = image.height;
+
+  // Calculate new dimensions
+  if (width > maxWidth || height > maxHeight) {
+    const ratio = Math.min(maxWidth / width, maxHeight / height);
+    width = Math.round(width * ratio);
+    height = Math.round(height * ratio);
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    URL.revokeObjectURL(imageSrc);
+    throw new Error('Canvas context not available');
+  }
+
+  // Draw white background to handle transparency if converting to JPEG
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.drawImage(image, 0, 0, width, height);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      URL.revokeObjectURL(imageSrc);
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error('Canvas to Blob failed'));
+      }
+    }, 'image/jpeg', quality);
+  });
+}

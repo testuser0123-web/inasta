@@ -20,6 +20,7 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import React, { useEffect, useState, useRef } from 'react';
 import { ImageIcon, Loader2 } from 'lucide-react';
 import { uploadDiaryImage } from '@/app/actions/diary';
+import { resizeImage } from '@/lib/image';
 import { $createParagraphNode, $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, TextFormatType } from 'lexical';
 
 import { DecoratorNode } from 'lexical';
@@ -172,10 +173,18 @@ export default function Editor({ onChange, initialContent, readOnly = false }: {
     if (!file) return;
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
 
     try {
+      const compressedBlob = await resizeImage(file);
+      const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+      const compressedFile = new File([compressedBlob], newFileName, {
+        type: 'image/jpeg',
+        lastModified: Date.now(),
+      });
+
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
       const result = await uploadDiaryImage(formData);
       if (result.url && editorRef.current) {
          editorRef.current.update(() => {
