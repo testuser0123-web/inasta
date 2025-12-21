@@ -19,6 +19,7 @@
     "@lexical/rich-text": "^0.39.0",
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^5.22.0",
+    "@supabase/supabase-js": "^2.89.0",
     "@vercel/blob": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",

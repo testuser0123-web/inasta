@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { USERNAME_REGEX, PASSWORD_REGEX } from '@/lib/validation';
 import bcrypt from 'bcryptjs';
+import { uploadImage } from '@/lib/supabase';
 
 export async function updateProfile(prevState: unknown, formData: FormData) {
   const session = await getSession();
@@ -48,11 +49,18 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
       return { message: 'このユーザー名は既に使用されています' };
     }
 
+    let uploadedAvatarUrl = avatarUrl;
+    if (avatarUrl && avatarUrl.startsWith('data:')) {
+        const timestamp = Date.now();
+        const path = `avatars/${session.id}-${timestamp}`;
+        uploadedAvatarUrl = await uploadImage(avatarUrl, path);
+    }
+
     const updatedUser = await db.user.update({
       where: { id: session.id },
       data: {
         username,
-        avatarUrl: avatarUrl || undefined, // Only update if provided
+        avatarUrl: uploadedAvatarUrl || undefined, // Only update if provided
         bio: bio || null,
         oshi: oshi || null,
       },

@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { uploadImage } from '@/lib/supabase';
 
 export async function getContests(tab: 'active' | 'ended') {
   const now = new Date();
@@ -130,9 +131,16 @@ export async function createContestPost(prevState: any, formData: FormData) {
   }
 
   try {
+    let imageUrl = imageUrls[0];
+    if (imageUrl.startsWith('data:')) {
+        const timestamp = Date.now();
+        const path = `contest_posts/${session.id}/${timestamp}`;
+        imageUrl = await uploadImage(imageUrl, path);
+    }
+
     await db.contestPost.create({
       data: {
-        imageUrl: imageUrls[0], // Primary image
+        imageUrl: imageUrl, // Primary image
         comment,
         user: { connect: { id: session.id } },
         contest: { connect: { id: contestId } },

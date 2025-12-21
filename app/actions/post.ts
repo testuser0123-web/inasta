@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
+import { uploadImage } from "@/lib/supabase";
 
 export async function fetchFeedPosts({
   cursorId,
@@ -389,7 +390,20 @@ export async function createPost(prevState: unknown, formData: FormData) {
   }
 
   try {
-    const [firstImage, ...restImages] = imageUrls;
+    // Upload images to Supabase if they are base64
+    const uploadedImageUrls = await Promise.all(
+        imageUrls.map(async (url, index) => {
+            if (url.startsWith('data:')) {
+                // Generate path: posts/{userId}/{timestamp}-{index}
+                const timestamp = Date.now();
+                const path = `posts/${session.id}/${timestamp}-${index}`;
+                return await uploadImage(url, path);
+            }
+            return url;
+        })
+    );
+
+    const [firstImage, ...restImages] = uploadedImageUrls;
 
     await db.post.create({
       data: {
