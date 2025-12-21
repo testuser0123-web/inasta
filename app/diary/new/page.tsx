@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createDiary } from '@/app/actions/diary';
 import DiaryEditor from '@/components/DiaryEditor';
 import { Loader2 } from 'lucide-react';
+import { resizeImage } from '@/lib/image';
 
 export default function NewDiaryPage() {
   const router = useRouter();
@@ -31,7 +32,13 @@ export default function NewDiaryPage() {
       formData.append('content', content);
       formData.append('date', dateParam);
       if (thumbnailFile) {
-        formData.append('thumbnailFile', thumbnailFile);
+        const compressedBlob = await resizeImage(thumbnailFile);
+        const newFileName = thumbnailFile.name.replace(/\.[^/.]+$/, "") + ".jpg";
+        const compressedFile = new File([compressedBlob], newFileName, {
+          type: 'image/jpeg',
+          lastModified: Date.now(),
+        });
+        formData.append('thumbnailFile', compressedFile);
       }
 
       await createDiary(formData);
