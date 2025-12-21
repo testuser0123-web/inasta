@@ -64,22 +64,146 @@ export async function createDiary(formData: FormData) {
   });
 
   if (existingDiary) {
-    throw new Error('この日付の日記は既に投稿されています');
+    if (!existingDiary.isDraft) {
+      throw new Error('この日付の日記は既に投稿されています');
+    }
+    // Update draft to published
+    await db.diary.update({
+      where: { id: existingDiary.id },
+      data: {
+        title,
+        content,
+        thumbnailUrl: thumbnailUrl ?? existingDiary.thumbnailUrl, // Keep existing thumbnail if not updated
+        isDraft: false, // Publish it
+      },
+    });
+  } else {
+    // Create new published diary
+    await db.diary.create({
+      data: {
+        title,
+        content,
+        thumbnailUrl,
+        date: targetDate,
+        userId: session.id,
+        isDraft: false,
+      },
+    });
   }
-
-  await db.diary.create({
-    data: {
-      title,
-      content,
-      thumbnailUrl,
-      date: targetDate,
-      userId: session.id,
-    },
-  });
 
   revalidatePath('/diary');
   revalidatePath(`/profile`);
   redirect('/diary?date=' + date);
+}
+
+export async function saveDraft(formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    throw new Error('ログインが必要です');
+  }
+
+  // We don't process thumbnail for drafts automatically unless provided (or maybe we skip thumbnail for draft?)
+  // But user might upload thumbnail.
+  // For simplicity, handle thumbnail same way if provided.
+  const thumbnailFile = formData.get('thumbnailFile') as File;
+  let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
+
+  if (thumbnailFile && thumbnailFile.size > 0) {
+     const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
+        access: 'public',
+        token: process.env.BLOB_READ_WRITE_TOKEN
+     });
+     thumbnailUrl = blob.url;
+  }
+
+  const rawData = {
+    title: formData.get('title') || '', // Allow empty title for draft
+    content: JSON.parse(formData.get('content') as string),
+    thumbnailUrl,
+    date: formData.get('date'),
+  };
+
+  // Custom validation for draft (looser)
+  const dateStr = rawData.date as string;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    throw new Error('日付の形式が正しくありません');
+  }
+
+  const targetDate = new Date(dateStr);
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const existingDiary = await db.diary.findFirst({
+    where: {
+      userId: session.id,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+  });
+
+  if (existingDiary) {
+    if (!existingDiary.isDraft) {
+      // Cannot overwrite published diary with draft
+      return { success: false, message: '既に投稿済みです' };
+    }
+    // Update existing draft
+    await db.diary.update({
+      where: { id: existingDiary.id },
+      data: {
+        title: rawData.title,
+        content: rawData.content,
+        thumbnailUrl: thumbnailUrl ?? existingDiary.thumbnailUrl,
+        isDraft: true,
+      },
+    });
+  } else {
+    // Create new draft
+    await db.diary.create({
+      data: {
+        title: rawData.title,
+        content: rawData.content,
+        thumbnailUrl,
+        date: targetDate,
+        userId: session.id,
+        isDraft: true,
+      },
+    });
+  }
+
+  return { success: true };
+}
+
+export async function getDraft(dateStr: string) {
+  const session = await getSession();
+  if (!session) return null;
+
+  const targetDate = new Date(dateStr);
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const draft = await db.diary.findFirst({
+    where: {
+      userId: session.id,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+      isDraft: true,
+    },
+    select: {
+      title: true,
+      content: true,
+      thumbnailUrl: true,
+    }
+  });
+
+  return draft;
 }
 
 export async function getDiariesForRange(dateStr: string) {
@@ -98,6 +222,7 @@ export async function getDiariesForRange(dateStr: string) {
         gte: startOfRange,
         lte: endOfDay,
       },
+      isDraft: false, // Exclude drafts
     },
     include: {
       user: {
@@ -127,6 +252,9 @@ export async function getDiariesForRange(dateStr: string) {
 export async function getPostedDiaryDates() {
   // Return a list of YYYY-MM-DD strings that have diaries
   const entries = await db.diary.findMany({
+    where: {
+        isDraft: false
+    },
     select: {
       date: true
     },
@@ -137,20 +265,13 @@ export async function getPostedDiaryDates() {
   });
 
   // Convert dates to YYYY-MM-DD strings
-  // Using toISOString().split('T')[0] works if dates are stored as UTC midnight
   const dates = entries.map(entry => {
-    // Ensure we handle the date correctly.
-    // If stored as Date, it might have time components or be UTC.
-    // Assuming standard storage from createDiary which uses new Date(string).
     return entry.date.toISOString().split('T')[0];
   });
 
-  // Deduplicate just in case time variations exist (though distinct should handle it if exact match)
   return Array.from(new Set(dates));
 }
 
-// Keeping original function for backward compatibility if needed, or we can remove it.
-// The page uses it, but we will update the page.
 export async function getDiariesByDate(dateStr: string) {
   const date = new Date(dateStr);
   const startOfDay = new Date(date);
@@ -164,6 +285,7 @@ export async function getDiariesByDate(dateStr: string) {
         gte: startOfDay,
         lte: endOfDay,
       },
+      isDraft: false, // Exclude drafts
     },
     include: {
       user: {
@@ -204,6 +326,7 @@ export async function checkHasPostedToday(userId: number, dateStr: string) {
         gte: startOfDay,
         lte: endOfDay,
       },
+      isDraft: false, // Only count published posts
     },
   });
 
@@ -232,6 +355,24 @@ export async function getDiaryById(id: number) {
       },
     },
   });
+
+  // If it's a draft, maybe we shouldn't return it via getDiaryById unless it's the owner?
+  // But getDiaryById is likely used for public viewing.
+  // For now, if it's draft, maybe return null or let the caller handle it.
+  // Given the existing usage, preventing draft leak is good.
+  if (diary?.isDraft) {
+      // Check if session user is owner, but we can't easily do that here without session.
+      // But getDiaryById is generally for public consumption.
+      // Let's assume drafts are not viewable by ID publicly.
+      // However, the owner might want to preview it?
+      // For now, let's filter drafts out for general access, or handle ownership check if we had session.
+      // Since this is a server action, we can get session.
+      const session = await getSession();
+      if (session?.id !== diary.userId) {
+          return null; // Hide draft from others
+      }
+  }
+
   return diary;
 }
 
@@ -294,7 +435,10 @@ export async function addDiaryComment(diaryId: number, text: string) {
 
 export async function getDiariesByUser(userId: number) {
   const diaries = await db.diary.findMany({
-    where: { userId },
+    where: {
+        userId,
+        isDraft: false // Exclude drafts
+    },
     include: {
       user: true,
       _count: {

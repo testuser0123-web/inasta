@@ -164,6 +164,7 @@ model Diary {
   updatedAt    DateTime @updatedAt
   userId       Int
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isDraft      Boolean  @default(false)
   likes        DiaryLike[]
   comments     DiaryComment[]
 
