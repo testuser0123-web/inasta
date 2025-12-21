@@ -64,18 +64,32 @@ export async function createDiary(formData: FormData) {
   });
 
   if (existingDiary) {
-    throw new Error('この日付の日記は既に投稿されています');
+    if (!existingDiary.isDraft) {
+      throw new Error('この日付の日記は既に投稿されています');
+    }
+    // Update draft to published
+    await db.diary.update({
+      where: { id: existingDiary.id },
+      data: {
+        title,
+        content,
+        thumbnailUrl: thumbnailUrl ?? existingDiary.thumbnailUrl,
+        date: targetDate,
+        isDraft: false,
+      },
+    });
+  } else {
+    await db.diary.create({
+      data: {
+        title,
+        content,
+        thumbnailUrl,
+        date: targetDate,
+        userId: session.id,
+        isDraft: false,
+      },
+    });
   }
-
-  await db.diary.create({
-    data: {
-      title,
-      content,
-      thumbnailUrl,
-      date: targetDate,
-      userId: session.id,
-    },
-  });
 
   revalidatePath('/diary');
   revalidatePath(`/profile`);
@@ -98,6 +112,7 @@ export async function getDiariesForRange(dateStr: string) {
         gte: startOfRange,
         lte: endOfDay,
       },
+      isDraft: false,
     },
     include: {
       user: {
@@ -127,6 +142,9 @@ export async function getDiariesForRange(dateStr: string) {
 export async function getPostedDiaryDates() {
   // Return a list of YYYY-MM-DD strings that have diaries
   const entries = await db.diary.findMany({
+    where: {
+      isDraft: false,
+    },
     select: {
       date: true
     },
@@ -164,6 +182,7 @@ export async function getDiariesByDate(dateStr: string) {
         gte: startOfDay,
         lte: endOfDay,
       },
+      isDraft: false,
     },
     include: {
       user: {
@@ -204,6 +223,7 @@ export async function checkHasPostedToday(userId: number, dateStr: string) {
         gte: startOfDay,
         lte: endOfDay,
       },
+      isDraft: false,
     },
   });
 
@@ -294,7 +314,7 @@ export async function addDiaryComment(diaryId: number, text: string) {
 
 export async function getDiariesByUser(userId: number) {
   const diaries = await db.diary.findMany({
-    where: { userId },
+    where: { userId, isDraft: false },
     include: {
       user: true,
       _count: {
@@ -304,4 +324,111 @@ export async function getDiariesByUser(userId: number) {
     orderBy: { date: 'desc' }
   });
   return diaries;
+}
+
+export async function saveDraft(formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    throw new Error('ログインが必要です');
+  }
+
+  const thumbnailFile = formData.get('thumbnailFile') as File;
+  let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
+
+  if (thumbnailFile && thumbnailFile.size > 0) {
+     const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
+        access: 'public',
+        token: process.env.BLOB_READ_WRITE_TOKEN
+     });
+     thumbnailUrl = blob.url;
+  }
+
+  const rawData = {
+    title: formData.get('title'),
+    content: JSON.parse(formData.get('content') as string),
+    thumbnailUrl,
+    date: formData.get('date'),
+  };
+
+  const validatedFields = diarySchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    throw new Error('入力内容に誤りがあります');
+  }
+
+  const { title, content, date } = validatedFields.data;
+  const targetDate = new Date(date);
+
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const existingDiary = await db.diary.findFirst({
+    where: {
+      userId: session.id,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+  });
+
+  if (existingDiary) {
+    // If it's a draft, update it
+    if (existingDiary.isDraft) {
+      await db.diary.update({
+        where: { id: existingDiary.id },
+        data: {
+          title,
+          content,
+          // Only update thumbnail if a new one is provided or if we want to explicitly clear it (which we don't here)
+          // If thumbnailUrl is null/undefined, keep existing
+          thumbnailUrl: thumbnailUrl ?? existingDiary.thumbnailUrl,
+          date: targetDate,
+          isDraft: true,
+        },
+      });
+      return { id: existingDiary.id, saved: true };
+    }
+    // If published, do nothing (or throw error if strictly draft)
+    // We'll just return success false to indicate no draft saved because published exists
+    return { id: existingDiary.id, saved: false, message: 'Already published' };
+  } else {
+    const newDiary = await db.diary.create({
+      data: {
+        title,
+        content,
+        thumbnailUrl,
+        date: targetDate,
+        userId: session.id,
+        isDraft: true,
+      },
+    });
+    return { id: newDiary.id, saved: true };
+  }
+}
+
+export async function getDraft(dateStr: string) {
+  const session = await getSession();
+  if (!session) return null;
+
+  const targetDate = new Date(dateStr);
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const draft = await db.diary.findFirst({
+    where: {
+      userId: session.id,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+      isDraft: true,
+    },
+  });
+
+  return draft;
 }

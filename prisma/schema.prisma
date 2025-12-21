@@ -160,6 +160,7 @@ model Diary {
   content      Json
   thumbnailUrl String?
   date         DateTime
+  isDraft      Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   userId       Int

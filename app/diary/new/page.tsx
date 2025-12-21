@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createDiary } from '@/app/actions/diary';
+import { createDiary, saveDraft, getDraft } from '@/app/actions/diary';
 import DiaryEditor from '@/components/DiaryEditor';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Check } from 'lucide-react';
 import { resizeImage } from '@/lib/image';
 
 export default function NewDiaryPage() {
@@ -16,12 +16,73 @@ export default function NewDiaryPage() {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [initialContent, setInitialContent] = useState<string | undefined>(undefined);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const loadDraft = async () => {
+      try {
+        const draft = await getDraft(dateParam);
+        if (draft) {
+          setTitle(draft.title);
+          if (draft.content) {
+            setInitialContent(JSON.stringify(draft.content));
+          }
+          // Note: Thumbnail restoration from draft is not fully implemented in UI preview
+          // but if we submit without changing it, it should keep the old one (if backend handles it, which it does)
+        }
+      } catch (error) {
+        console.error('Failed to load draft', error);
+      }
+    };
+    loadDraft();
+  }, [dateParam]);
+
+  const saveDraftToBackend = useCallback(async (currentTitle: string, currentContent: string) => {
+    if (!currentTitle && !currentContent) return;
+
+    setIsSavingDraft(true);
+    try {
+      const formData = new FormData();
+      formData.append('title', currentTitle);
+      formData.append('content', currentContent);
+      formData.append('date', dateParam);
+      // Not uploading thumbnail in draft auto-save to avoid spamming storage
+
+      const result = await saveDraft(formData);
+      if (result.saved) {
+        setLastSavedAt(new Date());
+      }
+    } catch (error) {
+      console.error('Failed to save draft', error);
+    } finally {
+      setIsSavingDraft(false);
+    }
+  }, [dateParam]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Don't save if empty or initial load not done
+      if (title || content) {
+        saveDraftToBackend(title, content);
+      }
+    }, 2000); // 2 seconds debounce
+
+    return () => clearTimeout(timer);
+  }, [title, content, saveDraftToBackend]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !content) {
       alert('タイトルと本文を入力してください');
       return;
+    }
+
+    if (!thumbnailFile) {
+      if (!confirm('サムネイルがありませんがよろしいですか？')) {
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -86,10 +147,23 @@ export default function NewDiaryPage() {
 
         <div>
           <label className="block text-sm font-medium mb-2">本文</label>
-          <DiaryEditor onChange={setContent} />
+          <DiaryEditor onChange={setContent} initialContent={initialContent} />
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-500 flex items-center gap-2 h-6">
+            {isSavingDraft ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>下書き保存中...</span>
+              </>
+            ) : lastSavedAt ? (
+              <>
+                <Check className="w-3 h-3 text-green-500" />
+                <span>下書き保存済み ({lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})</span>
+              </>
+            ) : null}
+          </div>
           <button
             type="submit"
             disabled={isSubmitting}

@@ -1,0 +1,57 @@
+
+> inasta@0.1.0 dev
+> next dev -p 3000
+
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.0.2:3000
+
+ ✓ Starting...
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 1666ms
+ ○ Compiling /login ...
+ GET /login 200 in 4.5s (compile: 4.1s, proxy.ts: 108ms, render: 336ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."password", "public"."User"."createdAt", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."roles", "public"."User"."verificationToken", "public"."User"."updatedAt", "public"."User"."bio", "public"."User"."oshi", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Mute"."id", "public"."Mute"."mutedId" FROM "public"."Mute" WHERE "public"."Mute"."muterId" = $1 OFFSET $2
+prisma:query SELECT "public"."User"."id", "public"."User"."excludeUnverifiedPosts" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Post"."id", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."_HashtagToPost"."B", "public"."_HashtagToPost"."A" FROM "public"."_HashtagToPost" WHERE "public"."_HashtagToPost"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name" FROM "public"."Hashtag" WHERE "public"."Hashtag"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) OFFSET $17
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."roles" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) OFFSET $11
+prisma:query SELECT "public"."Comment"."id", "public"."Comment"."text", "public"."Comment"."userId", "public"."Comment"."postId" FROM "public"."Comment" WHERE "public"."Comment"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."Comment"."createdAt" ASC OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7) OFFSET $8
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+ GET / 200 in 2.7s (compile: 1582ms, proxy.ts: 22ms, render: 1050ms)
+ POST /login 303 in 3.3s (compile: 7ms, proxy.ts: 11ms, render: 3.3s)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl" FROM "public"."Post" WHERE "public"."Post"."id" IN ($1,$2,$3,$4,$5) OFFSET $6
+ GET /api/image/521.jpg 200 in 1777ms (compile: 1450ms, render: 327ms)
+ GET /api/image/523.jpg 200 in 1780ms (compile: 1454ms, render: 327ms)
+ GET /api/image/519.jpg 200 in 1774ms (compile: 1444ms, render: 330ms)
+ GET /api/image/522.jpg 200 in 1780ms (compile: 1451ms, render: 329ms)
+ GET /api/image/520.jpg 200 in 1777ms (compile: 1448ms, render: 329ms)
+ GET /diary/new?date=2025-12-22 200 in 3.0s (compile: 2.6s, proxy.ts: 12ms, render: 354ms)
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3 AND "public"."Diary"."isDraft" = $4) LIMIT $5 OFFSET $6
+ POST /diary/new?date=2025-12-22 200 in 161ms (compile: 6ms, proxy.ts: 9ms, render: 146ms)
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3) LIMIT $4 OFFSET $5
+prisma:query INSERT INTO "public"."Diary" ("title","content","thumbnailUrl","date","isDraft","createdAt","updatedAt","userId") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId"
+ POST /diary/new?date=2025-12-22 200 in 161ms (compile: 5ms, proxy.ts: 9ms, render: 147ms)
+ GET /diary/new?date=2025-12-22 200 in 132ms (compile: 5ms, proxy.ts: 8ms, render: 120ms)
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3 AND "public"."Diary"."isDraft" = $4) LIMIT $5 OFFSET $6
+ POST /diary/new?date=2025-12-22 200 in 57ms (compile: 5ms, proxy.ts: 7ms, render: 46ms)
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3) LIMIT $4 OFFSET $5
+prisma:query UPDATE "public"."Diary" SET "title" = $1, "content" = $2, "thumbnailUrl" = $3, "date" = $4, "isDraft" = $5, "updatedAt" = $6 WHERE ("public"."Diary"."id" = $7 AND 1=1) RETURNING "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId"
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId", COALESCE("aggr_selection_0_DiaryLike"."_aggr_count_likes", 0) AS "_aggr_count_likes", COALESCE("aggr_selection_1_DiaryComment"."_aggr_count_comments", 0) AS "_aggr_count_comments" FROM "public"."Diary" LEFT JOIN (SELECT "public"."DiaryLike"."diaryId", COUNT(*) AS "_aggr_count_likes" FROM "public"."DiaryLike" WHERE 1=1 GROUP BY "public"."DiaryLike"."diaryId") AS "aggr_selection_0_DiaryLike" ON ("public"."Diary"."id" = "aggr_selection_0_DiaryLike"."diaryId") LEFT JOIN (SELECT "public"."DiaryComment"."diaryId", COUNT(*) AS "_aggr_count_comments" FROM "public"."DiaryComment" WHERE 1=1 GROUP BY "public"."DiaryComment"."diaryId") AS "aggr_selection_1_DiaryComment" ON ("public"."Diary"."id" = "aggr_selection_1_DiaryComment"."diaryId") WHERE ("public"."Diary"."date" >= $1 AND "public"."Diary"."date" <= $2 AND "public"."Diary"."isDraft" = $3) ORDER BY "public"."Diary"."date" DESC OFFSET $4
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."date" FROM "public"."Diary" WHERE "public"."Diary"."isDraft" = $1 ORDER BY "public"."Diary"."date" DESC OFFSET $2
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."Diary"."id" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3 AND "public"."Diary"."isDraft" = $4) OFFSET $5) AS "sub"
+ GET /diary?date=2025-12-22 200 in 1935ms (compile: 1608ms, proxy.ts: 7ms, render: 319ms)
+ POST /diary/new?date=2025-12-22 303 in 2.1s (compile: 5ms, proxy.ts: 8ms, render: 2.1s)
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId", COALESCE("aggr_selection_0_DiaryLike"."_aggr_count_likes", 0) AS "_aggr_count_likes", COALESCE("aggr_selection_1_DiaryComment"."_aggr_count_comments", 0) AS "_aggr_count_comments" FROM "public"."Diary" LEFT JOIN (SELECT "public"."DiaryLike"."diaryId", COUNT(*) AS "_aggr_count_likes" FROM "public"."DiaryLike" WHERE 1=1 GROUP BY "public"."DiaryLike"."diaryId") AS "aggr_selection_0_DiaryLike" ON ("public"."Diary"."id" = "aggr_selection_0_DiaryLike"."diaryId") LEFT JOIN (SELECT "public"."DiaryComment"."diaryId", COUNT(*) AS "_aggr_count_comments" FROM "public"."DiaryComment" WHERE 1=1 GROUP BY "public"."DiaryComment"."diaryId") AS "aggr_selection_1_DiaryComment" ON ("public"."Diary"."id" = "aggr_selection_1_DiaryComment"."diaryId") WHERE ("public"."Diary"."date" >= $1 AND "public"."Diary"."date" <= $2 AND "public"."Diary"."isDraft" = $3) ORDER BY "public"."Diary"."date" DESC OFFSET $4
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."isDraft", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3) LIMIT $4 OFFSET $5
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."isVerified", "public"."User"."isGold" FROM "public"."User" WHERE "public"."User"."id" IN ($1) OFFSET $2
+ POST /diary?date=2025-12-22 200 in 289ms (compile: 5ms, proxy.ts: 8ms, render: 277ms)
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."date" FROM "public"."Diary" WHERE "public"."Diary"."isDraft" = $1 ORDER BY "public"."Diary"."date" DESC OFFSET $2
+ GET /diary?date=2025-12-22 200 in 484ms (compile: 5ms, proxy.ts: 11ms, render: 469ms)
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."Diary"."id" FROM "public"."Diary" WHERE ("public"."Diary"."userId" = $1 AND "public"."Diary"."date" >= $2 AND "public"."Diary"."date" <= $3 AND "public"."Diary"."isDraft" = $4) OFFSET $5) AS "sub"
+[?25h
