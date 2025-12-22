@@ -13,7 +13,8 @@ if (!supabaseServiceKey) {
 
 // Admin client with Service Role Key - capable of bypassing RLS and generating signed URLs
 // We cast to string because createClient expects string, but we handled the check above.
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey || '', {
+// Providing a fallback string to prevent build failure when env var is missing
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey || 'SERVICE_KEY_NOT_DEFINED', {
   auth: {
     autoRefreshToken: false,
     persistSession: false

@@ -2,10 +2,11 @@
 
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { getSession } from '@/lib/auth'; // Using correct auth import
+import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { put } from '@vercel/blob';
+import { supabaseAdmin, BUCKET_NAME } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 const diarySchema = z.object({
   title: z.string().min(1, 'タイトルは必須です').max(100, 'タイトルが長すぎます'),
@@ -13,6 +14,34 @@ const diarySchema = z.object({
   thumbnailUrl: z.string().nullish(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日付の形式が正しくありません'),
 });
+
+// Helper function to upload file to Supabase Storage
+async function uploadToSupabase(file: File, userId: string, folder: string): Promise<string> {
+  const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '');
+  const path = `${folder}/${userId}/${uuidv4()}-${cleanFileName}`;
+
+  const arrayBuffer = await file.arrayBuffer();
+
+  const { error } = await supabaseAdmin
+    .storage
+    .from(BUCKET_NAME)
+    .upload(path, arrayBuffer, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (error) {
+    console.error('Supabase upload error:', error);
+    throw new Error('Upload failed');
+  }
+
+  const { data } = supabaseAdmin
+    .storage
+    .from(BUCKET_NAME)
+    .getPublicUrl(path);
+
+  return data.publicUrl;
+}
 
 export async function createDiary(formData: FormData) {
   const session = await getSession();
@@ -23,22 +52,10 @@ export async function createDiary(formData: FormData) {
   // Check for thumbnailUrl first (Supabase)
   let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
 
-  // Fallback to file upload (Vercel Blob) if file is present AND no url
-  // But wait, the client is now sending Url. If file is present it might be leftover.
-  // We prefer Url.
-
   if (!thumbnailUrl) {
     const thumbnailFile = formData.get('thumbnailFile') as File;
     if (thumbnailFile && thumbnailFile.size > 0) {
-       // Legacy fallback or if client failed to upload via supabase but sent file?
-       // Let's keep it for robustness, but ideally we use supabase.
-       // However, to fully migrate, we should probably switch this to upload to Supabase server-side if we have the key?
-       // But we established we use client-side upload now.
-       const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
-          access: 'public',
-          token: process.env.BLOB_READ_WRITE_TOKEN
-       });
-       thumbnailUrl = blob.url;
+       thumbnailUrl = await uploadToSupabase(thumbnailFile, session.id.toString(), 'diary-thumbnail');
     }
   }
 
@@ -320,12 +337,9 @@ export async function uploadDiaryImage(formData: FormData) {
   const file = formData.get('file') as File;
   if (!file) return { error: 'No file provided' };
 
-  const blob = await put(`diary/${session.id}/${Date.now()}-${file.name}`, file, {
-    access: 'public',
-    token: process.env.BLOB_READ_WRITE_TOKEN
-  });
+  const url = await uploadToSupabase(file, session.id.toString(), 'diary');
 
-  return { url: blob.url };
+  return { url };
 }
 
 export async function toggleDiaryLike(diaryId: number) {
@@ -407,11 +421,7 @@ export async function saveDraft(formData: FormData) {
   if (!thumbnailUrl) {
     const thumbnailFile = formData.get('thumbnailFile') as File;
     if (thumbnailFile && thumbnailFile.size > 0) {
-       const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
-          access: 'public',
-          token: process.env.BLOB_READ_WRITE_TOKEN
-       });
-       thumbnailUrl = blob.url;
+       thumbnailUrl = await uploadToSupabase(thumbnailFile, session.id.toString(), 'diary-thumbnail');
     }
   }
 
