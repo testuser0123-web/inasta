@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment } from '@/app/actions/comment';
+import { fetchPostComments } from '@/app/actions/comment-fetch';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleBadge } from '@/components/RoleBadge';
 
@@ -91,17 +92,32 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
-  const handlePostClick = (post: Post) => {
+  const handlePostClick = async (post: Post) => {
     if (post.isSpoiler) {
       const confirmMessage = post.comment
         ? `${post.comment}\n\n本当に表示してもいいですか？`
         : "この投稿にはネタバレが含まれている可能性があります。本当に表示しますか？";
 
-      if (window.confirm(confirmMessage)) {
-        setSelectedPostId(post.id);
+      if (!window.confirm(confirmMessage)) {
+        return;
       }
-    } else {
-      setSelectedPostId(post.id);
+    }
+
+    setSelectedPostId(post.id);
+
+    // Fetch comments on demand if they are not already loaded
+    // Note: We check if comments are undefined. Empty array is valid loaded state.
+    if (post.comments === undefined) {
+        try {
+            const comments = await fetchPostComments(post.id);
+            setPosts(current =>
+                current.map(p =>
+                    p.id === post.id ? { ...p, comments } : p
+                )
+            );
+        } catch (error) {
+            console.error("Failed to load comments", error);
+        }
     }
   };
 
@@ -366,16 +382,24 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
               {/* Comments Section */}
               <div className="space-y-3 border-t dark:border-gray-800 pt-3">
-                  {selectedPost.comments?.map((comment) => (
-                      <div key={comment.id} className="flex gap-2 items-start text-sm">
-                          <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline shrink-0 text-gray-900 dark:text-gray-100">
-                              {comment.user.username}
-                          </Link>
-                          <span className="text-gray-800 dark:text-gray-200 break-words">{comment.text}</span>
+                  {selectedPost.comments === undefined ? (
+                      <div className="flex justify-center p-4">
+                          <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
                       </div>
-                  ))}
-                  {(!selectedPost.comments || selectedPost.comments.length === 0) && (
-                      <p className="text-gray-400 text-xs italic">No comments yet.</p>
+                  ) : (
+                    <>
+                      {selectedPost.comments.map((comment) => (
+                          <div key={comment.id} className="flex gap-2 items-start text-sm">
+                              <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline shrink-0 text-gray-900 dark:text-gray-100">
+                                  {comment.user.username}
+                              </Link>
+                              <span className="text-gray-800 dark:text-gray-200 break-words">{comment.text}</span>
+                          </div>
+                      ))}
+                      {selectedPost.comments.length === 0 && (
+                          <p className="text-gray-400 text-xs italic">No comments yet.</p>
+                      )}
+                    </>
                   )}
               </div>
             </div>

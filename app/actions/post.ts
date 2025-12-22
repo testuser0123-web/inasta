@@ -107,20 +107,7 @@ export async function fetchFeedPosts({
           roles: true,
         },
       },
-      comments: {
-        select: {
-          id: true,
-          text: true,
-          userId: true,
-          user: {
-            select: {
-              username: true,
-              avatarUrl: true,
-            }
-          }
-        },
-        orderBy: { createdAt: 'asc' } // Oldest first or newest? Usually oldest first in thread.
-      },
+      // Removed comments fetch for feed optimization
       _count: {
         select: { likes: true },
       },
@@ -205,20 +192,7 @@ export async function fetchUserPosts({
           isGold: true,
         },
       },
-      comments: {
-        select: {
-          id: true,
-          text: true,
-          userId: true,
-          user: {
-            select: {
-              username: true,
-              avatarUrl: true,
-            }
-          }
-        },
-        orderBy: { createdAt: 'asc' }
-      },
+      // Removed comments fetch for optimization
       _count: {
         select: { likes: true },
       },
@@ -329,17 +303,7 @@ export async function fetchLikedPosts({
                     roles: true,
                 }
             },
-            comments: {
-                select: {
-                    id: true,
-                    text: true,
-                    userId: true,
-                    user: {
-                        select: { username: true, avatarUrl: true }
-                    }
-                },
-                orderBy: { createdAt: 'asc' }
-            },
+            // Removed comments fetch for optimization
             _count: {
                 select: { likes: true }
             },
