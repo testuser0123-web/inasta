@@ -1,4 +1,3 @@
-
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,38 +10,58 @@ export async function GET(
   try {
     const user = await db.user.findUnique({
       where: { username },
-      select: { avatarUrl: true },
+      select: { avatarUrl: true, updatedAt: true },
     });
 
     if (!user || !user.avatarUrl) {
-      // Return default avatar (e.g. initial or placeholder)
-      // For now, redirect to a default or 404.
-      // Or return a generated SVG.
-      // Let's redirect to a default generic avatar if possible, or 404.
+      // Default avatar or 404
       return new NextResponse("Not Found", { status: 404 });
     }
 
+    // ETag logic based on updatedAt
+    const etag = `"${user.updatedAt.getTime().toString()}"`;
+    const ifNoneMatch = request.headers.get("if-none-match");
+
+    if (ifNoneMatch === etag) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+            "ETag": etag,
+            "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
+        }
+      });
+    }
+
+    const headers = {
+        "ETag": etag,
+        "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
+    };
+
     // New logic: If it's a Supabase URL (starts with http), redirect to it.
     if (user.avatarUrl.startsWith('http')) {
-        return NextResponse.redirect(user.avatarUrl);
+        return NextResponse.redirect(user.avatarUrl, {
+            headers
+        });
     }
 
     // Legacy logic: If it's base64 (starts with data:), serve it.
     if (user.avatarUrl.startsWith("data:")) {
-      const base64Data = user.avatarUrl.split(",")[1];
+      const commaIndex = user.avatarUrl.indexOf(',');
+      const base64Data = user.avatarUrl.substring(commaIndex + 1);
       const buffer = Buffer.from(base64Data, "base64");
 
       return new NextResponse(buffer, {
         headers: {
           "Content-Type": "image/jpeg", // Assume jpeg for legacy
-          "Cache-Control": "public, max-age=31536000, immutable",
+          ...headers
         },
       });
     }
 
-    // If it's something else (e.g. relative path?), try redirecting?
-    // Assuming it's a valid URL string otherwise.
-    return NextResponse.redirect(user.avatarUrl);
+    // Fallback for other formats (redirect)
+    return NextResponse.redirect(user.avatarUrl, {
+        headers
+    });
 
   } catch (error) {
     console.error("Error fetching avatar:", error);

@@ -133,6 +133,7 @@ export async function getDiariesForRange(dateStr: string) {
           avatarUrl: true,
           isVerified: true,
           isGold: true,
+          updatedAt: true,
         },
       },
       _count: {
@@ -147,7 +148,18 @@ export async function getDiariesForRange(dateStr: string) {
     },
   });
 
-  return diaries;
+  return diaries.map((diary) => ({
+    ...diary,
+    user: {
+      ...diary.user,
+      avatarUrl: diary.user.avatarUrl
+        ? diary.user.avatarUrl.startsWith('http')
+          ? diary.user.avatarUrl
+          : `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+        : null,
+      updatedAt: undefined,
+    },
+  }));
 }
 
 export async function getPostedDiaryDates() {
@@ -203,6 +215,7 @@ export async function getDiariesByDate(dateStr: string) {
           avatarUrl: true,
           isVerified: true,
           isGold: true,
+          updatedAt: true,
         },
       },
       _count: {
@@ -217,7 +230,18 @@ export async function getDiariesByDate(dateStr: string) {
     },
   });
 
-  return diaries;
+  return diaries.map((diary) => ({
+    ...diary,
+    user: {
+      ...diary.user,
+      avatarUrl: diary.user.avatarUrl
+        ? diary.user.avatarUrl.startsWith('http')
+          ? diary.user.avatarUrl
+          : `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+        : null,
+      updatedAt: undefined,
+    },
+  }));
 }
 
 export async function checkHasPostedToday(userId: number, dateStr: string) {
@@ -263,7 +287,30 @@ export async function getDiaryById(id: number) {
       },
     },
   });
-  return diary;
+  if (!diary) return null;
+
+  return {
+    ...diary,
+    user: {
+      ...diary.user,
+      avatarUrl: diary.user.avatarUrl
+        ? diary.user.avatarUrl.startsWith('http')
+          ? diary.user.avatarUrl
+          : `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+        : null,
+    },
+    comments: diary.comments.map((comment) => ({
+      ...comment,
+      user: {
+        ...comment.user,
+        avatarUrl: comment.user.avatarUrl
+          ? comment.user.avatarUrl.startsWith('http')
+            ? comment.user.avatarUrl
+            : `/api/avatar/${comment.user.username}?v=${comment.user.updatedAt.getTime()}`
+          : null,
+      },
+    })),
+  };
 }
 
 export async function uploadDiaryImage(formData: FormData) {
@@ -334,7 +381,18 @@ export async function getDiariesByUser(userId: number) {
     },
     orderBy: { date: 'desc' }
   });
-  return diaries;
+
+  return diaries.map((diary) => ({
+    ...diary,
+    user: {
+      ...diary.user,
+      avatarUrl: diary.user.avatarUrl
+        ? diary.user.avatarUrl.startsWith('http')
+          ? diary.user.avatarUrl
+          : `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+        : null,
+    },
+  }));
 }
 
 export async function saveDraft(formData: FormData) {
