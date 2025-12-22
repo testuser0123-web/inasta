@@ -28,9 +28,16 @@ export async function GET(
 
     const imageUrl = post.imageUrl;
 
+    // Check if it's a Supabase URL (starts with http)
+    if (imageUrl.startsWith('http')) {
+        return NextResponse.redirect(imageUrl);
+    }
+
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {
-        console.error('Image URL is not a Data URI for post:', id);
+        console.error('Image URL is not a Data URI (and not http) for post:', id);
+        // It might be a blob url or something else, but if it's not http and not data:, we can't serve it easily here.
+        // Assuming legacy data is data:.
         return new NextResponse('Invalid Image Format', { status: 500 });
     }
 
