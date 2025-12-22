@@ -14,6 +14,8 @@ export async function GET(
     return new NextResponse('Invalid ID', { status: 400 });
   }
 
+  const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
+
   try {
     const postImage = await db.postImage.findUnique({
       where: { id },
@@ -28,7 +30,11 @@ export async function GET(
 
     // Check if it's a Supabase URL
     if (imageUrl.startsWith('http')) {
-        return NextResponse.redirect(imageUrl);
+        return NextResponse.redirect(imageUrl, {
+            headers: {
+                'Cache-Control': CACHE_CONTROL
+            }
+        });
     }
 
     // Check if it's a Data URI
@@ -54,8 +60,8 @@ export async function GET(
       headers: {
         'Content-Type': mimeType,
         'Content-Length': buffer.length.toString(),
-        'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
-        'CDN-Cache-Control': 'public, max-age=31536000, s-maxage=31536000,immutable',
+        'Cache-Control': CACHE_CONTROL,
+        'CDN-Cache-Control': CACHE_CONTROL,
       },
     });
 

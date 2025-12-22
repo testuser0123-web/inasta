@@ -15,6 +15,8 @@ export async function GET(
     return new NextResponse('Invalid ID', { status: 400 });
   }
 
+  const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
+
   try {
     const post = await db.post.findUnique({
       where: { id },
@@ -30,14 +32,16 @@ export async function GET(
 
     // Check if it's a Supabase URL (starts with http)
     if (imageUrl.startsWith('http')) {
-        return NextResponse.redirect(imageUrl);
+        return NextResponse.redirect(imageUrl, {
+            headers: {
+                'Cache-Control': CACHE_CONTROL
+            }
+        });
     }
 
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {
         console.error('Image URL is not a Data URI (and not http) for post:', id);
-        // It might be a blob url or something else, but if it's not http and not data:, we can't serve it easily here.
-        // Assuming legacy data is data:.
         return new NextResponse('Invalid Image Format', { status: 500 });
     }
 
@@ -59,15 +63,13 @@ export async function GET(
       headers: {
         'Content-Type': mimeType,
         'Content-Length': buffer.length.toString(),
-        'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
-        'CDN-Cache-Control': 'public, max-age=31536000, s-maxage=31536000,immutable',
+        'Cache-Control': CACHE_CONTROL,
+        'CDN-Cache-Control': CACHE_CONTROL,
       },
     });
 
-    // 2. 【ここが重要】Next.jsが勝手につけるVaryを「Accept-Encoding」だけで上書き固定する
     response.headers.set('Vary', 'Accept-Encoding');
 
-    // 3. 修正したレスポンスを返す
     return response;
 
   } catch (error) {

@@ -14,6 +14,8 @@ export async function GET(
     return new NextResponse('Invalid ID', { status: 400 });
   }
 
+  const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
+
   try {
     const post = await db.contestPost.findUnique({
       where: { id },
@@ -28,18 +30,22 @@ export async function GET(
 
     // Check if it's a Supabase URL
     if (imageUrl.startsWith('http')) {
-        return NextResponse.redirect(imageUrl);
+        return NextResponse.redirect(imageUrl, {
+            headers: {
+                'Cache-Control': CACHE_CONTROL
+            }
+        });
     }
 
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {
         // If it's not a Data URI, it might be an external URL (Blob).
-        // In that case, we should redirect to it?
-        // Or if the client requested this API, they expect an image.
-        // But usually we only link to this API if we detect Base64.
-        // If we inadvertently link here for a Blob URL, we should redirect.
         if (imageUrl.startsWith('http')) {
-             return NextResponse.redirect(imageUrl);
+             return NextResponse.redirect(imageUrl, {
+                headers: {
+                    'Cache-Control': CACHE_CONTROL
+                }
+             });
         }
         return new NextResponse('Invalid Image Format', { status: 500 });
     }
@@ -61,8 +67,8 @@ export async function GET(
       headers: {
         'Content-Type': mimeType,
         'Content-Length': buffer.length.toString(),
-        'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
-        'CDN-Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
+        'Cache-Control': CACHE_CONTROL,
+        'CDN-Cache-Control': CACHE_CONTROL,
         'Vary': 'Accept-Encoding',
       },
     });
