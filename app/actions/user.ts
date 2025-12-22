@@ -52,7 +52,11 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
       where: { id: session.id },
       data: {
         username,
-        avatarUrl: avatarUrl || undefined, // Only update if provided
+        avatarUrl: avatarUrl || undefined, // Only update if provided. If empty string (removed), use null? Or undefined to skip?
+        // If avatarUrl is "", we might want to keep existing or clear it?
+        // Form sends existing value if not changed.
+        // If user wants to delete avatar, client should send specific signal, but UI doesn't support delete yet.
+        // So `undefined` preserves existing if `avatarUrl` is falsy (empty).
         bio: bio || null,
         oshi: oshi || null,
       },

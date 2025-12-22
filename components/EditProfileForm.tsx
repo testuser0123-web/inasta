@@ -5,6 +5,8 @@ import { updateProfile } from '@/app/actions/user';
 import { Camera, Check, X } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '@/lib/image';
+import { uploadImageToSupabase } from '@/lib/client-upload';
+import { Spinner } from '@/components/ui/spinner';
 
 type User = {
     username: string;
@@ -26,6 +28,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,10 +73,36 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
       setImageSrc(null);
   };
 
+  const handleSubmit = async (formData: FormData) => {
+      setIsUploading(true);
+      try {
+          // Check if avatar has changed and is a base64 string
+          if (avatarPreview && avatarPreview.startsWith('data:')) {
+             const res = await fetch(avatarPreview);
+             const blob = await res.blob();
+             const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+             const url = await uploadImageToSupabase(file, 'avatars');
+             formData.set('avatarUrl', url);
+          } else if (avatarPreview) {
+              // Existing URL
+              formData.set('avatarUrl', avatarPreview);
+          } else {
+              // No avatar or removed?
+              // If it's null, we might want to keep it empty or send empty string
+          }
+
+          await action(formData);
+      } catch (error) {
+          console.error("Profile update failed", error);
+      } finally {
+          setIsUploading(false);
+      }
+  };
+
   // If in cropping mode
   if (imageSrc) {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90">
             <div className="w-full max-w-md h-[500px] flex flex-col relative bg-black">
                  <div className="relative flex-1 w-full bg-black">
                     <Cropper
@@ -119,20 +148,21 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
       <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-sm p-6 relative shadow-xl border dark:border-gray-800">
         <button 
             onClick={onClose}
-            className="absolute top-2 right-2 p-1 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
+            disabled={isUploading || isPending}
+            className="absolute top-2 right-2 p-1 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white disabled:opacity-50"
         >
             <X className="w-6 h-6" />
         </button>
 
         <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white">Edit Profile</h2>
 
-        <form action={action} className="space-y-6">
+        <form action={handleSubmit} className="space-y-6">
             <input type="hidden" name="avatarUrl" value={avatarPreview || ''} />
 
             <div className="flex flex-col items-center">
                 <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer relative group border-2 border-transparent hover:border-indigo-500 transition-colors"
+                    onClick={() => !isUploading && !isPending && fileInputRef.current?.click()}
+                    className={`w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer relative group border-2 border-transparent hover:border-indigo-500 transition-colors ${(isUploading || isPending) ? 'cursor-not-allowed opacity-75' : ''}`}
                 >
                     {avatarPreview ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -151,7 +181,8 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     type="file" 
                     accept="image/*" 
                     className="hidden" 
-                    onChange={handleFileChange} 
+                    onChange={handleFileChange}
+                    disabled={isUploading || isPending}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Tap to change photo</p>
             </div>
@@ -167,7 +198,8 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
+                    disabled={isUploading || isPending}
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:opacity-50"
                 />
             </div>
 
@@ -182,7 +214,8 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     onChange={(e) => setBio(e.target.value)}
                     maxLength={160}
                     rows={3}
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 resize-none"
+                    disabled={isUploading || isPending}
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 resize-none disabled:opacity-50"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-right">{bio.length}/160</p>
             </div>
@@ -198,7 +231,8 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     value={oshi}
                     onChange={(e) => setOshi(e.target.value)}
                     maxLength={20}
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
+                    disabled={isUploading || isPending}
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:opacity-50"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-right">{oshi.length}/20</p>
             </div>
@@ -211,10 +245,15 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
             <button
                 type="submit"
-                disabled={isPending}
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+                disabled={isPending || isUploading}
+                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
             >
-                {isPending ? 'Saving...' : 'Save Changes'}
+                {isUploading || isPending ? (
+                    <>
+                        <Spinner className="w-4 h-4 text-white" />
+                        <span>{isUploading ? "Uploading..." : "Saving..."}</span>
+                    </>
+                ) : 'Save Changes'}
             </button>
         </form>
       </div>

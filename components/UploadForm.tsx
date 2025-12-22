@@ -5,6 +5,8 @@ import { createPost } from "@/app/actions/post";
 import { Camera, Check, X, Smartphone, Image as ImageIcon } from "lucide-react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/image";
+import { uploadImageToSupabase } from "@/lib/client-upload";
+import { Spinner } from "@/components/ui/spinner";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
@@ -16,6 +18,7 @@ export default function UploadForm() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
   const [isSpoiler, setIsSpoiler] = useState(false);
@@ -101,11 +104,44 @@ export default function UploadForm() {
       setCroppedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleSubmit = async (formData: FormData) => {
+    setIsUploading(true);
+    try {
+      // Convert base64 cropped images to files and upload to Supabase
+      const uploadPromises = croppedImages.map(async (base64, index) => {
+        const res = await fetch(base64);
+        const blob = await res.blob();
+        const file = new File([blob], `image-${index}.jpg`, { type: 'image/jpeg' });
+        return uploadImageToSupabase(file, 'posts');
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+
+      // Update FormData with the new URLs
+      formData.set('imageUrls', JSON.stringify(uploadedUrls));
+
+      // We don't need 'imageUrl' anymore as the server uses 'imageUrls',
+      // but if legacy code needs it, we can set it.
+      if (uploadedUrls.length > 0) {
+        formData.set('imageUrl', uploadedUrls[0]);
+      }
+
+      // Call the Server Action
+      await action(formData);
+
+    } catch (error) {
+      console.error("Upload failed", error);
+      // We could show an error message here if we had a way to set form state
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // If we have an image source, show Cropper
   if (imageSrc) {
     return (
       <div className="flex flex-col h-[calc(100vh-100px)]">
-        <div className="p-4 bg-white border-b flex flex-col gap-4">
+        <div className="p-4 bg-white dark:bg-zinc-900 border-b flex flex-col gap-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               <label className="text-xs text-gray-500 mb-1 block">Zoom</label>
@@ -123,7 +159,7 @@ export default function UploadForm() {
             <div className="flex items-center gap-2">
               <button
                 onClick={cancelCrop}
-                className="p-2 text-gray-500 hover:text-black"
+                className="p-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -142,8 +178,8 @@ export default function UploadForm() {
               onClick={() => setAspectRatio("1:1")}
               className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${
                 aspectRatio === "1:1"
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  ? "bg-black text-white border-black dark:bg-white dark:text-black"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-700"
               }`}
             >
               <Smartphone className="w-3 h-3" />
@@ -154,8 +190,8 @@ export default function UploadForm() {
               onClick={() => setAspectRatio("original")}
               className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${
                 aspectRatio === "original"
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  ? "bg-black text-white border-black dark:bg-white dark:text-black"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-700"
               }`}
             >
               <ImageIcon className="w-3 h-3" />
@@ -179,15 +215,14 @@ export default function UploadForm() {
   }
 
   return (
-    <form action={action} className="space-y-6 w-full max-w-md mx-auto p-4">
-      <input type="hidden" name="imageUrls" value={JSON.stringify(croppedImages)} />
-      <input type="hidden" name="isSpoiler" value={String(isSpoiler)} />
+    <form action={handleSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
+      {/* We don't put values here, we set them in handleSubmit */}
 
       {/* Grid of selected images */}
       {croppedImages.length > 0 && (
           <div className="grid grid-cols-2 gap-2">
               {croppedImages.map((img, index) => (
-                  <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group">
+                  <div key={index} className="relative aspect-square bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700 group">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={img} alt={`Preview ${index}`} className="w-full h-full object-cover" />
                       <button
@@ -206,7 +241,7 @@ export default function UploadForm() {
       {croppedImages.length < 4 && (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className={`w-full bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 hover:border-gray-400 relative overflow-hidden ${croppedImages.length === 0 ? 'aspect-square' : 'h-32'}`}
+          className={`w-full bg-gray-100 dark:bg-zinc-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600 relative overflow-hidden ${croppedImages.length === 0 ? 'aspect-square' : 'h-32'}`}
         >
           <div className="text-gray-400 flex flex-col items-center">
             <Camera className="w-8 h-8 mb-2" />
@@ -226,7 +261,7 @@ export default function UploadForm() {
       <div className="space-y-2">
         <label
           htmlFor="comment"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Comment
         </label>
@@ -239,7 +274,7 @@ export default function UploadForm() {
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             disabled={croppedImages.length === 0}
-            className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400"
+            className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
             placeholder="Write a caption..."
           />
           <span className="absolute right-3 top-1.5 text-xs text-gray-400">
@@ -251,7 +286,7 @@ export default function UploadForm() {
       <div className="space-y-2">
         <label
           htmlFor="hashtags"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           ハッシュタグ (任意, 最大3つ)
         </label>
@@ -263,7 +298,7 @@ export default function UploadForm() {
             value={hashtags}
             onChange={(e) => setHashtags(e.target.value)}
             disabled={croppedImages.length === 0}
-            className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400"
+            className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
             placeholder="#travel #food #nature"
           />
         </div>
@@ -276,11 +311,12 @@ export default function UploadForm() {
         <input
           type="checkbox"
           id="isSpoiler"
+          name="isSpoiler" // Added name attribute for direct binding if needed, though we rely on handleSubmit logic mostly
           checked={isSpoiler}
           onChange={(e) => setIsSpoiler(e.target.checked)}
           className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
         />
-        <label htmlFor="isSpoiler" className="text-sm font-medium text-gray-700">
+        <label htmlFor="isSpoiler" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           ネタバレ注意 (画像を隠す)
         </label>
       </div>
@@ -291,10 +327,17 @@ export default function UploadForm() {
 
       <button
         type="submit"
-        disabled={isPending || croppedImages.length === 0}
-        className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+        disabled={isPending || isUploading || croppedImages.length === 0}
+        className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
       >
-        {isPending ? "Uploading..." : "Share"}
+        {isUploading || isPending ? (
+          <>
+            <Spinner className="w-4 h-4 text-white" />
+            <span>{isUploading ? "Uploading Images..." : "Posting..."}</span>
+          </>
+        ) : (
+          "Share"
+        )}
       </button>
     </form>
   );

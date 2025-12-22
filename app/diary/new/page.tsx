@@ -6,6 +6,7 @@ import { createDiary, saveDraft, getDraft } from '@/app/actions/diary';
 import DiaryEditor from '@/components/DiaryEditor';
 import { Loader2, Check } from 'lucide-react';
 import { resizeImage } from '@/lib/image';
+import { uploadImageToSupabase } from '@/lib/client-upload';
 
 export default function NewDiaryPage() {
   const router = useRouter();
@@ -92,6 +93,7 @@ export default function NewDiaryPage() {
       formData.append('title', title);
       formData.append('content', content);
       formData.append('date', dateParam);
+
       if (thumbnailFile) {
         const compressedBlob = await resizeImage(thumbnailFile);
         const newFileName = thumbnailFile.name.replace(/\.[^/.]+$/, "") + ".jpg";
@@ -99,7 +101,11 @@ export default function NewDiaryPage() {
           type: 'image/jpeg',
           lastModified: Date.now(),
         });
-        formData.append('thumbnailFile', compressedFile);
+
+        // Upload to Supabase
+        const thumbnailUrl = await uploadImageToSupabase(compressedFile, 'diaries');
+        formData.append('thumbnailUrl', thumbnailUrl);
+        // We don't append thumbnailFile anymore to avoid Vercel Blob upload in server action if it still exists
       }
 
       await createDiary(formData);

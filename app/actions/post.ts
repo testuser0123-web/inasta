@@ -134,7 +134,11 @@ export async function fetchFeedPosts({
     ...post,
     user: {
       ...post.user,
-      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null,
+      avatarUrl: post.user.avatarUrl
+        ? post.user.avatarUrl.startsWith('http')
+          ? post.user.avatarUrl
+          : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        : null,
     },
     likesCount: post._count.likes,
     hasLiked: post.likes.length > 0,
@@ -217,7 +221,11 @@ export async function fetchUserPosts({
     ...post,
     user: {
       ...post.user,
-      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null,
+      avatarUrl: post.user.avatarUrl
+        ? post.user.avatarUrl.startsWith('http')
+          ? post.user.avatarUrl
+          : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        : null,
     },
     likesCount: post._count.likes,
     hasLiked: post.likes.length > 0,
@@ -326,7 +334,11 @@ export async function fetchLikedPosts({
     ...item.post,
     user: {
       ...item.post.user,
-      avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}` : null,
+      avatarUrl: item.post.user.avatarUrl
+        ? item.post.user.avatarUrl.startsWith('http')
+          ? item.post.user.avatarUrl
+          : `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`
+        : null,
     },
     likesCount: item.post._count.likes,
     hasLiked: item.post.likes.length > 0,

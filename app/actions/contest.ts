@@ -188,7 +188,11 @@ export async function fetchContestPosts({ contestId, sortBy }: { contestId: numb
       imageUrl: post.imageUrl.startsWith('data:') ? `/api/contest_image/${post.id}.png` : post.imageUrl,
       user: {
           ...post.user,
-          avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
+          avatarUrl: post.user.avatarUrl
+            ? post.user.avatarUrl.startsWith('http')
+              ? post.user.avatarUrl
+              : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+            : null
       },
       likesCount: post._count.likes,
       hasLiked: post.likes.length > 0,
@@ -273,7 +277,11 @@ export async function getContestWinners(contestId: number) {
         imageUrl: post.imageUrl.startsWith('data:') ? `/api/contest_image/${post.id}.png` : post.imageUrl,
         user: {
             ...post.user,
-            avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
+            avatarUrl: post.user.avatarUrl
+              ? post.user.avatarUrl.startsWith('http')
+                ? post.user.avatarUrl
+                : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+              : null
         },
         likesCount: post._count.likes,
         hasLiked: false,
