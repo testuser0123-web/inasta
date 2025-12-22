@@ -20,15 +20,26 @@ export async function createDiary(formData: FormData) {
     throw new Error('ログインが必要です');
   }
 
-  const thumbnailFile = formData.get('thumbnailFile') as File;
+  // Check for thumbnailUrl first (Supabase)
   let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
 
-  if (thumbnailFile && thumbnailFile.size > 0) {
-     const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
-        access: 'public',
-        token: process.env.BLOB_READ_WRITE_TOKEN
-     });
-     thumbnailUrl = blob.url;
+  // Fallback to file upload (Vercel Blob) if file is present AND no url
+  // But wait, the client is now sending Url. If file is present it might be leftover.
+  // We prefer Url.
+
+  if (!thumbnailUrl) {
+    const thumbnailFile = formData.get('thumbnailFile') as File;
+    if (thumbnailFile && thumbnailFile.size > 0) {
+       // Legacy fallback or if client failed to upload via supabase but sent file?
+       // Let's keep it for robustness, but ideally we use supabase.
+       // However, to fully migrate, we should probably switch this to upload to Supabase server-side if we have the key?
+       // But we established we use client-side upload now.
+       const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
+          access: 'public',
+          token: process.env.BLOB_READ_WRITE_TOKEN
+       });
+       thumbnailUrl = blob.url;
+    }
   }
 
   const rawData = {
@@ -332,15 +343,18 @@ export async function saveDraft(formData: FormData) {
     throw new Error('ログインが必要です');
   }
 
-  const thumbnailFile = formData.get('thumbnailFile') as File;
+  // Same logic as createDiary for thumbnail
   let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
 
-  if (thumbnailFile && thumbnailFile.size > 0) {
-     const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
-        access: 'public',
-        token: process.env.BLOB_READ_WRITE_TOKEN
-     });
-     thumbnailUrl = blob.url;
+  if (!thumbnailUrl) {
+    const thumbnailFile = formData.get('thumbnailFile') as File;
+    if (thumbnailFile && thumbnailFile.size > 0) {
+       const blob = await put(`diary-thumbnail/${session.id}/${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
+          access: 'public',
+          token: process.env.BLOB_READ_WRITE_TOKEN
+       });
+       thumbnailUrl = blob.url;
+    }
   }
 
   const rawData = {

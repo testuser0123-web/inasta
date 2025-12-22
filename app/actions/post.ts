@@ -77,7 +77,7 @@ export async function fetchFeedPosts({
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
-      // imageUrl: true, // Don't fetch the base64 string, use the API route instead
+      imageUrl: true,
       comment: true,
       isSpoiler: true,
       createdAt: true,
@@ -91,6 +91,7 @@ export async function fetchFeedPosts({
         select: {
           id: true,
           order: true,
+          url: true,
         },
         orderBy: {
           order: 'asc',
@@ -132,9 +133,22 @@ export async function fetchFeedPosts({
 
   return postsData.map((post) => ({
     ...post,
+    imageUrl: post.imageUrl.startsWith('http')
+      ? post.imageUrl
+      : `/api/image/${post.id}.jpg`,
+    images: post.images.map(img => ({
+      ...img,
+      url: img.url.startsWith('http')
+        ? img.url
+        : `/api/post_image/${img.id}.jpg`
+    })),
     user: {
       ...post.user,
-      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null,
+      avatarUrl: post.user.avatarUrl
+        ? post.user.avatarUrl.startsWith('http')
+          ? post.user.avatarUrl
+          : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        : null,
     },
     likesCount: post._count.likes,
     hasLiked: post.likes.length > 0,
@@ -162,6 +176,7 @@ export async function fetchUserPosts({
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      imageUrl: true,
       comment: true,
       isSpoiler: true,
       createdAt: true,
@@ -175,6 +190,7 @@ export async function fetchUserPosts({
         select: {
           id: true,
           order: true,
+          url: true,
         },
         orderBy: {
           order: 'asc',
@@ -215,9 +231,22 @@ export async function fetchUserPosts({
 
   return postsData.map((post) => ({
     ...post,
+    imageUrl: post.imageUrl.startsWith('http')
+      ? post.imageUrl
+      : `/api/image/${post.id}.jpg`,
+    images: post.images.map(img => ({
+      ...img,
+      url: img.url.startsWith('http')
+        ? img.url
+        : `/api/post_image/${img.id}.jpg`
+    })),
     user: {
       ...post.user,
-      avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null,
+      avatarUrl: post.user.avatarUrl
+        ? post.user.avatarUrl.startsWith('http')
+          ? post.user.avatarUrl
+          : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        : null,
     },
     likesCount: post._count.likes,
     hasLiked: post.likes.length > 0,
@@ -278,6 +307,7 @@ export async function fetchLikedPosts({
       post: {
         select: {
             id: true,
+            imageUrl: true,
             comment: true,
             isSpoiler: true,
             createdAt: true,
@@ -286,7 +316,7 @@ export async function fetchLikedPosts({
                 select: { name: true }
             },
             images: {
-                select: { id: true, order: true },
+                select: { id: true, order: true, url: true },
                 orderBy: { order: 'asc' }
             },
             user: {
@@ -324,9 +354,22 @@ export async function fetchLikedPosts({
 
   return likedPostsData.map((item) => ({
     ...item.post,
+    imageUrl: item.post.imageUrl.startsWith('http')
+      ? item.post.imageUrl
+      : `/api/image/${item.post.id}.jpg`,
+    images: item.post.images.map(img => ({
+      ...img,
+      url: img.url.startsWith('http')
+        ? img.url
+        : `/api/post_image/${img.id}.jpg`
+    })),
     user: {
       ...item.post.user,
-      avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}` : null,
+      avatarUrl: item.post.user.avatarUrl
+        ? item.post.user.avatarUrl.startsWith('http')
+          ? item.post.user.avatarUrl
+          : `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`
+        : null,
     },
     likesCount: item.post._count.likes,
     hasLiked: item.post.likes.length > 0,
@@ -463,8 +506,8 @@ export async function toggleLike(postId: number) {
         userId_postId: {
           userId: session.id,
           postId: postId,
-        },
       },
+    },
     });
   } else {
     await db.like.create({

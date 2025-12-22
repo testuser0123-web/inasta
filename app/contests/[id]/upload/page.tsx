@@ -8,6 +8,8 @@ import { getCroppedImg } from "@/lib/image";
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { uploadImageToSupabase } from "@/lib/client-upload";
+import { Spinner } from "@/components/ui/spinner";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
@@ -33,6 +35,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
   const [comment, setComment] = useState("");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -98,6 +101,31 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
       setCroppedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleSubmit = async (formData: FormData) => {
+    setIsUploading(true);
+    try {
+      if (croppedImages.length > 0) {
+        // Upload image to Supabase
+        const base64 = croppedImages[0];
+        const res = await fetch(base64);
+        const blob = await res.blob();
+        const file = new File([blob], 'contest-entry.jpg', { type: 'image/jpeg' });
+
+        const url = await uploadImageToSupabase(file, 'contests');
+
+        // Update form data
+        // Server action expects 'imageUrls' as JSON string of array
+        formData.set('imageUrls', JSON.stringify([url]));
+      }
+
+      await action(formData);
+    } catch (error) {
+      console.error("Upload failed", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   if (imageSrc) {
     return (
       <div className="flex flex-col h-screen bg-black">
@@ -133,35 +161,40 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
             <h1 className="text-lg font-semibold dark:text-white">エントリー</h1>
         </div>
 
-        <form action={action} className="space-y-6 w-full max-w-md mx-auto p-4">
-            <input type="hidden" name="imageUrls" value={JSON.stringify(croppedImages)} />
+        <form action={handleSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
+            {/* We handle imageUrls in handleSubmit */}
             <input type="hidden" name="contestId" value={contestId} />
 
             {croppedImages.length > 0 ? (
                 <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group w-full max-w-sm mx-auto">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={croppedImages[0]} alt="" className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => setCroppedImages([])} className="absolute top-2 right-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"><X className="w-5 h-5" /></button>
+                    <button type="button" onClick={() => !isUploading && setCroppedImages([])} disabled={isUploading} className="absolute top-2 right-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors disabled:opacity-50"><X className="w-5 h-5" /></button>
                 </div>
             ) : (
-                <div onClick={() => fileInputRef.current?.click()} className="w-full h-64 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-gray-400">
+                <div onClick={() => !isUploading && fileInputRef.current?.click()} className={`w-full h-64 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-gray-400 ${isUploading ? 'cursor-not-allowed opacity-75' : ''}`}>
                     <div className="text-gray-400 flex flex-col items-center">
                         <Camera className="w-12 h-12 mb-2" />
                         <span className="text-lg">画像を選択</span>
                     </div>
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isUploading} />
                 </div>
             )}
 
             <div>
                 <label htmlFor="comment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">コメント</label>
-                <input type="text" name="comment" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={200} className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border" placeholder="エントリーの説明..." />
+                <input type="text" name="comment" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={200} disabled={isUploading} className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border disabled:opacity-50" placeholder="エントリーの説明..." />
             </div>
 
             {state?.message && <div className="text-red-500 text-sm text-center">{typeof state.message === 'string' ? state.message : 'エラーが発生しました'}</div>}
 
-            <button type="submit" disabled={isPending || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-bold">
-                {isPending ? "投稿中..." : "投稿する"}
+            <button type="submit" disabled={isPending || isUploading || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-bold flex items-center justify-center gap-2">
+                {isPending || isUploading ? (
+                  <>
+                    <Spinner className="w-4 h-4 text-white" />
+                    <span>{isUploading ? "アップロード中..." : "投稿中..."}</span>
+                  </>
+                ) : "投稿する"}
             </button>
         </form>
     </div>

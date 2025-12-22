@@ -21,7 +21,7 @@ type Comment = {
 
 type Post = {
   id: number;
-  // imageUrl: string; // Removed from payload
+  imageUrl?: string; // Main image URL
   comment: string | null;
   isSpoiler?: boolean;
   createdAt: Date;
@@ -37,7 +37,7 @@ type Post = {
   };
   comments?: Comment[];
   hashtags?: { name: string }[];
-  images?: { id: number; order: number }[];
+  images?: { id: number; order: number; url?: string }[];
 };
 
 function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, className?: string }) {
@@ -163,6 +163,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   };
 
   const handleShare = async (postId: number) => {
+      // Use the API URL for sharing as it's cleaner/stable, or use the direct URL?
+      // Legacy behavior was API URL. Let's keep API URL as it now redirects.
       const url = `${window.location.origin}/api/image/${postId}.jpg`;
       try {
           await navigator.clipboard.writeText(url);
@@ -212,7 +214,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               </div>
             ) : (
               <ImageWithSpinner
-                src={`/api/image/${post.id}.jpg`}
+                src={post.imageUrl || `/api/image/${post.id}.jpg`}
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -416,8 +418,8 @@ function ImageCarousel({ post }: { post: Post }) {
 
     // Construct list of all image URLs
     const imageUrls = [
-        `/api/image/${post.id}.jpg`,
-        ...(post.images || []).map(img => `/api/post_image/${img.id}.jpg`)
+        post.imageUrl || `/api/image/${post.id}.jpg`,
+        ...(post.images || []).map(img => img.url || `/api/post_image/${img.id}.jpg`)
     ];
 
     const scrollTo = (index: number) => {
