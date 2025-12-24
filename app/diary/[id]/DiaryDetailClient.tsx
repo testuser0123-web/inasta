@@ -39,12 +39,12 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-24 px-4 sm:px-0">
+    <div className="max-w-4xl mx-auto pb-24 px-4 sm:px-0 pt-6">
       <div className="mb-6">
          <div className="flex items-center gap-4 mb-6">
              <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                 {diary.user.avatarUrl ? (
-                   <img src={diary.user.avatarUrl} alt={diary.user.username} className="w-full h-full object-cover" />
+                   <img src={diary.user.avatarUrl} alt={diary.user.username} crossOrigin="anonymous" className="w-full h-full object-cover" />
                 ) : (
                    <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white text-lg">
                       {diary.user.username[0].toUpperCase()}
@@ -92,7 +92,12 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                   <div key={comment.id} className="flex gap-3">
                      <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                          {comment.user.avatarUrl ? (
-                            <img src={comment.user.avatarUrl} className="w-full h-full object-cover" />
+                            <img
+                               src={comment.user.avatarUrl}
+                               alt={comment.user.username}
+                               crossOrigin="anonymous"
+                               className="w-full h-full object-cover"
+                            />
                          ) : (
                             <div className="w-full h-full bg-indigo-500" />
                          )}

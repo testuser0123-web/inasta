@@ -35,6 +35,7 @@ export async function GET(
         "ETag": etag,
         "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
         "Cross-Origin-Resource-Policy": "cross-origin",
+        "Access-Control-Allow-Origin": "*",
     };
 
     // Proxy Supabase/Cloudinary URLs

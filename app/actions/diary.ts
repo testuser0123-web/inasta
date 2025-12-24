@@ -320,9 +320,7 @@ export async function getDiaryById(id: number) {
       user: {
         ...comment.user,
         avatarUrl: comment.user.avatarUrl
-          ? comment.user.avatarUrl.startsWith('http')
-            ? comment.user.avatarUrl
-            : `/api/avatar/${comment.user.username}?v=${comment.user.updatedAt.getTime()}`
+          ? `/api/avatar/${comment.user.username}?v=${comment.user.updatedAt.getTime()}`
           : null,
       },
     })),
