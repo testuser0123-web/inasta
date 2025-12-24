@@ -6,7 +6,6 @@ export async function GET(
   { params }: { params: Promise<{ filename: string }> }
 ) {
   const resolvedParams = await params;
-  // Parse ID from filename (e.g. "123.jpg" -> "123")
   const idStr = resolvedParams.filename.split('.')[0];
   const id = parseInt(idStr, 10);
 
@@ -28,18 +27,26 @@ export async function GET(
 
     const imageUrl = postImage.url;
 
-    // Check if it's a Supabase URL
+    // Proxy URL
     if (imageUrl.startsWith('http')) {
-        return NextResponse.redirect(imageUrl, {
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+            return new NextResponse('Error fetching image', { status: response.status });
+        }
+        const contentType = response.headers.get('content-type') || 'application/octet-stream';
+        const buffer = await response.arrayBuffer();
+
+        return new NextResponse(buffer, {
             headers: {
-                'Cache-Control': CACHE_CONTROL
+                'Content-Type': contentType,
+                'Cache-Control': CACHE_CONTROL,
+                'Cross-Origin-Resource-Policy': 'cross-origin',
             }
         });
     }
 
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {
-        console.error('Image URL is not a Data URI (and not http) for post image:', id);
         return new NextResponse('Invalid Image Format', { status: 500 });
     }
 
@@ -48,12 +55,9 @@ export async function GET(
         return new NextResponse('Invalid Image Data', { status: 500 });
     }
 
-    const meta = imageUrl.substring(5, commaIndex); // e.g. "image/jpeg;base64"
+    const meta = imageUrl.substring(5, commaIndex);
     const base64Data = imageUrl.substring(commaIndex + 1);
-
-    // Extract mime type (e.g. "image/jpeg")
     const mimeType = meta.split(';')[0];
-
     const buffer = Buffer.from(base64Data, 'base64');
 
     const response = new NextResponse(buffer, {
@@ -62,6 +66,7 @@ export async function GET(
         'Content-Length': buffer.length.toString(),
         'Cache-Control': CACHE_CONTROL,
         'CDN-Cache-Control': CACHE_CONTROL,
+        'Cross-Origin-Resource-Policy': 'cross-origin',
       },
     });
 

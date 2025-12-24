@@ -78,6 +78,8 @@ export async function fetchFeedPosts({
     select: {
       id: true,
       imageUrl: true,
+      mediaType: true,
+      thumbnailUrl: true,
       comment: true,
       isSpoiler: true,
       createdAt: true,
@@ -120,21 +122,16 @@ export async function fetchFeedPosts({
 
   return postsData.map((post) => ({
     ...post,
-    imageUrl: post.imageUrl.startsWith('http')
-      ? post.imageUrl
-      : `/api/image/${post.id}.jpg`,
+    imageUrl: `/api/image/${post.id}.jpg`,
+    thumbnailUrl: post.thumbnailUrl ? `/api/post_thumbnail/${post.id}.jpg` : null,
     images: post.images.map(img => ({
       ...img,
-      url: img.url.startsWith('http')
-        ? img.url
-        : `/api/post_image/${img.id}.jpg`
+      url: `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...post.user,
       avatarUrl: post.user.avatarUrl
-        ? post.user.avatarUrl.startsWith('http')
-          ? post.user.avatarUrl
-          : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
         : null,
     },
     likesCount: post._count.likes,
@@ -152,8 +149,6 @@ export async function fetchUserPosts({
   cursorId?: number;
 }) {
   const session = await getSession();
-  // if (!session) return []; // Allow fetching user posts without session? Or follow page rules?
-  // Page seems to allow viewing profiles without session, but checking 'liked' status needs session.
 
   const postsData = await db.post.findMany({
     take: 12,
@@ -164,6 +159,8 @@ export async function fetchUserPosts({
     select: {
       id: true,
       imageUrl: true,
+      mediaType: true,
+      thumbnailUrl: true,
       comment: true,
       isSpoiler: true,
       createdAt: true,
@@ -192,7 +189,6 @@ export async function fetchUserPosts({
           isGold: true,
         },
       },
-      // Removed comments fetch for optimization
       _count: {
         select: { likes: true },
       },
@@ -205,21 +201,16 @@ export async function fetchUserPosts({
 
   return postsData.map((post) => ({
     ...post,
-    imageUrl: post.imageUrl.startsWith('http')
-      ? post.imageUrl
-      : `/api/image/${post.id}.jpg`,
+    imageUrl: `/api/image/${post.id}.jpg`,
+    thumbnailUrl: post.thumbnailUrl ? `/api/post_thumbnail/${post.id}.jpg` : null,
     images: post.images.map(img => ({
       ...img,
-      url: img.url.startsWith('http')
-        ? img.url
-        : `/api/post_image/${img.id}.jpg`
+      url: `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...post.user,
       avatarUrl: post.user.avatarUrl
-        ? post.user.avatarUrl.startsWith('http')
-          ? post.user.avatarUrl
-          : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
         : null,
     },
     likesCount: post._count.likes,
@@ -238,38 +229,7 @@ export async function fetchLikedPosts({
 }) {
   const session = await getSession();
 
-  // Note: Only allow seeing liked posts if it's "Me" (current user).
-  // The UI currently only shows Liked tab for the current user in ProfileClient (initialStatus.isMe check).
-  // If we want to strictly enforce this on backend, we should check if session.id == userId.
   if (!session || session.id !== userId) return [];
-
-  // Likes are stored in Like table. We need to fetch Like table with pagination, then get the posts.
-  // However, Like table cursor would be on Like ID or createdAt, but the UI expects Post cursor?
-  // Usually infinite scroll uses the ID of the last item in the list.
-  // Here the list is of Liked Posts.
-  // Ideally we should paginate on the Like table.
-  // If we pass cursorId (postId), we need to find the Like record corresponding to that Post to use as cursor?
-  // Or maybe we can assume cursorId refers to the Like ID?
-  // But the frontend usually passes the ID of the last element it rendered. The elements are Posts.
-  // So the cursorId passed will be a Post ID.
-
-  // Wait, if we paginate on Like table, the cursor should be Like ID.
-  // But the Feed component expects a list of Posts.
-  // And `loadMore` in Feed.tsx passes `lastPostId` as cursor.
-  // So if we use `lastPostId` as cursor for `fetchLikedPosts`, we need to find the Like entry for that post.
-
-  // let cursorOption = undefined;
-  // if (cursorId) {
-  //     await db.like.findUnique({
-  //         where: {
-  //             userId_postId: {
-  //                 userId: userId,
-  //                 postId: cursorId
-  //             }
-  //         },
-  //         select: { id: true }
-  //     });
-  // }
 
   const likedPostsData = await db.like.findMany({
     take: 12,
@@ -282,6 +242,8 @@ export async function fetchLikedPosts({
         select: {
             id: true,
             imageUrl: true,
+            mediaType: true,
+            thumbnailUrl: true,
             comment: true,
             isSpoiler: true,
             createdAt: true,
@@ -303,12 +265,11 @@ export async function fetchLikedPosts({
                     roles: true,
                 }
             },
-            // Removed comments fetch for optimization
             _count: {
                 select: { likes: true }
             },
             likes: {
-                where: { userId: session.id }, // Check if *session user* liked this post
+                where: { userId: session.id },
                 select: { userId: true }
             }
         }
@@ -318,21 +279,16 @@ export async function fetchLikedPosts({
 
   return likedPostsData.map((item) => ({
     ...item.post,
-    imageUrl: item.post.imageUrl.startsWith('http')
-      ? item.post.imageUrl
-      : `/api/image/${item.post.id}.jpg`,
+    imageUrl: `/api/image/${item.post.id}.jpg`,
+    thumbnailUrl: item.post.thumbnailUrl ? `/api/post_thumbnail/${item.post.id}.jpg` : null,
     images: item.post.images.map(img => ({
       ...img,
-      url: img.url.startsWith('http')
-        ? img.url
-        : `/api/post_image/${img.id}.jpg`
+      url: `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...item.post.user,
       avatarUrl: item.post.user.avatarUrl
-        ? item.post.user.avatarUrl.startsWith('http')
-          ? item.post.user.avatarUrl
-          : `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`
+        ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`
         : null,
     },
     likesCount: item.post._count.likes,
@@ -354,6 +310,11 @@ export async function createPost(prevState: unknown, formData: FormData) {
   const hashtagsRaw = formData.get("hashtags") as string;
   const isSpoiler = formData.get("isSpoiler") === "true";
 
+  // New fields
+  const mediaTypeRaw = formData.get("mediaType") as string;
+  const mediaType = (mediaTypeRaw === "VIDEO" ? "VIDEO" : "IMAGE") as "VIDEO" | "IMAGE";
+  const thumbnailUrl = formData.get("thumbnailUrl") as string | null;
+
   // We expect imageUrlsJson to be a JSON string of string[]
   let imageUrls: string[] = [];
   if (imageUrlsJson) {
@@ -370,7 +331,7 @@ export async function createPost(prevState: unknown, formData: FormData) {
   }
 
   if (imageUrls.length === 0) {
-    return { message: "Image is required" };
+    return { message: "Image/Video is required" };
   }
 
   if (comment && comment.length > 173) {
@@ -401,6 +362,8 @@ export async function createPost(prevState: unknown, formData: FormData) {
     await db.post.create({
       data: {
         imageUrl: firstImage,
+        mediaType,
+        thumbnailUrl,
         comment,
         isSpoiler,
         userId: session.id,

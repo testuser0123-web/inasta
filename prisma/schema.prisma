@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -9,46 +9,48 @@ datasource db {
 }
 
 model User {
-  id                Int       @id @default(autoincrement())
-  username          String    @unique
-  password          String
-  createdAt         DateTime  @default(now())
-  avatarUrl         String?
-  isVerified        Boolean   @default(false)
-  isGold            Boolean   @default(false)
-  roles             String[]  @default([])
-  verificationToken String?
-  updatedAt         DateTime  @default(now()) @updatedAt
-  bio               String?
-  oshi              String?
-  excludeUnverifiedPosts Boolean @default(false)
-  comments          Comment[]
-  following         Follow[]  @relation("following")
-  followers         Follow[]  @relation("followers")
-  likes             Like[]
-  mutedBy           Mute[]    @relation("mutedBy")
-  muted             Mute[]    @relation("muted")
-  posts             Post[]
-  contestPosts      ContestPost[]
-  contestLikes      ContestLike[]
-  createdContests   Contest[]
-  diaries           Diary[]
-  diaryLikes        DiaryLike[]
-  diaryComments     DiaryComment[]
+  id                     Int            @id @default(autoincrement())
+  username               String         @unique
+  password               String
+  createdAt              DateTime       @default(now())
+  avatarUrl              String?
+  isVerified             Boolean        @default(false)
+  verificationToken      String?
+  updatedAt              DateTime       @default(now()) @updatedAt
+  bio                    String?
+  oshi                   String?
+  excludeUnverifiedPosts Boolean        @default(false)
+  isGold                 Boolean        @default(false)
+  roles                  String[]       @default([])
+  comments               Comment[]
+  createdContests        Contest[]
+  contestLikes           ContestLike[]
+  contestPosts           ContestPost[]
+  diaries                Diary[]
+  diaryComments          DiaryComment[]
+  diaryLikes             DiaryLike[]
+  following              Follow[]       @relation("following")
+  followers              Follow[]       @relation("followers")
+  likes                  Like[]
+  mutedBy                Mute[]         @relation("mutedBy")
+  muted                  Mute[]         @relation("muted")
+  posts                  Post[]
 }
 
 model Post {
-  id        Int         @id @default(autoincrement())
-  imageUrl  String
-  isSpoiler Boolean     @default(false)
-  comment   String?
-  createdAt DateTime    @default(now())
-  userId    Int
-  comments  Comment[]
-  likes     Like[]
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hashtags  Hashtag[]
-  images    PostImage[]
+  id           Int         @id @default(autoincrement())
+  imageUrl     String
+  comment      String?
+  createdAt    DateTime    @default(now())
+  userId       Int
+  isSpoiler    Boolean     @default(false)
+  mediaType    MediaType   @default(IMAGE)
+  thumbnailUrl String?
+  comments     Comment[]
+  likes        Like[]
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images       PostImage[]
+  hashtags     Hashtag[]   @relation("HashtagToPost")
 
   @@index([userId])
 }
@@ -64,7 +66,7 @@ model PostImage {
 model Hashtag {
   id    Int    @id @default(autoincrement())
   name  String @unique
-  posts Post[]
+  posts Post[] @relation("HashtagToPost")
 }
 
 model Like {
@@ -115,28 +117,28 @@ model Mute {
 }
 
 model Contest {
-  id          Int      @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   title       String
   description String?
   startDate   DateTime
   endDate     DateTime
   creatorId   Int
-  creator     User     @relation(fields: [creatorId], references: [id])
+  createdAt   DateTime      @default(now())
+  creator     User          @relation(fields: [creatorId], references: [id])
   posts       ContestPost[]
-  createdAt   DateTime @default(now())
 }
 
 model ContestPost {
-  id        Int      @id @default(autoincrement())
-  imageUrl  String // Primary image
+  id        Int                @id @default(autoincrement())
+  imageUrl  String
   comment   String?
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   contestId Int
-  contest   Contest  @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  createdAt DateTime           @default(now())
   likes     ContestLike[]
+  contest   Contest            @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   images    ContestPostImage[]
-  createdAt DateTime @default(now())
 
   @@index([contestId, createdAt])
 }
@@ -152,27 +154,27 @@ model ContestPostImage {
 model ContestLike {
   id            Int         @id @default(autoincrement())
   userId        Int
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   contestPostId Int
-  contestPost   ContestPost @relation(fields: [contestPostId], references: [id], onDelete: Cascade)
   createdAt     DateTime    @default(now())
+  contestPost   ContestPost @relation(fields: [contestPostId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, contestPostId])
 }
 
 model Diary {
-  id           Int      @id @default(autoincrement())
+  id           Int            @id @default(autoincrement())
   title        String
   content      Json
   thumbnailUrl String?
   date         DateTime
-  isDraft      Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   userId       Int
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes        DiaryLike[]
+  isDraft      Boolean        @default(false)
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   comments     DiaryComment[]
+  likes        DiaryLike[]
 
   @@unique([userId, date])
   @@index([date])
@@ -183,8 +185,8 @@ model DiaryLike {
   userId    Int
   diaryId   Int
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   diary     Diary    @relation(fields: [diaryId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, diaryId])
 }
@@ -195,6 +197,11 @@ model DiaryComment {
   userId    Int
   diaryId   Int
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   diary     Diary    @relation(fields: [diaryId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
 }

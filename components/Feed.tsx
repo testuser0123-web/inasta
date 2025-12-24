@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, ChevronLeft, ChevronRight, Layers, AlertTriangle } from 'lucide-react';
+import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, ChevronLeft, ChevronRight, Layers, AlertTriangle, Play } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -25,6 +25,8 @@ type Comment = {
 type Post = {
   id: number;
   imageUrl?: string; // Main image URL
+  mediaType?: "IMAGE" | "VIDEO";
+  thumbnailUrl?: string | null;
   comment: string | null;
   isSpoiler?: boolean;
   createdAt: Date;
@@ -63,7 +65,7 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
                 className={`object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={() => setLoaded(true)}
                 onError={() => setLoaded(true)} // Hide spinner on error too
-                unoptimized={src.startsWith('/api/')}
+                unoptimized={src.startsWith('/api/') || src.startsWith('http')}
             />
         </div>
     );
@@ -224,6 +226,17 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
                 <AlertTriangle className="w-8 h-8 text-yellow-500" />
               </div>
+            ) : post.mediaType === "VIDEO" ? (
+                <div className="w-full h-full relative">
+                    <ImageWithSpinner
+                        src={post.thumbnailUrl || post.imageUrl || `/api/image/${post.id}.jpg`}
+                        alt=""
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2 z-10">
+                        <Play className="w-5 h-5 text-white fill-white drop-shadow-md" />
+                    </div>
+                </div>
             ) : (
               <ImageWithSpinner
                 src={post.imageUrl || `/api/image/${post.id}.jpg`}
@@ -231,7 +244,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 className="w-full h-full object-cover"
               />
             )}
-            {post.images && post.images.length > 0 && (
+            {post.images && post.images.length > 0 && post.mediaType !== "VIDEO" && (
                 <div className="absolute top-2 right-2 z-10">
                     <Layers className="w-5 h-5 text-white drop-shadow-md" />
                 </div>
@@ -276,12 +289,26 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 <X className="w-5 h-5" />
              </button>
 
-            <ImageCarousel
-              imageUrls={[
-                  selectedPost.imageUrl || `/api/image/${selectedPost.id}.jpg`,
-                  ...(selectedPost.images || []).map(img => img.url || `/api/post_image/${img.id}.jpg`)
-              ]}
-            />
+            {selectedPost.mediaType === "VIDEO" ? (
+                <div className="aspect-square bg-black flex items-center justify-center">
+                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                    <video
+                        src={selectedPost.imageUrl || `/api/image/${selectedPost.id}.jpg`}
+                        className="w-full h-full object-contain"
+                        controls
+                        autoPlay
+                        loop
+                        poster={selectedPost.thumbnailUrl || undefined}
+                    />
+                </div>
+            ) : (
+                <ImageCarousel
+                imageUrls={[
+                    selectedPost.imageUrl || `/api/image/${selectedPost.id}.jpg`,
+                    ...(selectedPost.images || []).map(img => img.url || `/api/post_image/${img.id}.jpg`)
+                ]}
+                />
+            )}
 
             <div className="p-4 overflow-y-auto flex-1 dark:text-gray-100">
               <div className="flex items-center justify-between mb-2">
@@ -436,4 +463,3 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     </div>
   );
 }
-
