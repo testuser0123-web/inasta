@@ -26,8 +26,6 @@ export default function UploadForm() {
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
   // Global UI state
   const { isUploading, setIsUploading, setSidebarVisible } = useUI();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [uploadProgress, setUploadProgress] = useState<string>("");
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
   const [isSpoiler, setIsSpoiler] = useState(false);
@@ -52,12 +50,14 @@ export default function UploadForm() {
   }, [mediaType, mediaFile, setSidebarVisible]);
 
   // Reset isUploading when isPending becomes false (action completed but no redirect happened, e.g. error)
-  // If redirect happens, component unmounts so this won't trigger or doesn't matter.
+  // AND ensure cleanup on unmount so global state doesn't persist to the next page.
   useEffect(() => {
     if (!isPending) {
       setIsUploading(false);
-      setUploadProgress("");
     }
+    return () => {
+        setIsUploading(false);
+    };
   }, [isPending, setIsUploading]);
 
   const onCropComplete = useCallback(
@@ -169,13 +169,11 @@ export default function UploadForm() {
 
   const handleSubmit = async (formData: FormData) => {
     setIsUploading(true);
-    setUploadProgress("Preparing...");
 
     try {
       formData.set('mediaType', mediaType);
 
       if (mediaType === "IMAGE") {
-          setUploadProgress("Uploading Images...");
           // Convert base64 cropped images to files and upload to Supabase
           const uploadPromises = croppedImages.map(async (base64, index) => {
             const res = await fetch(base64);
@@ -193,7 +191,6 @@ export default function UploadForm() {
             formData.set('imageUrl', uploadedUrls[0]);
           }
       } else if (mediaType === "VIDEO" && trimmedVideo) {
-          setUploadProgress("Uploading Video...");
           const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
           const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
@@ -227,7 +224,6 @@ export default function UploadForm() {
           formData.set('thumbnailUrl', thumbnailUrl);
       }
 
-      setUploadProgress("Finalizing Post...");
       // Call the Server Action
       await action(formData);
 
@@ -236,7 +232,6 @@ export default function UploadForm() {
       alert("Upload failed. Please try again.");
       // Explicitly reset on error
       setIsUploading(false);
-      setUploadProgress("");
     }
     // Do NOT reset in finally block to avoid UI flash before redirect
   };
