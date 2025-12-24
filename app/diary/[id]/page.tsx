@@ -14,11 +14,9 @@ export default async function DiaryDetailPage(props: { params: Promise<{ id: str
   }
 
   return (
-     <div className="max-w-3xl mx-auto p-4 pb-24">
-        <DiaryDetailClient
-           diary={diary}
-           currentUserId={session?.id}
-        />
-     </div>
+     <DiaryDetailClient
+        diary={diary}
+        currentUserId={session?.id}
+     />
   );
 }

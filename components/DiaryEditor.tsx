@@ -221,7 +221,7 @@ export default function Editor({ onChange, initialContent, readOnly = false }: {
   return (
     <div className={`border rounded-lg overflow-hidden flex flex-col ${readOnly ? 'border-none' : 'min-h-[400px]'}`}>
       <LexicalComposer initialConfig={initialConfig}>
-        <div className="relative flex-1 p-4">
+        <div className={`relative flex-1 ${readOnly ? 'p-0' : 'p-4'}`}>
           <RichTextPlugin
             contentEditable={<ContentEditable className="outline-none min-h-[300px] h-full" />}
             placeholder={!readOnly ? <div className="absolute top-4 left-4 text-gray-400 pointer-events-none">ここに日記を書く...</div> : null}
