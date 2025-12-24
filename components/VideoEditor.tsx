@@ -121,7 +121,9 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
       // But for now let's stick to copy for speed in browser.
 
       const data = await ffmpeg.readFile(outputName);
-      const blob = new Blob([data], { type: "video/mp4" });
+      // Cast to any because FFmpeg read returns FileData which can be Uint8Array
+      // but TypeScript gets confused with SharedArrayBuffer types in this context.
+      const blob = new Blob([data as any], { type: "video/mp4" });
       const newFile = new File([blob], "trimmed.mp4", { type: "video/mp4" });
 
       onComplete(newFile);
