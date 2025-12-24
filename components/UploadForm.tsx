@@ -26,6 +26,7 @@ export default function UploadForm() {
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
   // Global UI state
   const { isUploading, setIsUploading, setSidebarVisible } = useUI();
+
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
   const [isSpoiler, setIsSpoiler] = useState(false);
@@ -49,15 +50,22 @@ export default function UploadForm() {
       return () => setSidebarVisible(true);
   }, [mediaType, mediaFile, setSidebarVisible]);
 
-  // Reset isUploading when isPending becomes false (action completed but no redirect happened, e.g. error)
-  // AND ensure cleanup on unmount so global state doesn't persist to the next page.
+  // Effect 1: Cleanup global state on unmount ONLY
+  // This runs when the component is destroyed (e.g. after successful redirect to Home)
+  useEffect(() => {
+    return () => {
+        setIsUploading(false);
+        // Ensure sidebar is visible again if we navigated away
+        setSidebarVisible(true);
+    };
+  }, [setIsUploading, setSidebarVisible]);
+
+  // Effect 2: Watch for pending completion
+  // This runs when the server action finishes (e.g. error, or success without redirect)
   useEffect(() => {
     if (!isPending) {
       setIsUploading(false);
     }
-    return () => {
-        setIsUploading(false);
-    };
   }, [isPending, setIsUploading]);
 
   const onCropComplete = useCallback(
