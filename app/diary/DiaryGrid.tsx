@@ -49,6 +49,7 @@ export function DiaryGrid({ diaries }: { diaries: DiaryEntry[] }) {
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
+                  unoptimized={true} // Bypassing Next.js Image Optimization to ensure correct headers for COEP
                 />
                 <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                   <Calendar className="w-3 h-3" />

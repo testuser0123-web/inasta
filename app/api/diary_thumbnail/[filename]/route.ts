@@ -27,20 +27,60 @@ export async function GET(
 
     const imageUrl = diary.thumbnailUrl;
 
-    // Proxy URL
+    // Proxy URL (http/https)
     if (imageUrl.startsWith('http')) {
         const response = await fetch(imageUrl);
         if (!response.ok) {
             return new NextResponse('Error fetching image', { status: response.status });
         }
+
         const contentType = response.headers.get('content-type') || 'application/octet-stream';
         const buffer = await response.arrayBuffer();
 
+        // Ensure we forward relevant headers or set them correctly
         return new NextResponse(buffer, {
             headers: {
                 'Content-Type': contentType,
+                'Content-Length': buffer.byteLength.toString(),
                 'Cache-Control': CACHE_CONTROL,
                 'Cross-Origin-Resource-Policy': 'cross-origin',
+                'Access-Control-Allow-Origin': '*', // Adding explicit CORS
+            }
+        });
+    }
+
+    // Proxy relative URL (e.g. Supabase new uploads starting with /api/diary_image)
+    if (imageUrl.startsWith('/api/')) {
+        // Construct absolute URL for internal fetch
+        // Assuming localhost:3000 for internal fetch is risky in production environments (like Vercel)
+        // without knowing the domain.
+        // However, we can just "forward" it if we knew the host.
+        // But better: if it's /api/diary_image/[...path], we can invoke the logic directly or fetch via absolute URL.
+        // Since we are in an API route, fetching another API route via HTTP is inefficient.
+        // BUT, for now, let's treat it as a fetch if we can resolve the host.
+        // Or better, let's just handle it.
+        // Wait, if imageUrl is `/api/diary_image/...`, and we are in `GET`,
+        // The browser can fetch it directly!
+        // Why do we proxy it? Because `getDiariesForRange` rewrites it to `/api/diary_thumbnail/...`.
+        // If we want to serve it here, we need to fetch it.
+
+        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        const host = request.headers.get('host') || 'localhost:3000';
+        const absoluteUrl = `${protocol}://${host}${imageUrl}`;
+
+        const response = await fetch(absoluteUrl);
+        if (!response.ok) {
+             return new NextResponse('Error fetching local image', { status: response.status });
+        }
+        const contentType = response.headers.get('content-type') || 'application/octet-stream';
+        const buffer = await response.arrayBuffer();
+         return new NextResponse(buffer, {
+            headers: {
+                'Content-Type': contentType,
+                'Content-Length': buffer.byteLength.toString(),
+                'Cache-Control': CACHE_CONTROL,
+                'Cross-Origin-Resource-Policy': 'cross-origin',
+                'Access-Control-Allow-Origin': '*',
             }
         });
     }
