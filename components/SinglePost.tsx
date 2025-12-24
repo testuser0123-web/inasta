@@ -21,7 +21,9 @@ type Comment = {
 
 type Post = {
   id: number;
-  imageUrl?: string; // Main image URL
+  imageUrl?: string; // Main image URL (or Video URL)
+  mediaType: 'IMAGE' | 'VIDEO';
+  thumbnailUrl?: string | null;
   comment: string | null;
   isSpoiler?: boolean;
   createdAt: Date;
@@ -47,6 +49,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [showSpoiler, setShowSpoiler] = useState(!initialPost.isSpoiler);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const router = useRouter();
 
@@ -74,7 +77,8 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   };
 
   const handleShare = async () => {
-      const url = `${window.location.origin}/api/image/${post.id}.jpg`;
+      // Use the actual post URL instead of just the image API URL
+      const url = `${window.location.origin}/p/${post.id}`;
       try {
           await navigator.clipboard.writeText(url);
           setShareFeedback('Link copied!');
@@ -133,12 +137,26 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border dark:border-gray-800 overflow-hidden w-full max-w-lg mx-auto flex flex-col">
-       <ImageCarousel
-          imageUrls={[
-              post.imageUrl || `/api/image/${post.id}.jpg`,
-              ...(post.images || []).map(img => img.url || `/api/post_image/${img.id}.jpg`)
-          ]}
-       />
+       {post.mediaType === 'VIDEO' ? (
+         <div className="w-full relative bg-black aspect-video flex items-center justify-center">
+           <video
+             src={post.imageUrl || `/api/image/${post.id}.jpg`}
+             poster={post.thumbnailUrl || undefined}
+             controls
+             playsInline
+             className="w-full h-full object-contain"
+             preload="metadata"
+             crossOrigin="anonymous"
+           />
+         </div>
+       ) : (
+         <ImageCarousel
+            imageUrls={[
+                post.imageUrl || `/api/image/${post.id}.jpg`,
+                ...(post.images || []).map(img => img.url || `/api/post_image/${img.id}.jpg`)
+            ]}
+         />
+       )}
 
        <div className="p-4">
          <div className="flex items-center justify-between mb-4">
@@ -175,7 +193,12 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                         <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                            {post.user.avatarUrl ? (
                                // eslint-disable-next-line @next/next/no-img-element
-                               <img src={post.user.avatarUrl} alt={post.user.username} className="w-full h-full object-cover" />
+                               <img
+                                 src={post.user.avatarUrl}
+                                 alt={post.user.username}
+                                 className="w-full h-full object-cover"
+                                 crossOrigin={post.user.avatarUrl.startsWith('http') ? 'anonymous' : undefined}
+                               />
                            ) : (
                                <div className="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-300">
                                    <UserIcon className="w-4 h-4" />

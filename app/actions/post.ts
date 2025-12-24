@@ -123,16 +123,22 @@ export async function fetchFeedPosts({
 
   return postsData.map((post) => ({
     ...post,
-    imageUrl: `/api/image/${post.id}.jpg`,
-    thumbnailUrl: post.thumbnailUrl ? `/api/post_thumbnail/${post.id}.jpg` : null,
+    imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+        ? post.imageUrl
+        : `/api/image/${post.id}.jpg`,
+    thumbnailUrl: post.thumbnailUrl
+      ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
+      : null,
     images: post.images.map(img => ({
       ...img,
-      url: `/api/post_image/${img.id}.jpg`
+      url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...post.user,
       avatarUrl: post.user.avatarUrl
-        ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        ? (post.user.avatarUrl.startsWith('http')
+             ? post.user.avatarUrl
+             : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
         : null,
     },
     likesCount: post._count.likes,
@@ -202,16 +208,22 @@ export async function fetchUserPosts({
 
   return postsData.map((post) => ({
     ...post,
-    imageUrl: `/api/image/${post.id}.jpg`,
-    thumbnailUrl: post.thumbnailUrl ? `/api/post_thumbnail/${post.id}.jpg` : null,
+    imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+        ? post.imageUrl
+        : `/api/image/${post.id}.jpg`,
+    thumbnailUrl: post.thumbnailUrl
+      ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
+      : null,
     images: post.images.map(img => ({
       ...img,
-      url: `/api/post_image/${img.id}.jpg`
+      url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...post.user,
       avatarUrl: post.user.avatarUrl
-        ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        ? (post.user.avatarUrl.startsWith('http')
+             ? post.user.avatarUrl
+             : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
         : null,
     },
     likesCount: post._count.likes,
@@ -280,16 +292,22 @@ export async function fetchLikedPosts({
 
   return likedPostsData.map((item) => ({
     ...item.post,
-    imageUrl: `/api/image/${item.post.id}.jpg`,
-    thumbnailUrl: item.post.thumbnailUrl ? `/api/post_thumbnail/${item.post.id}.jpg` : null,
+    imageUrl: item.post.imageUrl && item.post.imageUrl.startsWith('http')
+        ? item.post.imageUrl
+        : `/api/image/${item.post.id}.jpg`,
+    thumbnailUrl: item.post.thumbnailUrl
+      ? (item.post.thumbnailUrl.startsWith('http') ? item.post.thumbnailUrl : `/api/post_thumbnail/${item.post.id}.jpg`)
+      : null,
     images: item.post.images.map(img => ({
       ...img,
-      url: `/api/post_image/${img.id}.jpg`
+      url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...item.post.user,
       avatarUrl: item.post.user.avatarUrl
-        ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`
+        ? (item.post.user.avatarUrl.startsWith('http')
+             ? item.post.user.avatarUrl
+             : `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`)
         : null,
     },
     likesCount: item.post._count.likes,
@@ -448,8 +466,6 @@ export async function toggleLike(postId: number) {
 
   revalidatePath("/");
   revalidatePath("/profile");
-  // Revalidate dynamic user pages too, but we can't easily know all usernames here.
-  // Ideally, revalidateTag logic should be used, but for now this covers main views.
 }
 
 export async function deletePost(postId: number) {
