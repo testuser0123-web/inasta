@@ -47,7 +47,6 @@ type Post = {
 
 function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, className?: string }) {
     const [loaded, setLoaded] = useState(false);
-    const isExternal = src.startsWith('http');
 
     const cleanSrc = src?.trim() || '';
     const isExternal = cleanSrc.startsWith('http') || cleanSrc.startsWith('//');
@@ -64,7 +63,7 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
             {isExternal ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                    src={src}
+                    src={cleanSrc}
                     alt={alt}
                     className={`object-cover w-full h-full transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
                     onLoad={() => setLoaded(true)}
@@ -73,7 +72,7 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
                 />
             ) : (
                 <Image
-                    src={src}
+                    src={src} // Keep original src for Next.js image if it expects relative path
                     alt={alt}
                     fill
                     sizes="(max-width: 768px) 33vw, 25vw"
@@ -360,7 +359,12 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                              <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                                 {selectedPost.user.avatarUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={selectedPost.user.avatarUrl} alt={selectedPost.user.username} className="w-full h-full object-cover" crossOrigin="anonymous" />
+                                    <img
+                                        src={selectedPost.user.avatarUrl}
+                                        alt={selectedPost.user.username}
+                                        className="w-full h-full object-cover"
+                                        crossOrigin={selectedPost.user.avatarUrl.trim().startsWith('http') ? 'anonymous' : undefined}
+                                    />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-300">
                                         <UserIcon className="w-4 h-4" />
