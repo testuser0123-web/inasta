@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle } from 'lucide-react';
+import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost } from '@/app/actions/post';
@@ -21,7 +21,9 @@ type Comment = {
 
 type Post = {
   id: number;
-  imageUrl?: string; // Main image URL
+  imageUrl?: string; // Main image URL (or Video URL)
+  mediaType: 'IMAGE' | 'VIDEO';
+  thumbnailUrl?: string | null;
   comment: string | null;
   isSpoiler?: boolean;
   createdAt: Date;
@@ -47,6 +49,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [showSpoiler, setShowSpoiler] = useState(!initialPost.isSpoiler);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const router = useRouter();
 
@@ -74,7 +77,8 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   };
 
   const handleShare = async () => {
-      const url = `${window.location.origin}/api/image/${post.id}.jpg`;
+      // Use the actual post URL instead of just the image API URL
+      const url = `${window.location.origin}/p/${post.id}`;
       try {
           await navigator.clipboard.writeText(url);
           setShareFeedback('Link copied!');
@@ -133,12 +137,25 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border dark:border-gray-800 overflow-hidden w-full max-w-lg mx-auto flex flex-col">
-       <ImageCarousel
-          imageUrls={[
-              post.imageUrl || `/api/image/${post.id}.jpg`,
-              ...(post.images || []).map(img => img.url || `/api/post_image/${img.id}.jpg`)
-          ]}
-       />
+       {post.mediaType === 'VIDEO' ? (
+         <div className="w-full relative bg-black aspect-video flex items-center justify-center">
+           <video
+             src={post.imageUrl || `/api/image/${post.id}.jpg`}
+             poster={post.thumbnailUrl || undefined}
+             controls
+             playsInline
+             className="w-full h-full object-contain"
+             preload="metadata"
+           />
+         </div>
+       ) : (
+         <ImageCarousel
+            imageUrls={[
+                post.imageUrl || `/api/image/${post.id}.jpg`,
+                ...(post.images || []).map(img => img.url || `/api/post_image/${img.id}.jpg`)
+            ]}
+         />
+       )}
 
        <div className="p-4">
          <div className="flex items-center justify-between mb-4">

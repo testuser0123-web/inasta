@@ -16,6 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     where: { id },
     select: {
       comment: true,
+      imageUrl: true,
       user: {
         select: { username: true }
       }
@@ -24,7 +25,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!post) return {};
 
-  const imageUrl = `${getBaseUrl()}/api/image/${id}.jpg`;
+  const imageUrl = post.imageUrl.startsWith('http')
+    ? post.imageUrl
+    : `${getBaseUrl()}/api/image/${id}.jpg`;
 
   return {
     title: `Post by @${post.user.username} - INASTA`,
@@ -51,6 +54,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     select: {
       id: true,
       imageUrl: true,
+      mediaType: true,
+      thumbnailUrl: true,
       comment: true,
       createdAt: true,
       userId: true,
@@ -114,6 +119,11 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       imageUrl: (postData.imageUrl && postData.imageUrl.startsWith('http'))
           ? postData.imageUrl
           : `/api/image/${postData.id}.jpg`,
+      thumbnailUrl: postData.thumbnailUrl
+          ? (postData.thumbnailUrl.startsWith('http')
+              ? postData.thumbnailUrl
+              : `/api/post_thumbnail/${postData.id}.jpg`)
+          : null,
       images: postData.images.map(img => ({
           ...img,
           url: (img.url && img.url.startsWith('http'))
