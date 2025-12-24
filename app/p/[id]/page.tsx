@@ -1,7 +1,6 @@
 import { db } from '@/lib/db';
 import { notFound } from 'next/navigation';
-import Feed from '@/components/Feed'; // Reuse Feed for single post view? Or create simple view.
-// Feed expects array of posts, so we can pass single post array.
+import SinglePost from '@/components/SinglePost';
 import { getSession } from '@/lib/auth';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -58,7 +57,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       images: {
           select: {
               id: true,
-              order: true
+              order: true,
+              url: true
           },
           orderBy: {
               order: 'asc'
@@ -68,7 +68,10 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           select: {
               username: true,
               avatarUrl: true,
-              isVerified: true
+              updatedAt: true,
+              isVerified: true,
+              isGold: true,
+              roles: true
           }
       },
       _count: {
@@ -77,6 +80,25 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       likes: {
           where: { userId: session?.id ?? -1 },
           select: { userId: true }
+      },
+      hashtags: {
+          select: { name: true }
+      },
+      isSpoiler: true,
+      comments: {
+        orderBy: { createdAt: 'asc' },
+        select: {
+          id: true,
+          text: true,
+          userId: true,
+          user: {
+            select: {
+              username: true,
+              avatarUrl: true,
+              updatedAt: true
+            }
+          }
+        }
       }
     }
   });
@@ -89,19 +111,46 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       hasLiked: postData.likes.length > 0,
       likes: undefined,
       _count: undefined,
-      imageUrl: `/api/image/${postData.id}.jpg` 
+      imageUrl: (postData.imageUrl && postData.imageUrl.startsWith('http'))
+          ? postData.imageUrl
+          : `/api/image/${postData.id}.jpg`,
+      images: postData.images.map(img => ({
+          ...img,
+          url: (img.url && img.url.startsWith('http'))
+              ? img.url
+              : `/api/post_image/${img.id}.jpg`
+      })),
+      user: {
+          ...postData.user,
+          avatarUrl: postData.user.avatarUrl
+              ? postData.user.avatarUrl.startsWith('http')
+                  ? postData.user.avatarUrl
+                  : `/api/avatar/${postData.user.username}?v=${postData.user.updatedAt.getTime()}`
+              : null
+      },
+      comments: postData.comments.map(comment => ({
+          ...comment,
+          user: {
+              ...comment.user,
+              avatarUrl: comment.user.avatarUrl
+                  ? comment.user.avatarUrl.startsWith('http')
+                      ? comment.user.avatarUrl
+                      : `/api/avatar/${comment.user.username}?v=${comment.user.updatedAt.getTime()}`
+                  : null
+          }
+      }))
   };
 
   return (
-    <div className="min-h-screen bg-white">
-       <div className="sticky top-0 z-40 bg-white border-b px-4 py-3 flex items-center shadow-sm">
-         <Link href="/" className="text-gray-700 hover:text-black mr-4">
+    <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+       <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b dark:border-gray-800 px-4 py-3 flex items-center shadow-sm">
+         <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white mr-4">
             <ArrowLeft className="w-6 h-6" />
          </Link>
          <h1 className="text-lg font-bold">Post</h1>
       </div>
-      <div className="pt-4">
-         <Feed initialPosts={[post]} currentUserId={session?.id ?? -1} />
+      <div className="pt-4 pb-20">
+         <SinglePost initialPost={post} currentUserId={session?.id ?? -1} />
       </div>
     </div>
   );
