@@ -2,7 +2,10 @@ import { SignJWT, jwtVerify, JWTPayload } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const secretKey = "secret"; // In a real app, use process.env.SESSION_SECRET
+const secretKey = process.env.SESSION_SECRET;
+if (!secretKey) {
+  throw new Error("SESSION_SECRET is not set");
+}
 const key = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: JWTPayload) {
