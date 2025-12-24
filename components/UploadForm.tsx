@@ -188,8 +188,12 @@ export default function UploadForm() {
           }
       } else if (mediaType === "VIDEO" && trimmedVideo) {
           setUploadProgress("Uploading Video...");
-          const cloudName = "dkpqkx7q6";
-          const uploadPreset = "nanashi"; // Unsigned preset
+          const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+          const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+          if (!cloudName || !uploadPreset) {
+            throw new Error("Cloudinary configuration is missing.");
+          }
 
           const videoData = new FormData();
           videoData.append("file", trimmedVideo);
