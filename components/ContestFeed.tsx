@@ -47,6 +47,7 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
                 ref={imgRef}
                 src={src}
                 alt={alt}
+                crossOrigin="anonymous"
                 className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={() => setLoaded(true)}
                 onError={() => setLoaded(true)}
@@ -111,7 +112,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                                     <div className="flex items-center gap-2">
                                         {post.user.avatarUrl && (
                                             // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={post.user.avatarUrl} alt={post.user.username} className="w-8 h-8 rounded-full object-cover" />
+                                            <img src={post.user.avatarUrl} alt={post.user.username} crossOrigin="anonymous" className="w-8 h-8 rounded-full object-cover" />
                                         )}
                                         <span className="font-bold">@{post.user.username}</span>
                                     </div>

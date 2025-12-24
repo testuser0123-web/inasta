@@ -4,9 +4,9 @@ import { ArrowLeft } from 'lucide-react';
 
 export default function UploadPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="border-b px-4 py-3 flex items-center justify-between relative shadow-sm">
-        <Link href="/" className="text-gray-700 hover:text-black">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="border-b dark:border-gray-800 px-4 py-3 flex items-center justify-between relative shadow-sm bg-background text-foreground">
+        <Link href="/" className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-6 h-6" />
         </Link>
         <h1 className="text-lg font-semibold">New Post</h1>
