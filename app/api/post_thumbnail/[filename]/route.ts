@@ -9,11 +9,16 @@ export async function GET(
   const idStr = resolvedParams.filename.split('.')[0];
   const id = parseInt(idStr, 10);
 
+  const headers = {
+    'Cross-Origin-Resource-Policy': 'cross-origin',
+  };
+
   if (isNaN(id)) {
-    return new NextResponse('Invalid ID', { status: 400 });
+    return new NextResponse('Invalid ID', { status: 400, headers });
   }
 
-  const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
+  const CACHE_CONTROL =
+    'public, max-age=31536000, s-maxage=31536000, immutable';
 
   try {
     const post = await db.post.findUnique({
@@ -22,37 +27,41 @@ export async function GET(
     });
 
     if (!post || !post.thumbnailUrl) {
-      return new NextResponse('Not Found', { status: 404 });
+      return new NextResponse('Not Found', { status: 404, headers });
     }
 
     const imageUrl = post.thumbnailUrl;
 
     // Proxy URL
     if (imageUrl.startsWith('http')) {
-        const response = await fetch(imageUrl);
-        if (!response.ok) {
-            return new NextResponse('Error fetching image', { status: response.status });
-        }
-        const contentType = response.headers.get('content-type') || 'application/octet-stream';
-        const buffer = await response.arrayBuffer();
-
-        return new NextResponse(buffer, {
-            headers: {
-                'Content-Type': contentType,
-                'Cache-Control': CACHE_CONTROL,
-                'Cross-Origin-Resource-Policy': 'cross-origin',
-            }
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        return new NextResponse('Error fetching image', {
+          status: response.status,
+          headers,
         });
+      }
+      const contentType =
+        response.headers.get('content-type') || 'application/octet-stream';
+      const buffer = await response.arrayBuffer();
+
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': CACHE_CONTROL,
+          ...headers,
+        },
+      });
     }
 
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {
-         return new NextResponse('Invalid Image Format', { status: 500 });
+      return new NextResponse('Invalid Image Format', { status: 500, headers });
     }
 
     const commaIndex = imageUrl.indexOf(',');
     if (commaIndex === -1) {
-        return new NextResponse('Invalid Image Data', { status: 500 });
+      return new NextResponse('Invalid Image Data', { status: 500, headers });
     }
 
     const meta = imageUrl.substring(5, commaIndex);
@@ -66,14 +75,13 @@ export async function GET(
         'Content-Length': buffer.length.toString(),
         'Cache-Control': CACHE_CONTROL,
         'CDN-Cache-Control': CACHE_CONTROL,
-        'Cross-Origin-Resource-Policy': 'cross-origin',
+        ...headers,
       },
     });
 
     return response;
-
   } catch (error) {
-      console.error('Error serving post thumbnail:', error);
-      return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('Error serving post thumbnail:', error);
+    return new NextResponse('Internal Server Error', { status: 500, headers });
   }
 }

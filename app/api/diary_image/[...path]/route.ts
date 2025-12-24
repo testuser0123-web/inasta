@@ -28,8 +28,12 @@ export async function GET(
   const resolvedParams = await params;
   const pathArray = resolvedParams.path;
 
+  const headers = {
+    'Cross-Origin-Resource-Policy': 'cross-origin',
+  };
+
   if (!pathArray || pathArray.length === 0) {
-    return new NextResponse('Invalid Path', { status: 400 });
+    return new NextResponse('Invalid Path', { status: 400, headers });
   }
 
   // Reconstruct path (e.g., diary/123/uuid.jpg)
@@ -44,11 +48,11 @@ export async function GET(
 
     if (error) {
       console.error('Error downloading from Supabase:', error);
-      return new NextResponse('Not Found', { status: 404 });
+      return new NextResponse('Not Found', { status: 404, headers });
     }
 
     if (!data) {
-        return new NextResponse('Empty Data', { status: 500 });
+      return new NextResponse('Empty Data', { status: 500, headers });
     }
 
     const buffer = await data.arrayBuffer();
@@ -58,10 +62,11 @@ export async function GET(
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000, immutable',
+        ...headers,
       },
     });
   } catch (error) {
     console.error('Error serving diary image:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new NextResponse('Internal Server Error', { status: 500, headers });
   }
 }

@@ -13,9 +13,14 @@ export async function GET(
       select: { avatarUrl: true, updatedAt: true },
     });
 
+    const headers = {
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "Access-Control-Allow-Origin": "*",
+    };
+
     if (!user || !user.avatarUrl) {
       // Default avatar or 404
-      return new NextResponse("Not Found", { status: 404 });
+      return new NextResponse("Not Found", { status: 404, headers });
     }
 
     const etag = `"${user.updatedAt.getTime().toString()}"`;
@@ -25,24 +30,24 @@ export async function GET(
       return new NextResponse(null, {
         status: 304,
         headers: {
-            "ETag": etag,
-            "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
+          "ETag": etag,
+          "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
+          ...headers,
         }
       });
     }
 
-    const headers = {
+    const successHeaders = {
         "ETag": etag,
         "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
-        "Cross-Origin-Resource-Policy": "cross-origin",
-        "Access-Control-Allow-Origin": "*",
+        ...headers,
     };
 
     // Proxy Supabase/Cloudinary URLs
     if (user.avatarUrl.startsWith('http')) {
         const response = await fetch(user.avatarUrl);
         if (!response.ok) {
-             return new NextResponse('Error fetching avatar', { status: response.status });
+             return new NextResponse('Error fetching avatar', { status: response.status, headers });
         }
         const contentType = response.headers.get('content-type') || 'application/octet-stream';
         const buffer = await response.arrayBuffer();
@@ -50,7 +55,7 @@ export async function GET(
         return new NextResponse(buffer, {
             headers: {
                 "Content-Type": contentType,
-                ...headers
+                ...successHeaders
             }
         });
     }
@@ -64,7 +69,7 @@ export async function GET(
       return new NextResponse(buffer, {
         headers: {
           "Content-Type": "image/jpeg",
-          ...headers
+          ...successHeaders
         },
       });
     }
@@ -72,10 +77,10 @@ export async function GET(
     // Fallback Proxy (if path is weird but accessible?)
     // If it's not http and not data:, it might be invalid or relative?
     // Let's assume invalid for now, but keeping safe logic.
-    return new NextResponse("Invalid Avatar Format", { status: 500 });
+    return new NextResponse("Invalid Avatar Format", { status: 500, headers });
 
   } catch (error) {
     console.error("Error fetching avatar:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500, headers: { "Cross-Origin-Resource-Policy": "cross-origin" } });
   }
 }
