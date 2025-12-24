@@ -11,6 +11,7 @@ import { fetchPostComments } from '@/app/actions/comment-fetch';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
+import { getOptimizedImageUrl, getVideoThumbnailUrl } from '@/lib/url';
 
 type Comment = {
   id: number;
@@ -243,7 +244,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             ) : post.mediaType === "VIDEO" ? (
                 <div className="w-full h-full relative">
                     <ImageWithSpinner
-                        src={post.thumbnailUrl || post.imageUrl || `/api/image/${post.id}.jpg`}
+                        src={getVideoThumbnailUrl(post)}
                         alt=""
                         className="w-full h-full object-cover"
                     />
@@ -253,7 +254,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 </div>
             ) : (
               <ImageWithSpinner
-                src={post.imageUrl || `/api/image/${post.id}.jpg`}
+                src={getOptimizedImageUrl(post.imageUrl, post.id, 'post')}
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -312,15 +313,15 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                         controls
                         autoPlay
                         loop
-                        poster={selectedPost.thumbnailUrl || undefined}
+                        poster={getVideoThumbnailUrl(selectedPost)}
                         crossOrigin="anonymous"
                     />
                 </div>
             ) : (
                 <ImageCarousel
                 imageUrls={[
-                    selectedPost.imageUrl || `/api/image/${selectedPost.id}.jpg`,
-                    ...(selectedPost.images || []).map(img => img.url || `/api/post_image/${img.id}.jpg`)
+                    getOptimizedImageUrl(selectedPost.imageUrl, selectedPost.id, 'post'),
+                    ...(selectedPost.images || []).map(img => getOptimizedImageUrl(img.url, img.id, 'post_thumbnail')) // Assuming secondary images use post_image logic or similar
                 ]}
                 />
             )}

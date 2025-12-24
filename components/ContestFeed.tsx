@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleContestLike } from '@/app/actions/contest';
 import { Spinner } from '@/components/ui/spinner';
+import { getOptimizedImageUrl } from '@/lib/url';
 
 type ContestPost = {
     id: number;
@@ -104,7 +105,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                             </div>
 
                             <div className="aspect-square cursor-pointer" onClick={() => setSelectedPostId(post.id)}>
-                                 <ImageWithSpinner src={post.imageUrl} alt="" className="w-full h-full object-cover" />
+                                 <ImageWithSpinner src={getOptimizedImageUrl(post.imageUrl, post.id, 'contest')} alt="" className="w-full h-full object-cover" />
                             </div>
 
                             <div className="p-4">
@@ -130,7 +131,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                 <div className="grid grid-cols-3 gap-0.5">
                     {posts.map((post) => (
                         <div key={post.id} onClick={() => setSelectedPostId(post.id)} className="aspect-square relative cursor-pointer bg-gray-100 dark:bg-gray-800">
-                             <ImageWithSpinner src={post.imageUrl} alt="" className="w-full h-full object-cover" />
+                             <ImageWithSpinner src={getOptimizedImageUrl(post.imageUrl, post.id, 'contest')} alt="" className="w-full h-full object-cover" />
                              {post.images && post.images.length > 0 && (
                                 <div className="absolute top-2 right-2 z-10"><Layers className="w-5 h-5 text-white drop-shadow-md" /></div>
                              )}
@@ -148,7 +149,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                         <div className="w-full relative bg-gray-100 dark:bg-gray-800 min-h-[200px] shrink-0">
                              {/* Simplified Slider for Contest Post */}
                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                             <img src={selectedPost.imageUrl} alt="" className="w-full h-auto max-h-[50vh] object-contain mx-auto" />
+                             <img src={getOptimizedImageUrl(selectedPost.imageUrl, selectedPost.id, 'contest')} alt="" className="w-full h-auto max-h-[50vh] object-contain mx-auto" crossOrigin="anonymous" />
                         </div>
 
                         <div className="p-4 overflow-y-auto flex-1 dark:text-gray-100">

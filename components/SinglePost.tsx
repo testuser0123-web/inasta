@@ -8,6 +8,7 @@ import { toggleLike, deletePost } from '@/app/actions/post';
 import { addComment } from '@/app/actions/comment';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
+import { getOptimizedImageUrl, getVideoThumbnailUrl } from '@/lib/url';
 
 type Comment = {
   id: number;
@@ -141,7 +142,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
          <div className="w-full relative bg-black aspect-video flex items-center justify-center">
            <video
              src={post.imageUrl || `/api/image/${post.id}.jpg`}
-             poster={post.thumbnailUrl || undefined}
+             poster={getVideoThumbnailUrl(post)}
              controls
              playsInline
              className="w-full h-full object-contain"
@@ -152,8 +153,8 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
        ) : (
          <ImageCarousel
             imageUrls={[
-                post.imageUrl || `/api/image/${post.id}.jpg`,
-                ...(post.images || []).map(img => img.url || `/api/post_image/${img.id}.jpg`)
+                getOptimizedImageUrl(post.imageUrl, post.id, 'post'),
+                ...(post.images || []).map(img => getOptimizedImageUrl(img.url, img.id, 'post_thumbnail'))
             ]}
          />
        )}
