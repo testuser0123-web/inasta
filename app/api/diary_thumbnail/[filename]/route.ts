@@ -10,11 +10,16 @@ export async function GET(
   const idStr = resolvedParams.filename.split('.')[0];
   const id = parseInt(idStr, 10);
 
+  const headers = {
+    'Cross-Origin-Resource-Policy': 'cross-origin',
+  };
+
   if (isNaN(id)) {
-    return new NextResponse('Invalid ID', { status: 400 });
+    return new NextResponse('Invalid ID', { status: 400, headers });
   }
 
-  const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
+  const CACHE_CONTROL =
+    'public, max-age=31536000, s-maxage=31536000, immutable';
 
   try {
     const diary = await db.diary.findUnique({
@@ -23,7 +28,7 @@ export async function GET(
     });
 
     if (!diary || !diary.thumbnailUrl) {
-      return new NextResponse('Not Found', { status: 404 });
+      return new NextResponse('Not Found', { status: 404, headers });
     }
 
     const imageUrl = diary.thumbnailUrl;
@@ -51,7 +56,7 @@ export async function GET(
           });
 
           if (blobs.length > 0) {
-            response = await fetch(blobs[0].url);
+            response = await fetch(blobs[0].url, { cache: 'no-store' });
           }
         } catch (error) {
           console.error('Error fetching image from Vercel Blob:', error);
@@ -61,6 +66,7 @@ export async function GET(
       if (!response || !response.ok) {
         return new NextResponse('Error fetching image', {
           status: response ? response.status : 404,
+          headers,
         });
       }
       const contentType =
@@ -71,14 +77,14 @@ export async function GET(
         headers: {
           'Content-Type': contentType,
           'Cache-Control': CACHE_CONTROL,
-          'Cross-Origin-Resource-Policy': 'cross-origin',
+          ...headers,
         },
       });
     }
 
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {
-         return new NextResponse('Invalid Image Format', { status: 500 });
+      return new NextResponse('Invalid Image Format', { status: 500, headers });
     }
 
     const commaIndex = imageUrl.indexOf(',');
