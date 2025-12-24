@@ -31,7 +31,7 @@ export default async function Home({
 
   return (
     <main className="min-h-screen bg-white dark:bg-black">
-      <Snowfall />
+      {process.env.SNOWFALL === 'true' && <Snowfall />}
       <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="w-6" /> {/* Spacer */}
