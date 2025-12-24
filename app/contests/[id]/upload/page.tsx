@@ -19,11 +19,17 @@ import { use } from "react";
 export default function ContestUploadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: contestId } = use(params);
   const [state, action, isPending] = useActionState(createContestPost, undefined);
+  const lastStateRef = useRef(state);
   const router = useRouter();
 
   useEffect(() => {
-      if (state?.success) {
-          router.push(`/contests/${contestId}`);
+      if (state !== lastStateRef.current) {
+          lastStateRef.current = state;
+          if (state?.success) {
+              router.push(`/contests/${contestId}`);
+          } else if (state?.success === false) {
+              setIsUploading(false);
+          }
       }
   }, [state, contestId, router]);
 
@@ -121,7 +127,6 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
       await action(formData);
     } catch (error) {
       console.error("Upload failed", error);
-    } finally {
       setIsUploading(false);
     }
   };
@@ -136,8 +141,8 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
               <input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(Number(e.target.value))} className="w-full" />
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={cancelCrop} className="p-2"><X className="w-6 h-6" /></button>
-              <button onClick={handleCropConfirm} className="px-4 py-2 bg-indigo-600 text-white rounded-md"><Check className="w-5 h-5" /></button>
+              <button type="button" onClick={cancelCrop} aria-label="Cancel crop" className="p-2"><X className="w-6 h-6" /></button>
+              <button type="button" onClick={handleCropConfirm} aria-label="Confirm crop" className="px-4 py-2 bg-indigo-600 text-white rounded-md"><Check className="w-5 h-5" /></button>
             </div>
           </div>
           <div className="flex justify-center gap-4">

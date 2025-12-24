@@ -16,6 +16,7 @@ type MediaType = "IMAGE" | "VIDEO";
 
 export default function UploadForm() {
   const [state, action, isPending] = useActionState(createPost, undefined);
+  const lastStateRef = useRef(state);
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("IMAGE");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -50,6 +51,17 @@ export default function UploadForm() {
       // Cleanup: ensure sidebar is visible when unmounting or switching modes
       return () => setSidebarVisible(true);
   }, [mediaType, mediaFile, setSidebarVisible]);
+
+  // Handle server action state updates (specifically errors)
+  useEffect(() => {
+      if (state !== lastStateRef.current) {
+          lastStateRef.current = state;
+          if (state?.message) {
+              setIsUploading(false);
+              setUploadProgress("");
+          }
+      }
+  }, [state, setIsUploading]);
 
   const onCropComplete = useCallback(
     (croppedArea: Area, croppedAreaPixels: Area) => {
@@ -228,7 +240,6 @@ export default function UploadForm() {
     } catch (error) {
       console.error("Upload failed", error);
       alert("Upload failed. Please try again.");
-    } finally {
       setIsUploading(false);
       setUploadProgress("");
     }
@@ -266,13 +277,17 @@ export default function UploadForm() {
             </div>
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={cancelCrop}
+                aria-label="Cancel crop"
                 className="p-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
               >
                 <X className="w-6 h-6" />
               </button>
               <button
+                type="button"
                 onClick={handleCropConfirm}
+                aria-label="Confirm crop"
                 className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold text-sm hover:bg-indigo-500"
               >
                 <Check className="w-5 h-5" />
