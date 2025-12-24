@@ -67,7 +67,18 @@ export class SimpleImageNode extends DecoratorNode<React.JSX.Element> {
   }
 
   decorate(): React.JSX.Element {
-    return <img src={this.__src} alt={this.__altText} className="max-w-full h-auto rounded-lg my-4" />;
+    let src = this.__src;
+    // Fix broken Supabase Public URLs by routing them through our proxy
+    // Pattern: https://<project>.supabase.co/storage/v1/object/public/images/diary/<userId>/<filename>
+    // Target: /api/diary_image/diary/<userId>/<filename>
+    if (src && src.includes('/storage/v1/object/public/images/')) {
+       const parts = src.split('/storage/v1/object/public/images/');
+       if (parts.length > 1) {
+          src = `/api/diary_image/${parts[1]}`;
+       }
+    }
+
+    return <img src={src} alt={this.__altText} className="max-w-full h-auto rounded-lg my-4" />;
   }
 
   exportJSON() {

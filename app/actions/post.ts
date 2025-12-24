@@ -477,7 +477,11 @@ export async function deletePost(postId: number) {
       const matches = post.imageUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
       if (matches && matches[1]) {
         const publicId = matches[1];
-        await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
+        console.log(`Deleting video from Cloudinary. Public ID: ${publicId}`);
+        const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
+        console.log('Cloudinary deletion result:', result);
+      } else {
+        console.warn('Could not extract public ID from Cloudinary URL:', post.imageUrl);
       }
     } catch (error) {
       console.error("Failed to delete video from Cloudinary:", error);
