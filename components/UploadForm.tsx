@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useRef, useCallback } from "react";
+import { useActionState, useState, useRef, useCallback, useEffect } from "react";
 import { createPost } from "@/app/actions/post";
 import { Camera, Check, X, Smartphone, Image as ImageIcon, Video, Loader2 } from "lucide-react";
 import Cropper from "react-easy-crop";
@@ -25,8 +25,8 @@ export default function UploadForm() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
-  // Global UI state for isUploading
-  const { isUploading, setIsUploading } = useUI();
+  // Global UI state
+  const { isUploading, setIsUploading, setSidebarVisible } = useUI();
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
@@ -35,6 +35,21 @@ export default function UploadForm() {
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Manage Sidebar visibility based on video editing state
+  useEffect(() => {
+      const isEditingVideo = mediaType === "VIDEO" && !!mediaFile; // Trimming mode
+      // If editing video, hide sidebar. Otherwise, show it (unless uploading, handled by Sidebar itself)
+      // Actually, Sidebar handles 'isUploading'. We just need to handle 'Editing'.
+      if (isEditingVideo) {
+          setSidebarVisible(false);
+      } else {
+          setSidebarVisible(true);
+      }
+
+      // Cleanup: ensure sidebar is visible when unmounting or switching modes
+      return () => setSidebarVisible(true);
+  }, [mediaType, mediaFile, setSidebarVisible]);
 
   const onCropComplete = useCallback(
     (croppedArea: Area, croppedAreaPixels: Area) => {
@@ -132,7 +147,7 @@ export default function UploadForm() {
 
   const handleVideoComplete = (file: File) => {
       setTrimmedVideo(file);
-      setMediaFile(null); // Close editor
+      setMediaFile(null); // Close editor, Sidebar should reappear unless uploading
   }
 
   const removeImage = (index: number) => {
