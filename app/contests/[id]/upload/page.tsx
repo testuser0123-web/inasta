@@ -187,7 +187,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
 
             {state?.message && <div className="text-red-500 text-sm text-center">{typeof state.message === 'string' ? state.message : 'エラーが発生しました'}</div>}
 
-            <button type="submit" disabled={isPending || isUploading || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold flex items-center justify-center gap-2">
+            <button type="submit" disabled={isPending || isUploading || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:text-gray-100 disabled:cursor-not-allowed disabled:hover:bg-gray-400 font-bold flex items-center justify-center gap-2">
                 {isPending || isUploading ? (
                   <span>{isUploading ? "アップロード中..." : "投稿中..."}</span>
                 ) : "投稿する"}

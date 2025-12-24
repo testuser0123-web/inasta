@@ -173,7 +173,7 @@ export default function NewDiaryPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:text-gray-100 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
           >
             {isSubmitting ? "投稿中..." : "日記を投稿する"}
           </button>
