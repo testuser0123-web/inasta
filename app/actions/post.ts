@@ -122,21 +122,15 @@ export async function fetchFeedPosts({
 
   return postsData.map((post) => ({
     ...post,
-    imageUrl: post.imageUrl.startsWith('http')
-      ? post.imageUrl
-      : `/api/image/${post.id}.jpg`,
+    imageUrl: `/api/image/${post.id}.jpg`,
     images: post.images.map(img => ({
       ...img,
-      url: img.url.startsWith('http')
-        ? img.url
-        : `/api/post_image/${img.id}.jpg`
+      url: `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...post.user,
       avatarUrl: post.user.avatarUrl
-        ? post.user.avatarUrl.startsWith('http')
-          ? post.user.avatarUrl
-          : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
         : null,
     },
     likesCount: post._count.likes,
@@ -206,21 +200,15 @@ export async function fetchUserPosts({
 
   return postsData.map((post) => ({
     ...post,
-    imageUrl: post.imageUrl.startsWith('http')
-      ? post.imageUrl
-      : `/api/image/${post.id}.jpg`,
+    imageUrl: `/api/image/${post.id}.jpg`,
     images: post.images.map(img => ({
       ...img,
-      url: img.url.startsWith('http')
-        ? img.url
-        : `/api/post_image/${img.id}.jpg`
+      url: `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...post.user,
       avatarUrl: post.user.avatarUrl
-        ? post.user.avatarUrl.startsWith('http')
-          ? post.user.avatarUrl
-          : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+        ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
         : null,
     },
     likesCount: post._count.likes,
@@ -289,21 +277,15 @@ export async function fetchLikedPosts({
 
   return likedPostsData.map((item) => ({
     ...item.post,
-    imageUrl: item.post.imageUrl.startsWith('http')
-      ? item.post.imageUrl
-      : `/api/image/${item.post.id}.jpg`,
+    imageUrl: `/api/image/${item.post.id}.jpg`,
     images: item.post.images.map(img => ({
       ...img,
-      url: img.url.startsWith('http')
-        ? img.url
-        : `/api/post_image/${img.id}.jpg`
+      url: `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...item.post.user,
       avatarUrl: item.post.user.avatarUrl
-        ? item.post.user.avatarUrl.startsWith('http')
-          ? item.post.user.avatarUrl
-          : `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`
+        ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`
         : null,
     },
     likesCount: item.post._count.likes,

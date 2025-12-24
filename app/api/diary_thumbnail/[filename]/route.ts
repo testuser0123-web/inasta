@@ -8,28 +8,26 @@ export async function GET(
   const resolvedParams = await params;
   const idStr = resolvedParams.filename.split('.')[0];
   const id = parseInt(idStr, 10);
-  
+
   if (isNaN(id)) {
-    console.error('Invalid ID parsed from filename:', resolvedParams.filename);
     return new NextResponse('Invalid ID', { status: 400 });
   }
 
   const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
 
   try {
-    const post = await db.post.findUnique({
+    const diary = await db.diary.findUnique({
       where: { id },
-      select: { imageUrl: true },
+      select: { thumbnailUrl: true },
     });
 
-    if (!post) {
-      console.error('Post not found for ID:', id);
+    if (!diary || !diary.thumbnailUrl) {
       return new NextResponse('Not Found', { status: 404 });
     }
 
-    const imageUrl = post.imageUrl;
+    const imageUrl = diary.thumbnailUrl;
 
-    // Fetch and stream if it's a URL (http)
+    // Proxy URL
     if (imageUrl.startsWith('http')) {
         const response = await fetch(imageUrl);
         if (!response.ok) {
@@ -42,7 +40,6 @@ export async function GET(
             headers: {
                 'Content-Type': contentType,
                 'Cache-Control': CACHE_CONTROL,
-                // Add CORP header to allow cross-origin embedding with COOP
                 'Cross-Origin-Resource-Policy': 'cross-origin',
             }
         });
@@ -50,22 +47,17 @@ export async function GET(
 
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {
-        console.error('Image URL is not a Data URI (and not http) for post:', id);
-        return new NextResponse('Invalid Image Format', { status: 500 });
+         return new NextResponse('Invalid Image Format', { status: 500 });
     }
 
     const commaIndex = imageUrl.indexOf(',');
     if (commaIndex === -1) {
-        console.error('Invalid Data URI format (no comma) for post:', id);
         return new NextResponse('Invalid Image Data', { status: 500 });
     }
 
-    const meta = imageUrl.substring(5, commaIndex); // e.g. "image/jpeg;base64"
+    const meta = imageUrl.substring(5, commaIndex);
     const base64Data = imageUrl.substring(commaIndex + 1);
-    
-    // Extract mime type (e.g. "image/jpeg")
     const mimeType = meta.split(';')[0];
-
     const buffer = Buffer.from(base64Data, 'base64');
 
     const response = new NextResponse(buffer, {
@@ -78,12 +70,10 @@ export async function GET(
       },
     });
 
-    response.headers.set('Vary', 'Accept-Encoding');
-
     return response;
 
   } catch (error) {
-      console.error('Error serving image:', error);
+      console.error('Error serving diary thumbnail:', error);
       return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

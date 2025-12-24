@@ -167,12 +167,11 @@ export async function getDiariesForRange(dateStr: string) {
 
   return diaries.map((diary) => ({
     ...diary,
+    thumbnailUrl: diary.thumbnailUrl ? `/api/diary_thumbnail/${diary.id}.jpg` : null,
     user: {
       ...diary.user,
       avatarUrl: diary.user.avatarUrl
-        ? diary.user.avatarUrl.startsWith('http')
-          ? diary.user.avatarUrl
-          : `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+        ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
         : null,
       updatedAt: undefined,
     },
@@ -249,12 +248,11 @@ export async function getDiariesByDate(dateStr: string) {
 
   return diaries.map((diary) => ({
     ...diary,
+    thumbnailUrl: diary.thumbnailUrl ? `/api/diary_thumbnail/${diary.id}.jpg` : null,
     user: {
       ...diary.user,
       avatarUrl: diary.user.avatarUrl
-        ? diary.user.avatarUrl.startsWith('http')
-          ? diary.user.avatarUrl
-          : `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+        ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
         : null,
       updatedAt: undefined,
     },
@@ -398,12 +396,11 @@ export async function getDiariesByUser(userId: number) {
 
   return diaries.map((diary) => ({
     ...diary,
+    thumbnailUrl: diary.thumbnailUrl ? `/api/diary_thumbnail/${diary.id}.jpg` : null,
     user: {
       ...diary.user,
       avatarUrl: diary.user.avatarUrl
-        ? diary.user.avatarUrl.startsWith('http')
-          ? diary.user.avatarUrl
-          : `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+        ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
         : null,
     },
   }));

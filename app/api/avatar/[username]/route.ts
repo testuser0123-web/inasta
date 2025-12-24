@@ -18,7 +18,6 @@ export async function GET(
       return new NextResponse("Not Found", { status: 404 });
     }
 
-    // ETag logic based on updatedAt
     const etag = `"${user.updatedAt.getTime().toString()}"`;
     const ifNoneMatch = request.headers.get("if-none-match");
 
@@ -35,16 +34,27 @@ export async function GET(
     const headers = {
         "ETag": etag,
         "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
+        "Cross-Origin-Resource-Policy": "cross-origin",
     };
 
-    // New logic: If it's a Supabase URL (starts with http), redirect to it.
+    // Proxy Supabase/Cloudinary URLs
     if (user.avatarUrl.startsWith('http')) {
-        return NextResponse.redirect(user.avatarUrl, {
-            headers
+        const response = await fetch(user.avatarUrl);
+        if (!response.ok) {
+             return new NextResponse('Error fetching avatar', { status: response.status });
+        }
+        const contentType = response.headers.get('content-type') || 'application/octet-stream';
+        const buffer = await response.arrayBuffer();
+
+        return new NextResponse(buffer, {
+            headers: {
+                "Content-Type": contentType,
+                ...headers
+            }
         });
     }
 
-    // Legacy logic: If it's base64 (starts with data:), serve it.
+    // Legacy Data URI
     if (user.avatarUrl.startsWith("data:")) {
       const commaIndex = user.avatarUrl.indexOf(',');
       const base64Data = user.avatarUrl.substring(commaIndex + 1);
@@ -52,16 +62,16 @@ export async function GET(
 
       return new NextResponse(buffer, {
         headers: {
-          "Content-Type": "image/jpeg", // Assume jpeg for legacy
+          "Content-Type": "image/jpeg",
           ...headers
         },
       });
     }
 
-    // Fallback for other formats (redirect)
-    return NextResponse.redirect(user.avatarUrl, {
-        headers
-    });
+    // Fallback Proxy (if path is weird but accessible?)
+    // If it's not http and not data:, it might be invalid or relative?
+    // Let's assume invalid for now, but keeping safe logic.
+    return new NextResponse("Invalid Avatar Format", { status: 500 });
 
   } catch (error) {
     console.error("Error fetching avatar:", error);
