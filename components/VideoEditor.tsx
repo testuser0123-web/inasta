@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { Spinner } from "@/components/ui/spinner";
-import { Play, Pause, Scissors, Upload } from "lucide-react";
+import { Play, Pause, Scissors } from "lucide-react";
 
 interface VideoEditorProps {
   file: File;
@@ -124,6 +124,7 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
       const data = await ffmpeg.readFile(outputName);
       // Cast to any because FFmpeg read returns FileData which can be Uint8Array
       // but TypeScript gets confused with SharedArrayBuffer types in this context.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const blob = new Blob([data as any], { type: "video/mp4" });
       const newFile = new File([blob], "trimmed.mp4", { type: "video/mp4" });
 

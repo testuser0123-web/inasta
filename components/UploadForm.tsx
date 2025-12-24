@@ -214,7 +214,7 @@ export default function UploadForm() {
           const data = await res.json();
           const videoUrl = data.secure_url;
 
-          let thumbnailUrl = videoUrl.replace(/\.[^/.]+$/, ".jpg");
+          const thumbnailUrl = videoUrl.replace(/\.[^/.]+$/, ".jpg");
 
           formData.set('imageUrls', JSON.stringify([videoUrl])); // Use main URL slot for video
           formData.set('imageUrl', videoUrl);
