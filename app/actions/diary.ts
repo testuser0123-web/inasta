@@ -168,17 +168,27 @@ export async function getDiariesForRange(dateStr: string) {
     },
   });
 
-  return diaries.map((diary) => ({
-    ...diary,
-    thumbnailUrl: diary.thumbnailUrl ? `/api/diary_thumbnail/${diary.id}.jpg` : null,
-    user: {
-      ...diary.user,
-      avatarUrl: diary.user.avatarUrl
-        ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
-        : null,
-      updatedAt: undefined,
-    },
-  }));
+  return diaries.map((diary) => {
+    let thumbnailUrl = diary.thumbnailUrl;
+    // Only use the proxy if the URL is not already absolute (http/https) and not a data URI
+    // This handles old Vercel Blob URLs (absolute), old Supabase URLs (absolute),
+    // and new Supabase URLs (relative /api/diary_image/...)
+    if (thumbnailUrl && !thumbnailUrl.startsWith('http') && !thumbnailUrl.startsWith('data:') && !thumbnailUrl.startsWith('/api/')) {
+        thumbnailUrl = `/api/diary_thumbnail/${diary.id}.jpg`;
+    }
+
+    return {
+      ...diary,
+      thumbnailUrl,
+      user: {
+        ...diary.user,
+        avatarUrl: diary.user.avatarUrl
+          ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+          : null,
+        updatedAt: undefined,
+      },
+    };
+  });
 }
 
 export async function getPostedDiaryDates() {
@@ -249,17 +259,24 @@ export async function getDiariesByDate(dateStr: string) {
     },
   });
 
-  return diaries.map((diary) => ({
-    ...diary,
-    thumbnailUrl: diary.thumbnailUrl ? `/api/diary_thumbnail/${diary.id}.jpg` : null,
-    user: {
-      ...diary.user,
-      avatarUrl: diary.user.avatarUrl
-        ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
-        : null,
-      updatedAt: undefined,
-    },
-  }));
+  return diaries.map((diary) => {
+    let thumbnailUrl = diary.thumbnailUrl;
+    if (thumbnailUrl && !thumbnailUrl.startsWith('http') && !thumbnailUrl.startsWith('data:') && !thumbnailUrl.startsWith('/api/')) {
+        thumbnailUrl = `/api/diary_thumbnail/${diary.id}.jpg`;
+    }
+
+    return {
+      ...diary,
+      thumbnailUrl,
+      user: {
+        ...diary.user,
+        avatarUrl: diary.user.avatarUrl
+          ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+          : null,
+        updatedAt: undefined,
+      },
+    };
+  });
 }
 
 export async function checkHasPostedToday(userId: number, dateStr: string) {
@@ -393,16 +410,23 @@ export async function getDiariesByUser(userId: number) {
     orderBy: { date: 'desc' }
   });
 
-  return diaries.map((diary) => ({
-    ...diary,
-    thumbnailUrl: diary.thumbnailUrl ? `/api/diary_thumbnail/${diary.id}.jpg` : null,
-    user: {
-      ...diary.user,
-      avatarUrl: diary.user.avatarUrl
-        ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
-        : null,
-    },
-  }));
+  return diaries.map((diary) => {
+    let thumbnailUrl = diary.thumbnailUrl;
+    if (thumbnailUrl && !thumbnailUrl.startsWith('http') && !thumbnailUrl.startsWith('data:') && !thumbnailUrl.startsWith('/api/')) {
+        thumbnailUrl = `/api/diary_thumbnail/${diary.id}.jpg`;
+    }
+
+    return {
+      ...diary,
+      thumbnailUrl,
+      user: {
+        ...diary.user,
+        avatarUrl: diary.user.avatarUrl
+          ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+          : null,
+      },
+    };
+  });
 }
 
 export async function saveDraft(formData: FormData) {
