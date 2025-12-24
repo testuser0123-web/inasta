@@ -2,11 +2,10 @@
 
 import { useActionState, useState, useRef, useCallback, useEffect } from "react";
 import { createPost } from "@/app/actions/post";
-import { Camera, Check, X, Smartphone, Image as ImageIcon, Video, Loader2 } from "lucide-react";
+import { Camera, Check, X, Smartphone, Image as ImageIcon, Video } from "lucide-react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/image";
 import { uploadImageToSupabase } from "@/lib/client-upload";
-import { Spinner } from "@/components/ui/spinner";
 import VideoEditor from "@/components/VideoEditor";
 import { useUI } from "@/components/providers/ui-provider";
 
@@ -27,6 +26,7 @@ export default function UploadForm() {
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
   // Global UI state
   const { isUploading, setIsUploading, setSidebarVisible } = useUI();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
@@ -50,6 +50,15 @@ export default function UploadForm() {
       // Cleanup: ensure sidebar is visible when unmounting or switching modes
       return () => setSidebarVisible(true);
   }, [mediaType, mediaFile, setSidebarVisible]);
+
+  // Reset isUploading when isPending becomes false (action completed but no redirect happened, e.g. error)
+  // If redirect happens, component unmounts so this won't trigger or doesn't matter.
+  useEffect(() => {
+    if (!isPending) {
+      setIsUploading(false);
+      setUploadProgress("");
+    }
+  }, [isPending, setIsUploading]);
 
   const onCropComplete = useCallback(
     (croppedArea: Area, croppedAreaPixels: Area) => {
@@ -162,9 +171,6 @@ export default function UploadForm() {
     setIsUploading(true);
     setUploadProgress("Preparing...");
 
-    // Yield to UI to ensure overlay renders
-    await new Promise(resolve => setTimeout(resolve, 100));
-
     try {
       formData.set('mediaType', mediaType);
 
@@ -228,10 +234,11 @@ export default function UploadForm() {
     } catch (error) {
       console.error("Upload failed", error);
       alert("Upload failed. Please try again.");
-    } finally {
+      // Explicitly reset on error
       setIsUploading(false);
       setUploadProgress("");
     }
+    // Do NOT reset in finally block to avoid UI flash before redirect
   };
 
   // Video Editor
@@ -323,23 +330,10 @@ export default function UploadForm() {
   }
 
   const hasMedia = croppedImages.length > 0 || !!trimmedVideo;
+  const isProcessing = isUploading || isPending;
 
   return (
     <>
-      {(isUploading || isPending) && (
-        <div className="fixed inset-0 z-[9999] bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm">
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl flex flex-col items-center gap-4 shadow-xl">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-            <div className="text-center">
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">Processing...</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {uploadProgress || "Please wait..."}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <form action={handleSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
 
         {/* Grid of selected images or video preview */}
@@ -437,7 +431,7 @@ export default function UploadForm() {
               maxLength={173}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending}
+              disabled={!hasMedia || isProcessing}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="Write a caption..."
             />
@@ -461,7 +455,7 @@ export default function UploadForm() {
               name="hashtags"
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending}
+              disabled={!hasMedia || isProcessing}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="#travel #food #nature"
             />
@@ -491,14 +485,11 @@ export default function UploadForm() {
 
         <button
           type="submit"
-          disabled={isPending || isUploading || !hasMedia}
-          className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
+          disabled={isProcessing || !hasMedia}
+          className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          {isUploading || isPending ? (
-            <>
-              <Spinner className="w-4 h-4 text-white" />
-              <span>{isUploading ? "Processing..." : "Posting..."}</span>
-            </>
+          {isProcessing ? (
+            <span>Posting...</span>
           ) : (
             "Share"
           )}
