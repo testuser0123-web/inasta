@@ -25,8 +25,11 @@ export default function UploadForm() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
-  // Global UI state
-  const { isUploading, setIsUploading, setSidebarVisible } = useUI();
+
+  // Local upload state (replaced global state)
+  const [isUploading, setIsUploading] = useState(false);
+  const { setSidebarVisible } = useUI();
+
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
@@ -39,8 +42,7 @@ export default function UploadForm() {
   // Manage Sidebar visibility based on video editing state
   useEffect(() => {
       const isEditingVideo = mediaType === "VIDEO" && !!mediaFile; // Trimming mode
-      // If editing video, hide sidebar. Otherwise, show it (unless uploading, handled by Sidebar itself)
-      // Actually, Sidebar handles 'isUploading'. We just need to handle 'Editing'.
+      // If editing video, hide sidebar.
       if (isEditingVideo) {
           setSidebarVisible(false);
       } else {
@@ -228,11 +230,20 @@ export default function UploadForm() {
     } catch (error) {
       console.error("Upload failed", error);
       alert("Upload failed. Please try again.");
-    } finally {
+      // Reset isUploading on error
       setIsUploading(false);
       setUploadProgress("");
     }
+    // Do NOT reset isUploading in finally block if we might redirect
+    setIsUploading(false);
+    setUploadProgress("");
   };
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const formData = new FormData(e.currentTarget);
+      await handleSubmit(formData);
+  }
 
   // Video Editor
   if (mediaType === "VIDEO" && mediaFile) {
@@ -266,13 +277,17 @@ export default function UploadForm() {
             </div>
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={cancelCrop}
+                aria-label="Cancel crop"
                 className="p-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
               >
                 <X className="w-6 h-6" />
               </button>
               <button
+                type="button"
                 onClick={handleCropConfirm}
+                aria-label="Confirm crop"
                 className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold text-sm hover:bg-indigo-500"
               >
                 <Check className="w-5 h-5" />
@@ -340,7 +355,7 @@ export default function UploadForm() {
         </div>
       )}
 
-      <form action={handleSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
+      <form onSubmit={onSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
 
         {/* Grid of selected images or video preview */}
         {croppedImages.length > 0 && (
