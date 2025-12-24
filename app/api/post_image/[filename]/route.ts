@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchWithFallback } from '@/lib/image-proxy';
 
 export async function GET(
   request: NextRequest,
@@ -11,6 +12,7 @@ export async function GET(
 
   const headers = {
     'Cross-Origin-Resource-Policy': 'cross-origin',
+    'Access-Control-Allow-Origin': '*',
   };
 
   if (isNaN(id)) {
@@ -34,10 +36,11 @@ export async function GET(
 
     // Proxy URL
     if (imageUrl.startsWith('http')) {
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
+      const response = await fetchWithFallback(imageUrl);
+
+      if (!response || !response.ok) {
         return new NextResponse('Error fetching image', {
-          status: response.status,
+          status: response ? response.status : 404,
           headers,
         });
       }

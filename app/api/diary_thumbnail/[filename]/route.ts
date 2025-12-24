@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-import { list } from '@vercel/blob';
+import { fetchWithFallback } from '@/lib/image-proxy';
 
 export async function GET(
   request: NextRequest,
@@ -12,6 +12,7 @@ export async function GET(
 
   const headers = {
     'Cross-Origin-Resource-Policy': 'cross-origin',
+    'Access-Control-Allow-Origin': '*',
   };
 
   if (isNaN(id)) {
@@ -35,33 +36,7 @@ export async function GET(
 
     // Proxy URL
     if (imageUrl.startsWith('http')) {
-      let response: Response | null = null;
-      try {
-        response = await fetch(imageUrl);
-      } catch (error) {
-        console.error('Error fetching image from URL:', error);
-      }
-
-      if (!response || !response.ok) {
-        try {
-          // Fallback to Vercel Blob
-          // Extract pathname (e.g. "diary-thumbnail/65/...") from the URL
-          const urlObj = new URL(imageUrl);
-          const pathname = urlObj.pathname.substring(1); // Remove leading slash
-
-          const { blobs } = await list({
-            prefix: pathname,
-            limit: 1,
-            token: process.env.BLOB_READ_WRITE_TOKEN,
-          });
-
-          if (blobs.length > 0) {
-            response = await fetch(blobs[0].url, { cache: 'no-store' });
-          }
-        } catch (error) {
-          console.error('Error fetching image from Vercel Blob:', error);
-        }
-      }
+      const response = await fetchWithFallback(imageUrl);
 
       if (!response || !response.ok) {
         return new NextResponse('Error fetching image', {

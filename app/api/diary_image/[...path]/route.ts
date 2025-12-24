@@ -30,6 +30,7 @@ export async function GET(
 
   const headers = {
     'Cross-Origin-Resource-Policy': 'cross-origin',
+    'Access-Control-Allow-Origin': '*',
   };
 
   if (!pathArray || pathArray.length === 0) {
