@@ -2,18 +2,24 @@
 
 import { useActionState, useState, useRef, useCallback } from "react";
 import { createPost } from "@/app/actions/post";
-import { Camera, Check, X, Smartphone, Image as ImageIcon } from "lucide-react";
+import { Camera, Check, X, Smartphone, Image as ImageIcon, Video } from "lucide-react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/image";
 import { uploadImageToSupabase } from "@/lib/client-upload";
 import { Spinner } from "@/components/ui/spinner";
+import VideoEditor from "@/components/VideoEditor";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
+type MediaType = "IMAGE" | "VIDEO";
 
 export default function UploadForm() {
   const [state, action, isPending] = useActionState(createPost, undefined);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [mediaSrc, setMediaSrc] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<MediaType>("IMAGE");
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [trimmedVideo, setTrimmedVideo] = useState<File | null>(null);
+
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -38,24 +44,40 @@ export default function UploadForm() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-      setImageSrc(reader.result as string);
+    if (file.type.startsWith("video/")) {
+        setMediaType("VIDEO");
+        setMediaFile(file);
+        // Reset image state
+        setCroppedImages([]);
+        setImageSrc(null);
+    } else {
+        setMediaType("IMAGE");
+        setMediaFile(null);
+        setTrimmedVideo(null);
 
-      // Load image to get dimensions
-      const img = new Image();
-      img.onload = () => {
-        setImageAspectRatio(img.width / img.height);
-      };
-      img.src = reader.result as string;
-    });
-    reader.readAsDataURL(file);
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          setImageSrc(reader.result as string);
+
+          // Load image to get dimensions
+          const img = new Image();
+          img.onload = () => {
+            setImageAspectRatio(img.width / img.height);
+          };
+          img.src = reader.result as string;
+        });
+        reader.readAsDataURL(file);
+    }
     // Reset file input value so same file can be selected again if needed
     e.target.value = "";
   };
 
+  const setImageSrc = (src: string | null) => {
+      setMediaSrc(src);
+  };
+
   const handleCropConfirm = useCallback(async () => {
-    if (!imageSrc || !croppedAreaPixels) return;
+    if (!mediaSrc || !croppedAreaPixels) return;
     try {
       let outputWidth = 512;
       let outputHeight = 512;
@@ -78,7 +100,7 @@ export default function UploadForm() {
       }
 
       const cropped = await getCroppedImg(
-        imageSrc,
+        mediaSrc,
         croppedAreaPixels,
         { width: outputWidth, height: outputHeight }
       );
@@ -88,42 +110,93 @@ export default function UploadForm() {
       }
 
       // Reset crop state
-      setImageSrc(null);
+      setMediaSrc(null);
       setZoom(1);
     } catch (e) {
       console.error(e);
     }
-  }, [imageSrc, croppedAreaPixels, aspectRatio]);
+  }, [mediaSrc, croppedAreaPixels, aspectRatio]);
 
   const cancelCrop = () => {
-    setImageSrc(null);
+    setMediaSrc(null);
     setZoom(1);
   };
+
+  const cancelVideo = () => {
+      setMediaFile(null);
+      setTrimmedVideo(null);
+  }
+
+  const handleVideoComplete = (file: File) => {
+      setTrimmedVideo(file);
+      setMediaFile(null); // Close editor
+  }
 
   const removeImage = (index: number) => {
       setCroppedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const removeVideo = () => {
+      setTrimmedVideo(null);
+  }
+
   const handleSubmit = async (formData: FormData) => {
     setIsUploading(true);
     try {
-      // Convert base64 cropped images to files and upload to Supabase
-      const uploadPromises = croppedImages.map(async (base64, index) => {
-        const res = await fetch(base64);
-        const blob = await res.blob();
-        const file = new File([blob], `image-${index}.jpg`, { type: 'image/jpeg' });
-        return uploadImageToSupabase(file, 'posts');
-      });
+      formData.set('mediaType', mediaType);
 
-      const uploadedUrls = await Promise.all(uploadPromises);
+      if (mediaType === "IMAGE") {
+          // Convert base64 cropped images to files and upload to Supabase
+          const uploadPromises = croppedImages.map(async (base64, index) => {
+            const res = await fetch(base64);
+            const blob = await res.blob();
+            const file = new File([blob], `image-${index}.jpg`, { type: 'image/jpeg' });
+            return uploadImageToSupabase(file, 'posts');
+          });
 
-      // Update FormData with the new URLs
-      formData.set('imageUrls', JSON.stringify(uploadedUrls));
+          const uploadedUrls = await Promise.all(uploadPromises);
 
-      // We don't need 'imageUrl' anymore as the server uses 'imageUrls',
-      // but if legacy code needs it, we can set it.
-      if (uploadedUrls.length > 0) {
-        formData.set('imageUrl', uploadedUrls[0]);
+          // Update FormData with the new URLs
+          formData.set('imageUrls', JSON.stringify(uploadedUrls));
+
+          if (uploadedUrls.length > 0) {
+            formData.set('imageUrl', uploadedUrls[0]);
+          }
+      } else if (mediaType === "VIDEO" && trimmedVideo) {
+          const cloudName = "dkpqkx7q6";
+          const uploadPreset = "nanashi"; // Unsigned preset
+
+          const videoData = new FormData();
+          videoData.append("file", trimmedVideo);
+          videoData.append("upload_preset", uploadPreset);
+          videoData.append("cloud_name", cloudName);
+
+          // Upload to Cloudinary
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
+              method: "POST",
+              body: videoData
+          });
+
+          if (!res.ok) {
+              const errorData = await res.json();
+              throw new Error(`Cloudinary upload failed: ${errorData.error?.message || res.statusText}`);
+          }
+
+          const data = await res.json();
+          const videoUrl = data.secure_url;
+
+          // Generate thumbnail? Cloudinary generates one automatically.
+          // The format is usually replacing file extension with .jpg or using /video/upload/w_.../v.../filename.jpg
+          // But Cloudinary response might not include a separate thumbnail URL unless requested.
+          // However, we can construct it.
+          // videoUrl: https://res.cloudinary.com/dkpqkx7q6/video/upload/v17.../filename.mp4
+          // thumbnailUrl: https://res.cloudinary.com/dkpqkx7q6/video/upload/v17.../filename.jpg
+
+          let thumbnailUrl = videoUrl.replace(/\.[^/.]+$/, ".jpg");
+
+          formData.set('imageUrls', JSON.stringify([videoUrl])); // Use main URL slot for video
+          formData.set('imageUrl', videoUrl);
+          formData.set('thumbnailUrl', thumbnailUrl);
       }
 
       // Call the Server Action
@@ -131,14 +204,25 @@ export default function UploadForm() {
 
     } catch (error) {
       console.error("Upload failed", error);
-      // We could show an error message here if we had a way to set form state
+      alert("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // If we have an image source, show Cropper
-  if (imageSrc) {
+  // Video Editor
+  if (mediaType === "VIDEO" && mediaFile) {
+      return (
+          <VideoEditor
+            file={mediaFile}
+            onCancel={cancelVideo}
+            onComplete={handleVideoComplete}
+          />
+      )
+  }
+
+  // Image Cropper
+  if (mediaType === "IMAGE" && mediaSrc) {
     return (
       <div className="flex flex-col h-[calc(100vh-100px)]">
         <div className="p-4 bg-white dark:bg-zinc-900 border-b flex flex-col gap-4">
@@ -201,7 +285,7 @@ export default function UploadForm() {
         </div>
         <div className="relative flex-1 bg-black w-full">
           <Cropper
-            image={imageSrc}
+            image={mediaSrc}
             crop={crop}
             zoom={zoom}
             aspect={aspectRatio === "1:1" ? 1 : imageAspectRatio}
@@ -214,11 +298,12 @@ export default function UploadForm() {
     );
   }
 
+  const hasMedia = croppedImages.length > 0 || !!trimmedVideo;
+
   return (
     <form action={handleSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
-      {/* We don't put values here, we set them in handleSubmit */}
 
-      {/* Grid of selected images */}
+      {/* Grid of selected images or video preview */}
       {croppedImages.length > 0 && (
           <div className="grid grid-cols-2 gap-2">
               {croppedImages.map((img, index) => (
@@ -237,24 +322,64 @@ export default function UploadForm() {
           </div>
       )}
 
+      {trimmedVideo && (
+          <div className="relative aspect-video bg-black rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700 group">
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <video
+                src={URL.createObjectURL(trimmedVideo)}
+                className="w-full h-full object-contain"
+                controls
+              />
+              <button
+                type="button"
+                onClick={removeVideo}
+                className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+          </div>
+      )}
+
       {/* Add Button */}
-      {croppedImages.length < 4 && (
+      {!hasMedia && (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className={`w-full bg-gray-100 dark:bg-zinc-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600 relative overflow-hidden ${croppedImages.length === 0 ? 'aspect-square' : 'h-32'}`}
+          className={`w-full bg-gray-100 dark:bg-zinc-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600 relative overflow-hidden aspect-square`}
         >
           <div className="text-gray-400 flex flex-col items-center">
-            <Camera className="w-8 h-8 mb-2" />
-            <span>{croppedImages.length === 0 ? "Tap to select image" : "Add another image"}</span>
-            <span className="text-xs mt-1">{croppedImages.length}/4</span>
+            <div className="flex gap-2 mb-2">
+                <Camera className="w-8 h-8" />
+                <Video className="w-8 h-8" />
+            </div>
+            <span>Tap to select image or video</span>
           </div>
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             className="hidden"
             onChange={handleFileChange}
           />
+        </div>
+      )}
+
+      {/* Allow adding more images if in Image mode and less than 4 */}
+      {mediaType === "IMAGE" && croppedImages.length > 0 && croppedImages.length < 4 && (
+        <div
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full h-12 bg-gray-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600"
+        >
+            <div className="text-gray-400 flex items-center gap-2 text-sm">
+                <Camera className="w-4 h-4" />
+                <span>Add another image ({croppedImages.length}/4)</span>
+            </div>
+             <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
         </div>
       )}
 
@@ -273,7 +398,7 @@ export default function UploadForm() {
             maxLength={173}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            disabled={croppedImages.length === 0}
+            disabled={!hasMedia}
             className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
             placeholder="Write a caption..."
           />
@@ -297,7 +422,7 @@ export default function UploadForm() {
             name="hashtags"
             value={hashtags}
             onChange={(e) => setHashtags(e.target.value)}
-            disabled={croppedImages.length === 0}
+            disabled={!hasMedia}
             className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
             placeholder="#travel #food #nature"
           />
@@ -311,7 +436,7 @@ export default function UploadForm() {
         <input
           type="checkbox"
           id="isSpoiler"
-          name="isSpoiler" // Added name attribute for direct binding if needed, though we rely on handleSubmit logic mostly
+          name="isSpoiler"
           checked={isSpoiler}
           onChange={(e) => setIsSpoiler(e.target.checked)}
           className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
@@ -327,13 +452,13 @@ export default function UploadForm() {
 
       <button
         type="submit"
-        disabled={isPending || isUploading || croppedImages.length === 0}
+        disabled={isPending || isUploading || !hasMedia}
         className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
       >
         {isUploading || isPending ? (
           <>
             <Spinner className="w-4 h-4 text-white" />
-            <span>{isUploading ? "Uploading Images..." : "Posting..."}</span>
+            <span>{isUploading ? "Uploading..." : "Posting..."}</span>
           </>
         ) : (
           "Share"

@@ -8,6 +8,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
 model User {
   id                Int       @id @default(autoincrement())
   username          String    @unique
@@ -38,17 +43,19 @@ model User {
 }
 
 model Post {
-  id        Int         @id @default(autoincrement())
-  imageUrl  String
-  isSpoiler Boolean     @default(false)
-  comment   String?
-  createdAt DateTime    @default(now())
-  userId    Int
-  comments  Comment[]
-  likes     Like[]
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hashtags  Hashtag[]
-  images    PostImage[]
+  id           Int         @id @default(autoincrement())
+  imageUrl     String
+  mediaType    MediaType   @default(IMAGE)
+  thumbnailUrl String?
+  isSpoiler    Boolean     @default(false)
+  comment      String?
+  createdAt    DateTime    @default(now())
+  userId       Int
+  comments     Comment[]
+  likes        Like[]
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hashtags     Hashtag[]
+  images       PostImage[]
 
   @@index([userId])
 }
