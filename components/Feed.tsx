@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, ChevronLeft, ChevronRight, Layers, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment } from '@/app/actions/comment';
@@ -43,13 +44,6 @@ type Post = {
 
 function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, className?: string }) {
     const [loaded, setLoaded] = useState(false);
-    const imgRef = useRef<HTMLImageElement>(null);
-
-    useEffect(() => {
-        if (imgRef.current && imgRef.current.complete) {
-            setLoaded(true);
-        }
-    }, []);
 
     return (
         <div className={`relative w-full h-full ${className}`}>
@@ -60,14 +54,15 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
                     </div>
                 </div>
             )}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-                ref={imgRef}
+            <Image
                 src={src}
                 alt={alt}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                fill
+                sizes="(max-width: 768px) 33vw, 25vw"
+                className={`object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={() => setLoaded(true)}
                 onError={() => setLoaded(true)} // Hide spinner on error too
+                unoptimized={src.startsWith('/api/')}
             />
         </div>
     );

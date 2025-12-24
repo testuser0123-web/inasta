@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Heart, MessageCircle, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -42,10 +43,12 @@ export function DiaryGrid({ diaries }: { diaries: DiaryEntry[] }) {
           <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
             {diary.thumbnailUrl ? (
               <div className="aspect-video relative">
-                <img
+                <Image
                   src={diary.thumbnailUrl}
                   alt={diary.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
                 />
                 <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
@@ -68,9 +71,16 @@ export function DiaryGrid({ diaries }: { diaries: DiaryEntry[] }) {
               <div className="mt-auto pt-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                    {/* Avatar */}
-                   <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden shrink-0">
+                   <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden shrink-0 relative">
                       {diary.user.avatarUrl ? (
-                        <img src={diary.user.avatarUrl} alt={diary.user.username} className="w-full h-full object-cover" />
+                        <Image
+                          src={diary.user.avatarUrl}
+                          alt={diary.user.username}
+                          fill
+                          sizes="32px"
+                          className="object-cover"
+                          unoptimized={diary.user.avatarUrl.startsWith('/api/')}
+                        />
                       ) : (
                         <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white text-xs">
                           {diary.user.username[0].toUpperCase()}

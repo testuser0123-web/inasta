@@ -49,6 +49,8 @@ model Post {
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   hashtags  Hashtag[]
   images    PostImage[]
+
+  @@index([userId])
 }
 
 model PostImage {
@@ -74,6 +76,7 @@ model Like {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+  @@index([postId])
 }
 
 model Comment {
@@ -84,6 +87,8 @@ model Comment {
   postId    Int
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
 }
 
 model Follow {
@@ -95,6 +100,7 @@ model Follow {
   following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
+  @@index([followingId])
 }
 
 model Mute {
