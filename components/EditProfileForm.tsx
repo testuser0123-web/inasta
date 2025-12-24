@@ -166,7 +166,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                 >
                     {avatarPreview ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                        <img src={avatarPreview} alt="Avatar" crossOrigin="anonymous" className="w-full h-full object-cover" />
                     ) : (
                          <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                              <Camera className="w-8 h-8" />
