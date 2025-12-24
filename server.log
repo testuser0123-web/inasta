@@ -15,3 +15,5 @@
  GET /upload 200 in 4.6s (compile: 4.3s, proxy.ts: 100ms, render: 284ms)
  ✓ Compiled in 59ms
  ✓ Compiled in 1245ms
+ ✓ Compiled in 1762ms
+ ✓ Compiled in 251ms

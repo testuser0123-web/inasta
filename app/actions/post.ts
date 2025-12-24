@@ -123,6 +123,7 @@ export async function fetchFeedPosts({
   return postsData.map((post) => ({
     ...post,
     imageUrl: `/api/image/${post.id}.jpg`,
+    thumbnailUrl: post.thumbnailUrl ? `/api/post_thumbnail/${post.id}.jpg` : null,
     images: post.images.map(img => ({
       ...img,
       url: `/api/post_image/${img.id}.jpg`
@@ -201,6 +202,7 @@ export async function fetchUserPosts({
   return postsData.map((post) => ({
     ...post,
     imageUrl: `/api/image/${post.id}.jpg`,
+    thumbnailUrl: post.thumbnailUrl ? `/api/post_thumbnail/${post.id}.jpg` : null,
     images: post.images.map(img => ({
       ...img,
       url: `/api/post_image/${img.id}.jpg`
@@ -278,6 +280,7 @@ export async function fetchLikedPosts({
   return likedPostsData.map((item) => ({
     ...item.post,
     imageUrl: `/api/image/${item.post.id}.jpg`,
+    thumbnailUrl: item.post.thumbnailUrl ? `/api/post_thumbnail/${item.post.id}.jpg` : null,
     images: item.post.images.map(img => ({
       ...img,
       url: `/api/post_image/${img.id}.jpg`
