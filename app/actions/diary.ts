@@ -40,7 +40,10 @@ async function uploadToSupabase(file: File, userId: string, folder: string): Pro
     .from(BUCKET_NAME)
     .getPublicUrl(path);
 
-  return data.publicUrl;
+  // Return a proxy URL instead of the direct Supabase URL
+  // The path passed to getPublicUrl was e.g. "diary/userId/filename"
+  // We want to return "/api/diary_image/diary/userId/filename"
+  return `/api/diary_image/${path}`;
 }
 
 export async function createDiary(formData: FormData) {
