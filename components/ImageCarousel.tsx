@@ -41,19 +41,32 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               onScroll={handleScroll}
           >
-              {imageUrls.map((url, idx) => (
-                  <div key={idx} className="w-full flex-shrink-0 snap-center relative h-[50vh] min-h-[300px]">
-                      <Image
-                          src={url}
-                          alt={`Slide ${idx}`}
-                          fill
-                          className="object-contain"
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          priority={idx === 0}
-                          unoptimized={url.startsWith('/api/')}
-                      />
-                  </div>
-              ))}
+              {imageUrls.map((url, idx) => {
+                  const isExternal = url.startsWith('http');
+                  return (
+                      <div key={idx} className="w-full flex-shrink-0 snap-center relative h-[50vh] min-h-[300px]">
+                          {isExternal ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                  src={url}
+                                  alt={`Slide ${idx}`}
+                                  className="object-contain w-full h-full"
+                                  crossOrigin="anonymous"
+                              />
+                          ) : (
+                              <Image
+                                  src={url}
+                                  alt={`Slide ${idx}`}
+                                  fill
+                                  className="object-contain"
+                                  sizes="(max-width: 768px) 100vw, 50vw"
+                                  priority={idx === 0}
+                                  unoptimized={url.startsWith('/api/')}
+                              />
+                          )}
+                      </div>
+                  );
+              })}
           </div>
 
           {/* Navigation Arrows */}
