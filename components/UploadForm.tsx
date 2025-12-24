@@ -171,7 +171,7 @@ export default function UploadForm() {
       formData.set('mediaType', mediaType);
 
       if (mediaType === "IMAGE") {
-          setUploadProgress("Uploading Images...");
+          setUploadProgress("✉️ᶘｲ^⇁^ﾅ川💦");
           // Convert base64 cropped images to files and upload to Supabase
           const uploadPromises = croppedImages.map(async (base64, index) => {
             const res = await fetch(base64);
@@ -189,7 +189,7 @@ export default function UploadForm() {
             formData.set('imageUrl', uploadedUrls[0]);
           }
       } else if (mediaType === "VIDEO" && trimmedVideo) {
-          setUploadProgress("Uploading Video...");
+          setUploadProgress("🎞️ᶘｲ^⇁^ﾅ川💦");
           const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
           const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
@@ -442,7 +442,7 @@ export default function UploadForm() {
             htmlFor="comment"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            Comment
+            コメント
           </label>
           <div className="relative">
             <input
