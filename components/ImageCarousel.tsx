@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface ImageCarouselProps {
   imageUrls: string[];
@@ -32,7 +33,7 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
   };
 
   return (
-      <div className="w-full relative bg-gray-100 dark:bg-gray-800 min-h-[200px] shrink-0 group">
+      <div className="w-full relative bg-gray-100 dark:bg-gray-800 min-h-[300px] shrink-0 group">
            {/* Slider */}
           <div
               ref={scrollContainerRef}
@@ -41,12 +42,15 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
               onScroll={handleScroll}
           >
               {imageUrls.map((url, idx) => (
-                  <div key={idx} className="w-full flex-shrink-0 snap-center flex items-center justify-center h-auto max-h-[50vh]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                  <div key={idx} className="w-full flex-shrink-0 snap-center relative h-[50vh] min-h-[300px]">
+                      <Image
                           src={url}
                           alt={`Slide ${idx}`}
-                          className="w-full h-full object-contain max-h-[50vh]"
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          priority={idx === 0}
+                          unoptimized={url.startsWith('/api/')}
                       />
                   </div>
               ))}
