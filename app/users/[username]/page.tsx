@@ -81,7 +81,9 @@ export default async function UserPage({ params }: { params: Promise<{ username:
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
-      // imageUrl: true,
+      imageUrl: true,
+      mediaType: true,
+      thumbnailUrl: true,
       comment: true,
       isSpoiler: true,
       createdAt: true,
@@ -94,7 +96,8 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       images: {
           select: {
               id: true,
-              order: true
+              order: true,
+              url: true
           },
           orderBy: {
               order: 'asc'
@@ -123,6 +126,16 @@ export default async function UserPage({ params }: { params: Promise<{ username:
 
   const posts = postsData.map(post => ({
       ...post,
+      imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+          ? post.imageUrl
+          : `/api/image/${post.id}.jpg`,
+      thumbnailUrl: post.thumbnailUrl
+        ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
+        : null,
+      images: post.images.map(img => ({
+        ...img,
+        url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
+      })),
       user: {
           ...post.user,
           avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
@@ -144,7 +157,9 @@ export default async function UserPage({ params }: { params: Promise<{ username:
               post: {
                   select: {
                     id: true,
-                    // imageUrl: true,
+                    imageUrl: true,
+                    mediaType: true,
+                    thumbnailUrl: true,
                     comment: true,
                     isSpoiler: true,
                     createdAt: true,
@@ -157,7 +172,8 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                 images: {
                     select: {
                         id: true,
-                        order: true
+                        order: true,
+                        url: true
                     },
                     orderBy: {
                         order: 'asc'
@@ -188,6 +204,16 @@ export default async function UserPage({ params }: { params: Promise<{ username:
 
       likedPosts = likedPostsData.map(item => ({
           ...item.post,
+          imageUrl: item.post.imageUrl && item.post.imageUrl.startsWith('http')
+            ? item.post.imageUrl
+            : `/api/image/${item.post.id}.jpg`,
+          thumbnailUrl: item.post.thumbnailUrl
+            ? (item.post.thumbnailUrl.startsWith('http') ? item.post.thumbnailUrl : `/api/post_thumbnail/${item.post.id}.jpg`)
+            : null,
+          images: item.post.images.map(img => ({
+            ...img,
+            url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
+          })),
           user: {
               ...item.post.user,
               avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}` : null
