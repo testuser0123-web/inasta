@@ -39,10 +39,10 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-24">
+    <div className="max-w-4xl mx-auto pb-24 px-4 sm:px-0">
       <div className="mb-6">
          <div className="flex items-center gap-4 mb-6">
-             <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
+             <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                 {diary.user.avatarUrl ? (
                    <img src={diary.user.avatarUrl} alt={diary.user.username} className="w-full h-full object-cover" />
                 ) : (
