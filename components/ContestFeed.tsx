@@ -108,14 +108,14 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
 
                             <div className="p-4">
                                 <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">
                                         {post.user.avatarUrl && (
                                             // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={post.user.avatarUrl} alt={post.user.username} className="w-8 h-8 rounded-full object-cover" />
+                                            <img src={post.user.avatarUrl} alt={post.user.username} className="w-8 h-8 rounded-full object-cover shrink-0" />
                                         )}
-                                        <span className="font-bold">@{post.user.username}</span>
+                                        <span className="font-bold truncate">@{post.user.username}</span>
                                     </div>
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1 shrink-0 ml-2">
                                         <Heart className="w-5 h-5 fill-red-500 text-red-500" />
                                         <span>{post.likesCount}</span>
                                     </div>
@@ -152,15 +152,15 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
 
                         <div className="p-4 overflow-y-auto flex-1 dark:text-gray-100">
                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                     <button onClick={() => handleLike(selectedPost)} disabled={selectedPost.isEnded} className="flex items-center gap-1.5 transition-colors group">
+                                <div className="flex items-center gap-3 w-full">
+                                     <button onClick={() => handleLike(selectedPost)} disabled={selectedPost.isEnded} className="flex items-center gap-1.5 transition-colors group shrink-0">
                                          <Heart className={`w-6 h-6 transition-colors ${selectedPost.hasLiked ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-gray-300 group-hover:text-red-500'}`} />
                                          <span className="font-semibold text-gray-700 dark:text-gray-300">{selectedPost.likesCount}</span>
                                      </button>
                                      {selectedPost.user && (
-                                         <Link href={`/users/${selectedPost.user.username}`} className="flex items-center gap-2 hover:opacity-80">
-                                             <span className="font-bold text-sm">@{selectedPost.user.username}</span>
-                                             {selectedPost.user.isGold && <BadgeCheck className="w-4 h-4 text-yellow-500" />}
+                                         <Link href={`/users/${selectedPost.user.username}`} className="flex items-center gap-2 hover:opacity-80 min-w-0">
+                                             <span className="font-bold text-sm truncate">@{selectedPost.user.username}</span>
+                                             {selectedPost.user.isGold && <BadgeCheck className="w-4 h-4 text-yellow-500 shrink-0" />}
                                          </Link>
                                      )}
                                 </div>
