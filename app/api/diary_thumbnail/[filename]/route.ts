@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { list } from '@vercel/blob';
 
 export async function GET(
   request: NextRequest,
@@ -29,20 +30,50 @@ export async function GET(
 
     // Proxy URL
     if (imageUrl.startsWith('http')) {
-        const response = await fetch(imageUrl);
-        if (!response.ok) {
-            return new NextResponse('Error fetching image', { status: response.status });
-        }
-        const contentType = response.headers.get('content-type') || 'application/octet-stream';
-        const buffer = await response.arrayBuffer();
+      let response: Response | null = null;
+      try {
+        response = await fetch(imageUrl);
+      } catch (error) {
+        console.error('Error fetching image from URL:', error);
+      }
 
-        return new NextResponse(buffer, {
-            headers: {
-                'Content-Type': contentType,
-                'Cache-Control': CACHE_CONTROL,
-                'Cross-Origin-Resource-Policy': 'cross-origin',
-            }
+      if (!response || !response.ok) {
+        try {
+          // Fallback to Vercel Blob
+          // Extract pathname (e.g. "diary-thumbnail/65/...") from the URL
+          const urlObj = new URL(imageUrl);
+          const pathname = urlObj.pathname.substring(1); // Remove leading slash
+
+          const { blobs } = await list({
+            prefix: pathname,
+            limit: 1,
+            token: process.env.BLOB_READ_WRITE_TOKEN,
+          });
+
+          if (blobs.length > 0) {
+            response = await fetch(blobs[0].url);
+          }
+        } catch (error) {
+          console.error('Error fetching image from Vercel Blob:', error);
+        }
+      }
+
+      if (!response || !response.ok) {
+        return new NextResponse('Error fetching image', {
+          status: response ? response.status : 404,
         });
+      }
+      const contentType =
+        response.headers.get('content-type') || 'application/octet-stream';
+      const buffer = await response.arrayBuffer();
+
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': CACHE_CONTROL,
+          'Cross-Origin-Resource-Policy': 'cross-origin',
+        },
+      });
     }
 
     // Check if it's a Data URI
