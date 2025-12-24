@@ -10,7 +10,7 @@ import { useUI } from '@/components/providers/ui-provider';
 export default function Sidebar({ username }: { username?: string }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isUploading, isSidebarVisible } = useUI();
+  const { isSidebarVisible } = useUI();
 
   const navItems = [
     { icon: Home, label: 'Home', href: '/' },
@@ -21,8 +21,8 @@ export default function Sidebar({ username }: { username?: string }) {
     { icon: User, label: 'Profile', href: '/profile' },
   ];
 
-  // Hide mobile menu button and prevent interaction when uploading OR sidebar is hidden
-  if (isUploading || !isSidebarVisible) {
+  // Hide mobile menu button and prevent interaction when sidebar is hidden (e.g. video editor)
+  if (!isSidebarVisible) {
       // Return null to completely hide (including hamburger button)
       return null;
   }
