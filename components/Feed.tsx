@@ -101,16 +101,6 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
     }
 
-    // Direct navigation for mobile/SEO friendliness and deep linking
-    // Using router.push instead of opening a modal for better URL sharing support as per user preference (inferred)
-    // However, the Feed component has a Modal implementation.
-    // If we want to support the "client side download" requirement fully, navigating to the individual page is safer
-    // But let's check if we should just open the modal with the video.
-    // The previous implementation opened a modal.
-
-    // Actually, let's keep the modal for feed interactions to maintain SPA feel,
-    // BUT we must ensure the Video in the modal is also optimized.
-
     setSelectedPostId(post.id);
 
     // Fetch comments on demand if they are not already loaded
@@ -308,6 +298,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                         autoPlay
                         loop
                         poster={selectedPost.thumbnailUrl || undefined}
+                        crossOrigin="anonymous"
                     />
                 </div>
             ) : (

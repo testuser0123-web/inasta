@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!post) return {};
 
-  const imageUrl = post.imageUrl.startsWith('http')
+  const imageUrl = (post.imageUrl && post.imageUrl.startsWith('http'))
     ? post.imageUrl
     : `${getBaseUrl()}/api/image/${id}.jpg`;
 

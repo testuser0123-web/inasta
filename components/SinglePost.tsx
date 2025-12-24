@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, Play } from 'lucide-react';
+import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost } from '@/app/actions/post';
@@ -146,6 +146,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
              playsInline
              className="w-full h-full object-contain"
              preload="metadata"
+             crossOrigin="anonymous"
            />
          </div>
        ) : (

@@ -123,13 +123,15 @@ export async function fetchFeedPosts({
 
   return postsData.map((post) => ({
     ...post,
-    imageUrl: post.imageUrl.startsWith('http') ? post.imageUrl : `/api/image/${post.id}.jpg`,
+    imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+        ? post.imageUrl
+        : `/api/image/${post.id}.jpg`,
     thumbnailUrl: post.thumbnailUrl
       ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
       : null,
     images: post.images.map(img => ({
       ...img,
-      url: img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
+      url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...post.user,
@@ -206,13 +208,15 @@ export async function fetchUserPosts({
 
   return postsData.map((post) => ({
     ...post,
-    imageUrl: post.imageUrl.startsWith('http') ? post.imageUrl : `/api/image/${post.id}.jpg`,
+    imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+        ? post.imageUrl
+        : `/api/image/${post.id}.jpg`,
     thumbnailUrl: post.thumbnailUrl
       ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
       : null,
     images: post.images.map(img => ({
       ...img,
-      url: img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
+      url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...post.user,
@@ -288,13 +292,15 @@ export async function fetchLikedPosts({
 
   return likedPostsData.map((item) => ({
     ...item.post,
-    imageUrl: item.post.imageUrl.startsWith('http') ? item.post.imageUrl : `/api/image/${item.post.id}.jpg`,
+    imageUrl: item.post.imageUrl && item.post.imageUrl.startsWith('http')
+        ? item.post.imageUrl
+        : `/api/image/${item.post.id}.jpg`,
     thumbnailUrl: item.post.thumbnailUrl
       ? (item.post.thumbnailUrl.startsWith('http') ? item.post.thumbnailUrl : `/api/post_thumbnail/${item.post.id}.jpg`)
       : null,
     images: item.post.images.map(img => ({
       ...img,
-      url: img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
+      url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
     })),
     user: {
       ...item.post.user,
