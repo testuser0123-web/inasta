@@ -49,6 +49,9 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
     const [loaded, setLoaded] = useState(false);
     const isExternal = src.startsWith('http');
 
+    const cleanSrc = src?.trim() || '';
+    const isExternal = cleanSrc.startsWith('http') || cleanSrc.startsWith('//');
+
     return (
         <div className={`relative w-full h-full ${className}`}>
             {!loaded && (
