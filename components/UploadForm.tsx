@@ -2,11 +2,10 @@
 
 import { useActionState, useState, useRef, useCallback, useEffect } from "react";
 import { createPost } from "@/app/actions/post";
-import { Camera, Check, X, Smartphone, Image as ImageIcon, Video, Loader2 } from "lucide-react";
+import { Camera, Check, X, Smartphone, Image as ImageIcon, Video } from "lucide-react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/image";
 import { uploadImageToSupabase } from "@/lib/client-upload";
-import { Spinner } from "@/components/ui/spinner";
 import VideoEditor from "@/components/VideoEditor";
 import { useUI } from "@/components/providers/ui-provider";
 
@@ -326,20 +325,6 @@ export default function UploadForm() {
 
   return (
     <>
-      {(isUploading || isPending) && (
-        <div className="fixed inset-0 z-[9999] bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm">
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl flex flex-col items-center gap-4 shadow-xl">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-            <div className="text-center">
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">Processing...</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {uploadProgress || "Please wait..."}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <form action={handleSubmit} className="space-y-6 w-full max-w-md mx-auto p-4">
 
         {/* Grid of selected images or video preview */}
@@ -495,10 +480,7 @@ export default function UploadForm() {
           className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
         >
           {isUploading || isPending ? (
-            <>
-              <Spinner className="w-4 h-4 text-white" />
-              <span>{isUploading ? "Processing..." : "Posting..."}</span>
-            </>
+            <span>{isUploading ? "Processing..." : "Posting..."}</span>
           ) : (
             "Share"
           )}

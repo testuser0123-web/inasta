@@ -9,7 +9,6 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { uploadImageToSupabase } from "@/lib/client-upload";
-import { Spinner } from "@/components/ui/spinner";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
@@ -190,10 +189,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
 
             <button type="submit" disabled={isPending || isUploading || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-bold flex items-center justify-center gap-2">
                 {isPending || isUploading ? (
-                  <>
-                    <Spinner className="w-4 h-4 text-white" />
-                    <span>{isUploading ? "アップロード中..." : "投稿中..."}</span>
-                  </>
+                  <span>{isUploading ? "アップロード中..." : "投稿中..."}</span>
                 ) : "投稿する"}
             </button>
         </form>

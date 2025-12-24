@@ -175,8 +175,7 @@ export default function NewDiaryPage() {
             disabled={isSubmitting}
             className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
           >
-            {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
-            日記を投稿する
+            {isSubmitting ? "投稿中..." : "日記を投稿する"}
           </button>
         </div>
       </form>
