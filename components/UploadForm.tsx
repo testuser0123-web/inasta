@@ -25,7 +25,8 @@ export default function UploadForm() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
   // Global UI state
-  const { isUploading, setIsUploading, setSidebarVisible } = useUI();
+  const { setSidebarVisible } = useUI();
+  const [isProcessing, setIsProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
@@ -158,7 +159,7 @@ export default function UploadForm() {
   }
 
   const handleSubmit = async (formData: FormData) => {
-    setIsUploading(true);
+    setIsProcessing(true);
     setUploadProgress("Preparing...");
 
     // Yield to UI to ensure overlay renders
@@ -227,9 +228,12 @@ export default function UploadForm() {
     } catch (error) {
       console.error("Upload failed", error);
       alert("Upload failed. Please try again.");
+      setIsProcessing(false);
     } finally {
-      setIsUploading(false);
       setUploadProgress("");
+      // Note: We don't indiscriminately reset isProcessing to false here because
+      // if the action succeeded (redirect), we want to keep the button disabled.
+      // If action failed, we handle it in catch or by checking state.
     }
   };
 
@@ -422,7 +426,7 @@ export default function UploadForm() {
               maxLength={173}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending}
+              disabled={!hasMedia || isProcessing || isPending}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="Write a caption..."
             />
@@ -446,7 +450,7 @@ export default function UploadForm() {
               name="hashtags"
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending}
+              disabled={!hasMedia || isProcessing || isPending}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="#travel #food #nature"
             />
@@ -476,11 +480,11 @@ export default function UploadForm() {
 
         <button
           type="submit"
-          disabled={isPending || isUploading || !hasMedia}
-          className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
+          disabled={isPending || isProcessing || !hasMedia}
+          className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          {isUploading || isPending ? (
-            <span>{isUploading ? "Processing..." : "Posting..."}</span>
+          {isProcessing || isPending ? (
+            <span>{isProcessing ? "Processing..." : "Posting..."}</span>
           ) : (
             "Share"
           )}
