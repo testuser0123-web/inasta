@@ -51,6 +51,14 @@ export default function UploadForm() {
       return () => setSidebarVisible(true);
   }, [mediaType, mediaFile, setSidebarVisible]);
 
+  // Handle server-side errors from createPost
+  useEffect(() => {
+    if (state?.message && !isPending) {
+        setIsUploading(false);
+        setUploadProgress("");
+    }
+  }, [state, isPending, setIsUploading]);
+
   const onCropComplete = useCallback(
     (croppedArea: Area, croppedAreaPixels: Area) => {
       setCroppedAreaPixels(croppedAreaPixels);
@@ -224,12 +232,14 @@ export default function UploadForm() {
       setUploadProgress("Finalizing Post...");
       // Call the Server Action
       await action(formData);
+      // NOTE: We do NOT set isUploading(false) here because on success, the action redirects.
+      // If we set it to false, the spinner disappears before navigation completes.
+      // If there is an error, the 'state' will update and the useEffect above will handle resetting isUploading.
 
     } catch (error) {
       console.error("Upload failed", error);
       alert("Upload failed. Please try again.");
-    } finally {
-      setIsUploading(false);
+      setIsUploading(false); // Only reset on client-side errors (upload failure, etc)
       setUploadProgress("");
     }
   };
