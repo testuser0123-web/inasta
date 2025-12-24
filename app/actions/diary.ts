@@ -312,9 +312,7 @@ export async function getDiaryById(id: number) {
     user: {
       ...diary.user,
       avatarUrl: diary.user.avatarUrl
-        ? diary.user.avatarUrl.startsWith('http')
-          ? diary.user.avatarUrl
-          : `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
+        ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
         : null,
     },
     comments: diary.comments.map((comment) => ({
