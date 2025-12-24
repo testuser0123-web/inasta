@@ -112,8 +112,9 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
         "-i", inputName,
         "-ss", startTime.toString(),
         "-to", endTime.toString(),
-        "-c:v", "copy", // Try copy first for speed
-        "-c:a", "copy",
+        "-c:v", "libx264", // Re-encode to ensure keyframes are handled correctly
+        "-preset", "ultrafast", // Optimize for speed in browser
+        "-c:a", "aac",
         outputName
       ]);
 
