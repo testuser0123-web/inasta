@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
+import cloudinary from "@/lib/cloudinary";
 
 export async function fetchFeedPosts({
   cursorId,
@@ -465,6 +466,23 @@ export async function deletePost(postId: number) {
 
   if (post.userId !== session.id) {
     return { message: "Forbidden" };
+  }
+
+  // If video, delete from Cloudinary
+  if (post.mediaType === "VIDEO" && post.imageUrl) {
+    try {
+      // Extract public_id from URL
+      // Example: https://res.cloudinary.com/demo/video/upload/v123456789/folder/my_video.mp4
+      // We need "folder/my_video"
+      const matches = post.imageUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
+      if (matches && matches[1]) {
+        const publicId = matches[1];
+        await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
+      }
+    } catch (error) {
+      console.error("Failed to delete video from Cloudinary:", error);
+      // Continue with DB deletion even if Cloudinary fails
+    }
   }
 
   await db.post.delete({
