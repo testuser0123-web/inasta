@@ -5,10 +5,12 @@ import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book } from 'luci
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { logout } from '@/app/actions/logout';
+import { useUI } from '@/components/providers/ui-provider';
 
 export default function Sidebar({ username }: { username?: string }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isUploading } = useUI();
 
   const navItems = [
     { icon: Home, label: 'Home', href: '/' },
@@ -18,6 +20,22 @@ export default function Sidebar({ username }: { username?: string }) {
     { icon: PlusSquare, label: 'Create', href: '/upload' },
     { icon: User, label: 'Profile', href: '/profile' },
   ];
+
+  // Hide mobile menu button and prevent interaction when uploading
+  if (isUploading) {
+      return (
+        <aside
+            className={`fixed top-0 left-0 h-full bg-white dark:bg-black border-r dark:border-gray-800 transition-transform duration-300 ease-in-out z-[90]
+            -translate-x-full md:translate-x-0 w-64 flex flex-col pointer-events-none opacity-50`}
+        >
+            <div className="p-6 border-b dark:border-gray-800">
+                <div className="relative h-8 w-auto">
+                    {/* Placeholder for logo */}
+                </div>
+            </div>
+        </aside>
+      );
+  }
 
   return (
     <>

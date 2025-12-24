@@ -8,6 +8,7 @@ import { getCroppedImg } from "@/lib/image";
 import { uploadImageToSupabase } from "@/lib/client-upload";
 import { Spinner } from "@/components/ui/spinner";
 import VideoEditor from "@/components/VideoEditor";
+import { useUI } from "@/components/providers/ui-provider";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
@@ -24,7 +25,8 @@ export default function UploadForm() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  // Global UI state for isUploading
+  const { isUploading, setIsUploading } = useUI();
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [comment, setComment] = useState("");
   const [hashtags, setHashtags] = useState("");
@@ -144,6 +146,10 @@ export default function UploadForm() {
   const handleSubmit = async (formData: FormData) => {
     setIsUploading(true);
     setUploadProgress("Preparing...");
+
+    // Yield to UI to ensure overlay renders
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
       formData.set('mediaType', mediaType);
 
@@ -302,7 +308,7 @@ export default function UploadForm() {
   return (
     <>
       {(isUploading || isPending) && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm">
           <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl flex flex-col items-center gap-4 shadow-xl">
             <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
             <div className="text-center">
