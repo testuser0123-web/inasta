@@ -47,6 +47,7 @@ type Post = {
 
 function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, className?: string }) {
     const [loaded, setLoaded] = useState(false);
+    const isExternal = src.startsWith('http');
 
     return (
         <div className={`relative w-full h-full ${className}`}>
@@ -57,16 +58,28 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
                     </div>
                 </div>
             )}
-            <Image
-                src={src}
-                alt={alt}
-                fill
-                sizes="(max-width: 768px) 33vw, 25vw"
-                className={`object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-                onLoad={() => setLoaded(true)}
-                onError={() => setLoaded(true)} // Hide spinner on error too
-                unoptimized={src.startsWith('/api/') || src.startsWith('http')}
-            />
+            {isExternal ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={src}
+                    alt={alt}
+                    className={`object-cover w-full h-full transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={() => setLoaded(true)}
+                    onError={() => setLoaded(true)}
+                    crossOrigin="anonymous"
+                />
+            ) : (
+                <Image
+                    src={src}
+                    alt={alt}
+                    fill
+                    sizes="(max-width: 768px) 33vw, 25vw"
+                    className={`object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={() => setLoaded(true)}
+                    onError={() => setLoaded(true)}
+                    unoptimized={src.startsWith('/api/')}
+                />
+            )}
         </div>
     );
 }
@@ -344,7 +357,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                              <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                                 {selectedPost.user.avatarUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={selectedPost.user.avatarUrl} alt={selectedPost.user.username} className="w-full h-full object-cover" />
+                                    <img src={selectedPost.user.avatarUrl} alt={selectedPost.user.username} className="w-full h-full object-cover" crossOrigin="anonymous" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-300">
                                         <UserIcon className="w-4 h-4" />

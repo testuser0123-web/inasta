@@ -193,7 +193,12 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                         <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                            {post.user.avatarUrl ? (
                                // eslint-disable-next-line @next/next/no-img-element
-                               <img src={post.user.avatarUrl} alt={post.user.username} className="w-full h-full object-cover" />
+                               <img
+                                 src={post.user.avatarUrl}
+                                 alt={post.user.username}
+                                 className="w-full h-full object-cover"
+                                 crossOrigin={post.user.avatarUrl.startsWith('http') ? 'anonymous' : undefined}
+                               />
                            ) : (
                                <div className="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-300">
                                    <UserIcon className="w-4 h-4" />
