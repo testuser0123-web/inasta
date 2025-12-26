@@ -10,9 +10,8 @@ export default async function FeedContent({
     searchQuery: string
 }) {
     const session = await getSession();
-    // Assuming session exists because the parent checks it, but good to be safe or pass userId as prop
-    // However, Feed needs currentUserId.
-    if (!session) return null;
+    // Use -1 for guest ID (or any ID that won't match a real user)
+    const currentUserId = session ? session.id : -1;
 
     const posts = await fetchFeedPosts({ feedType, searchQuery });
 
@@ -36,7 +35,7 @@ export default async function FeedContent({
     return (
         <Feed
             initialPosts={posts}
-            currentUserId={session.id}
+            currentUserId={currentUserId}
             feedType={feedType}
             searchQuery={searchQuery}
         />

@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import Link from "next/link";
 import { User, Search } from "lucide-react";
@@ -15,9 +14,12 @@ export default async function Home({
   searchParams: Promise<{ feed?: string; q?: string }>;
 }) {
   const session = await getSession();
-  if (!session) {
-    redirect("/login");
-  }
+
+  // Note: We no longer redirect to /login here. Guests are allowed.
+  // const session = await getSession();
+  // if (!session) {
+  //   redirect("/login");
+  // }
 
   const resolvedSearchParams = await searchParams;
   let feedType: "all" | "following" | "search" = "all";
@@ -25,6 +27,11 @@ export default async function Home({
     feedType = "following";
   } else if (resolvedSearchParams.feed === "search") {
     feedType = "search";
+  }
+
+  // Restrict guest from accessing 'following' feed
+  if (!session && feedType === 'following') {
+    feedType = 'all';
   }
 
   const searchQuery = resolvedSearchParams.q || "";
@@ -47,9 +54,13 @@ export default async function Home({
               className="hidden h-full w-auto dark:block"
             />
           </div>
-          <Link href="/profile" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
-            <User className="w-6 h-6" />
-          </Link>
+          {session ? (
+            <Link href="/profile" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
+              <User className="w-6 h-6" />
+            </Link>
+          ) : (
+             <div className="w-6" /> // Spacer if guest
+          )}
         </div>
 
         {/* Tabs */}
@@ -64,16 +75,18 @@ export default async function Home({
           >
             ALL
           </Link>
-          <Link
-            href="/?feed=following"
-            className={`flex-1 text-center py-2 text-sm font-semibold border-b-2 transition-colors ${
-              feedType === "following"
-                ? "border-black dark:border-white text-black dark:text-white"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-            }`}
-          >
-            Following
-          </Link>
+          {session && (
+            <Link
+                href="/?feed=following"
+                className={`flex-1 text-center py-2 text-sm font-semibold border-b-2 transition-colors ${
+                feedType === "following"
+                    ? "border-black dark:border-white text-black dark:text-white"
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                }`}
+            >
+                Following
+            </Link>
+          )}
           <Link
             href="/?feed=search"
             className={`flex-1 text-center py-2 text-sm font-semibold border-b-2 transition-colors flex justify-center items-center gap-1 ${

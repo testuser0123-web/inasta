@@ -17,26 +17,33 @@ export async function fetchFeedPosts({
   searchQuery?: string;
 }) {
   const session = await getSession();
-  if (!session) return [];
+  const currentUserId = session ? session.id : -1;
 
-  // Get muted users to exclude
-  const muted = await db.mute.findMany({
-    where: { muterId: session.id },
-    select: { mutedId: true },
-  });
-  const mutedIds = muted.map((m) => m.mutedId);
+  // Get muted users to exclude (only if logged in)
+  let mutedIds: number[] = [];
+  if (session) {
+    const muted = await db.mute.findMany({
+        where: { muterId: session.id },
+        select: { mutedId: true },
+    });
+    mutedIds = muted.map((m) => m.mutedId);
+  }
 
   // Check user settings for excluding unverified posts
-  const user = await db.user.findUnique({
-    where: { id: session.id },
-    select: { excludeUnverifiedPosts: true },
-  });
+  let excludeUnverifiedPosts = false;
+  if (session) {
+      const user = await db.user.findUnique({
+        where: { id: session.id },
+        select: { excludeUnverifiedPosts: true },
+      });
+      excludeUnverifiedPosts = user?.excludeUnverifiedPosts ?? false;
+  }
 
   let whereClause: Prisma.PostWhereInput = {
     userId: { notIn: mutedIds },
   };
 
-  if (feedType === "all" && user?.excludeUnverifiedPosts) {
+  if (feedType === "all" && excludeUnverifiedPosts) {
      whereClause = {
          ...whereClause,
          user: {
@@ -46,6 +53,9 @@ export async function fetchFeedPosts({
   }
 
   if (feedType === "following") {
+    // If guest tries to access following feed, return empty (handled in UI mostly)
+    if (!session) return [];
+
     const following = await db.follow.findMany({
       where: { followerId: session.id },
       select: { followingId: true },
@@ -116,7 +126,7 @@ export async function fetchFeedPosts({
           select: { likes: true },
         },
         likes: {
-          where: { userId: session.id },
+          where: { userId: currentUserId },
           select: { userId: true },
         },
       },
@@ -161,6 +171,7 @@ export async function fetchUserPosts({
   cursorId?: number;
 }) {
   const session = await getSession();
+  const currentUserId = session ? session.id : -1;
 
   try {
     const postsData = await db.post.findMany({
@@ -206,7 +217,7 @@ export async function fetchUserPosts({
           select: { likes: true },
         },
         likes: {
-          where: { userId: session?.id ?? -1 },
+          where: { userId: currentUserId },
           select: { userId: true },
         },
       },
@@ -251,7 +262,11 @@ export async function fetchLikedPosts({
   cursorId?: number;
 }) {
   const session = await getSession();
-
+  // Guests cannot view their liked posts as they have none/no profile page.
+  // Viewing other user's liked posts might be allowed? The function checks `session.id !== userId` to restrict viewing others likes?
+  // Previous code: `if (!session || session.id !== userId) return [];`
+  // This implies users can only see their own liked posts.
+  // So for guests, this should definitely return empty.
   if (!session || session.id !== userId) return [];
 
   try {
@@ -337,19 +352,17 @@ export async function createPost(prevState: unknown, formData: FormData) {
   if (!session) {
     return { message: "Unauthorized" };
   }
-
+  // ... existing code ...
   const imageUrlsJson = formData.get("imageUrls") as string;
-  const imageUrl = formData.get("imageUrl") as string; // Fallback or first image
+  const imageUrl = formData.get("imageUrl") as string;
   const comment = formData.get("comment") as string;
   const hashtagsRaw = formData.get("hashtags") as string;
   const isSpoiler = formData.get("isSpoiler") === "true";
 
-  // New fields
   const mediaTypeRaw = formData.get("mediaType") as string;
   const mediaType = (mediaTypeRaw === "VIDEO" ? "VIDEO" : "IMAGE") as "VIDEO" | "IMAGE";
   const thumbnailUrl = formData.get("thumbnailUrl") as string | null;
 
-  // We expect imageUrlsJson to be a JSON string of string[]
   let imageUrls: string[] = [];
   if (imageUrlsJson) {
       try {
@@ -359,7 +372,6 @@ export async function createPost(prevState: unknown, formData: FormData) {
       }
   }
 
-  // If no JSON array, fall back to single imageUrl
   if (imageUrls.length === 0 && imageUrl) {
       imageUrls = [imageUrl];
   }
@@ -372,17 +384,14 @@ export async function createPost(prevState: unknown, formData: FormData) {
     return { message: "コメントが長すぎます(173文字まで)" };
   }
 
-  // Parse hashtags
   let hashtagList: string[] = [];
   if (hashtagsRaw) {
-    // Split by space, filter empty strings
     hashtagList = hashtagsRaw
       .split(" ")
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0)
-      .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`)); // Add # if missing
+      .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`));
 
-    // Remove duplicates
     hashtagList = Array.from(new Set(hashtagList));
 
     if (hashtagList.length > 3) {
@@ -410,13 +419,12 @@ export async function createPost(prevState: unknown, formData: FormData) {
         images: {
             create: restImages.map((url, index) => ({
                 url: url,
-                order: index + 1, // Start order from 1 (0 is the main post image)
+                order: index + 1,
             }))
         }
       },
     });
 
-    // Role assignment logic: Check if user qualifies for 'inastagrammer' role
     const user = await db.user.findUnique({
       where: { id: session.id },
       select: { roles: true },
@@ -450,7 +458,7 @@ export async function createPost(prevState: unknown, formData: FormData) {
 
 export async function toggleLike(postId: number) {
   const session = await getSession();
-  if (!session) return;
+  if (!session) return; // Guest check: silent fail or handle in UI
 
   const existingLike = await db.like.findUnique({
     where: {
@@ -499,12 +507,8 @@ export async function deletePost(postId: number) {
     return { message: "Forbidden" };
   }
 
-  // If video, delete from Cloudinary
   if (post.mediaType === "VIDEO" && post.imageUrl) {
     try {
-      // Extract public_id from URL
-      // Example: https://res.cloudinary.com/demo/video/upload/v123456789/folder/my_video.mp4
-      // We need "folder/my_video"
       const matches = post.imageUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
       if (matches && matches[1]) {
         const publicId = matches[1];
@@ -516,7 +520,6 @@ export async function deletePost(postId: number) {
       }
     } catch (error) {
       console.error("Failed to delete video from Cloudinary:", error);
-      // Continue with DB deletion even if Cloudinary fails
     }
   }
 

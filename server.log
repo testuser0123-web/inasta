@@ -2,29 +2,83 @@
 > inasta@0.1.0 dev
 > next dev
 
-   ▲ Next.js 16.0.7 (Turbopack)
-   - Local:         http://localhost:3000
-   - Network:       http://192.168.0.2:3000
-   - Environments: .env
-   - Experiments (use with caution):
-     · optimizePackageImports
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · optimizePackageImports
 
- ✓ Starting...
- ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
- ✓ Ready in 3.1s
- ○ Compiling /upload ...
- GET /upload 200 in 11.0s (compile: 10.5s, proxy.ts: 143ms, render: 389ms)
- ⨯ Error: Unauthorized
-    at getSignedUploadUrl (app/actions/storage.ts:10:11)
-   8 |   const session = await getSession();
-   9 |   if (!session) {
-> 10 |     throw new Error('Unauthorized');
-     |           ^
-  11 |   }
-  12 |
-  13 |   // Sanitize filename {
-  digest: '2742747343'
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1522ms
+○ Compiling /login ...
+ GET /login 200 in 4.5s (compile: 4.0s, proxy.ts: 107ms, render: 475ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
 }
- POST /upload 500 in 862ms (compile: 23ms, proxy.ts: 17ms, render: 822ms)
- GET /upload 200 in 545ms (compile: 346ms, proxy.ts: 29ms, render: 170ms)
- ✓ Compiled in 48ms
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
+}
+ GET / 200 in 280ms (compile: 7ms, proxy.ts: 5ms, render: 268ms)
+ GET /login 200 in 89ms (compile: 13ms, proxy.ts: 8ms, render: 68ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
+}
+ GET / 200 in 264ms (compile: 10ms, proxy.ts: 5ms, render: 249ms)
+ GET /login 200 in 158ms (compile: 15ms, proxy.ts: 9ms, render: 134ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
+}
+ GET / 200 in 185ms (compile: 16ms, proxy.ts: 9ms, render: 159ms)
+ GET /login 200 in 70ms (compile: 6ms, proxy.ts: 4ms, render: 60ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
+}
+ GET / 200 in 113ms (compile: 10ms, proxy.ts: 4ms, render: 99ms)
+Missing SUPABASE_SERVICE_KEY, upload operations may fail.
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId", "public"."Diary"."isDraft", COALESCE("aggr_selection_0_DiaryLike"."_aggr_count_likes", 0) AS "_aggr_count_likes", COALESCE("aggr_selection_1_DiaryComment"."_aggr_count_comments", 0) AS "_aggr_count_comments" FROM "public"."Diary" LEFT JOIN (SELECT "public"."DiaryLike"."diaryId", COUNT(*) AS "_aggr_count_likes" FROM "public"."DiaryLike" WHERE 1=1 GROUP BY "public"."DiaryLike"."diaryId") AS "aggr_selection_0_DiaryLike" ON ("public"."Diary"."id" = "aggr_selection_0_DiaryLike"."diaryId") LEFT JOIN (SELECT "public"."DiaryComment"."diaryId", COUNT(*) AS "_aggr_count_comments" FROM "public"."DiaryComment" WHERE 1=1 GROUP BY "public"."DiaryComment"."diaryId") AS "aggr_selection_1_DiaryComment" ON ("public"."Diary"."id" = "aggr_selection_1_DiaryComment"."diaryId") WHERE ("public"."Diary"."date" >= $1 AND "public"."Diary"."date" <= $2 AND "public"."Diary"."isDraft" = $3) ORDER BY "public"."Diary"."date" DESC OFFSET $4
+⨯ Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0',
+  digest: '3872607252'
+}
+ GET /diary 200 in 1738ms (compile: 1466ms, proxy.ts: 4ms, render: 268ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+⨯ Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0',
+  digest: '3872607252'
+}
+ GET /contests 200 in 773ms (compile: 599ms, proxy.ts: 4ms, render: 170ms)
+ GET /login 200 in 84ms (compile: 10ms, proxy.ts: 5ms, render: 69ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
+}
+ GET / 200 in 149ms (compile: 9ms, proxy.ts: 4ms, render: 136ms)
+Missing SUPABASE_SERVICE_KEY, upload operations may fail.
+prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId", "public"."Diary"."isDraft", COALESCE("aggr_selection_0_DiaryLike"."_aggr_count_likes", 0) AS "_aggr_count_likes", COALESCE("aggr_selection_1_DiaryComment"."_aggr_count_comments", 0) AS "_aggr_count_comments" FROM "public"."Diary" LEFT JOIN (SELECT "public"."DiaryLike"."diaryId", COUNT(*) AS "_aggr_count_likes" FROM "public"."DiaryLike" WHERE 1=1 GROUP BY "public"."DiaryLike"."diaryId") AS "aggr_selection_0_DiaryLike" ON ("public"."Diary"."id" = "aggr_selection_0_DiaryLike"."diaryId") LEFT JOIN (SELECT "public"."DiaryComment"."diaryId", COUNT(*) AS "_aggr_count_comments" FROM "public"."DiaryComment" WHERE 1=1 GROUP BY "public"."DiaryComment"."diaryId") AS "aggr_selection_1_DiaryComment" ON ("public"."Diary"."id" = "aggr_selection_1_DiaryComment"."diaryId") WHERE ("public"."Diary"."date" >= $1 AND "public"."Diary"."date" <= $2 AND "public"."Diary"."isDraft" = $3) ORDER BY "public"."Diary"."date" DESC OFFSET $4
+⨯ Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0',
+  digest: '3872607252'
+}
+ GET /diary 200 in 627ms (compile: 237ms, proxy.ts: 5ms, render: 385ms)
+prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
+⨯ Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0',
+  digest: '3872607252'
+}
+ GET /contests 200 in 202ms (compile: 6ms, proxy.ts: 4ms, render: 192ms)

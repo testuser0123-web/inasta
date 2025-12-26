@@ -43,7 +43,12 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
   const [status, setStatus] = useState(initialStatus);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Guest or no session
+  const isGuest = !currentUser || !currentUser.id;
+
   const handleFollowToggle = async () => {
+    if (isGuest) return;
+
     // Optimistic update
     setStatus(prev => ({ ...prev, isFollowing: !prev.isFollowing }));
     setCounts(prev => ({
@@ -59,6 +64,8 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
   };
 
   const handleMuteToggle = async () => {
+    if (isGuest) return;
+
     setStatus(prev => ({ ...prev, isMuted: !prev.isMuted }));
     setIsMenuOpen(false); // Close menu
     
@@ -147,7 +154,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
          </Link>
       </div>
 
-      {!status.isMe && currentUser && (
+      {!status.isMe && currentUser && !isGuest && (
         <div className="flex items-center gap-2">
            <button
              onClick={handleFollowToggle}
