@@ -214,7 +214,7 @@ export default function ImageTextEditor({ imageSrc, onCancel, onComplete }: Imag
       </div>
 
       {/* Controls */}
-      <div className="bg-white dark:bg-zinc-900 p-4 border-t border-gray-200 dark:border-zinc-800 space-y-4 z-10 relative">
+      <div className="bg-white dark:bg-zinc-900 p-4 border-t border-gray-200 dark:border-zinc-800 space-y-4 z-30 relative">
 
         {/* Toolbar */}
         <div className="flex justify-center gap-6 mb-2">
@@ -266,7 +266,8 @@ export default function ImageTextEditor({ imageSrc, onCancel, onComplete }: Imag
                             step="0.1"
                             value={selectedOverlay.scale}
                             onChange={(e) => updateOverlay(selectedOverlay.id, { scale: parseFloat(e.target.value) })}
-                            className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer touch-none"
                         />
                     </div>
 
@@ -283,7 +284,8 @@ export default function ImageTextEditor({ imageSrc, onCancel, onComplete }: Imag
                             step="1"
                             value={selectedOverlay.rotation}
                             onChange={(e) => updateOverlay(selectedOverlay.id, { rotation: parseInt(e.target.value) })}
-                            className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer touch-none"
                         />
                     </div>
                 </div>
