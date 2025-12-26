@@ -8,11 +8,13 @@ import { getCroppedImg } from "@/lib/image";
 import { uploadImageToSupabase } from "@/lib/client-upload";
 import { Spinner } from "@/components/ui/spinner";
 import VideoEditor from "@/components/VideoEditor";
+import ImageTextEditor from "@/components/ImageTextEditor";
 import { useUI } from "@/components/providers/ui-provider";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
 type MediaType = "IMAGE" | "VIDEO";
+type Step = "SELECT" | "CROP" | "EDIT" | "UPLOAD";
 
 export default function UploadForm() {
   const [state, action, isPending] = useActionState(createPost, undefined);
@@ -20,6 +22,9 @@ export default function UploadForm() {
   const [mediaType, setMediaType] = useState<MediaType>("IMAGE");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [trimmedVideo, setTrimmedVideo] = useState<File | null>(null);
+
+  // State for Image Text Editing
+  const [editingImageSrc, setEditingImageSrc] = useState<string | null>(null);
 
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -39,11 +44,13 @@ export default function UploadForm() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Manage Sidebar visibility based on video editing state
+  // Manage Sidebar visibility based on video editing state or text editing state
   useEffect(() => {
       const isEditingVideo = mediaType === "VIDEO" && !!mediaFile; // Trimming mode
-      // If editing video, hide sidebar.
-      if (isEditingVideo) {
+      const isEditingText = !!editingImageSrc;
+
+      // If editing video or text, hide sidebar.
+      if (isEditingVideo || isEditingText) {
           setSidebarVisible(false);
       } else {
           setSidebarVisible(true);
@@ -51,7 +58,7 @@ export default function UploadForm() {
 
       // Cleanup: ensure sidebar is visible when unmounting or switching modes
       return () => setSidebarVisible(true);
-  }, [mediaType, mediaFile, setSidebarVisible]);
+  }, [mediaType, mediaFile, editingImageSrc, setSidebarVisible]);
 
   const onCropComplete = useCallback(
     (croppedArea: Area, croppedAreaPixels: Area) => {
@@ -126,10 +133,11 @@ export default function UploadForm() {
       );
 
       if (cropped) {
-          setCroppedImages(prev => [...prev, cropped]);
+        // Instead of adding directly to list, go to Text Edit mode
+        setEditingImageSrc(cropped);
       }
 
-      // Reset crop state
+      // Hide Cropper
       setMediaSrc(null);
       setZoom(1);
     } catch (e) {
@@ -137,9 +145,24 @@ export default function UploadForm() {
     }
   }, [mediaSrc, croppedAreaPixels, aspectRatio]);
 
+  const handleTextEditComplete = (finalImageSrc: string) => {
+      setCroppedImages(prev => [...prev, finalImageSrc]);
+      setEditingImageSrc(null);
+  };
+
   const cancelCrop = () => {
     setMediaSrc(null);
     setZoom(1);
+  };
+
+  const cancelTextEdit = () => {
+    // Return to crop mode? Or cancel everything?
+    // Let's just cancel the current image add process
+    setEditingImageSrc(null);
+    // Optionally restore mediaSrc to allow re-crop if we had it?
+    // Current flow clears mediaSrc in handleCropConfirm.
+    // To allow "Back", we'd need to keep mediaSrc.
+    // For now, simpler to just cancel to main screen.
   };
 
   const cancelVideo = () => {
@@ -162,7 +185,7 @@ export default function UploadForm() {
 
   const handleSubmit = async (formData: FormData) => {
     setIsUploading(true);
-    setUploadProgress("Preparing...");
+    setUploadProgress("準備中...");
 
     // Yield to UI to ensure overlay renders
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -189,7 +212,7 @@ export default function UploadForm() {
             formData.set('imageUrl', uploadedUrls[0]);
           }
       } else if (mediaType === "VIDEO" && trimmedVideo) {
-          setUploadProgress("🎞️ᶘｲ^⇁^ﾅ川💦");
+          setUploadProgress("アップロード中... 🎞️ᶘｲ^⇁^ﾅ川💦");
           const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
           const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
@@ -223,13 +246,13 @@ export default function UploadForm() {
           formData.set('thumbnailUrl', thumbnailUrl);
       }
 
-      setUploadProgress("Finalizing Post...");
+      setUploadProgress("仕上げ中...");
       // Call the Server Action
       await action(formData);
 
     } catch (error) {
       console.error("Upload failed", error);
-      alert("Upload failed. Please try again.");
+      alert("送信に失敗しました。もう一度お試しください。");
       // Reset isUploading on error
       setIsUploading(false);
       setUploadProgress("");
@@ -256,6 +279,17 @@ export default function UploadForm() {
       )
   }
 
+  // Text Editor
+  if (editingImageSrc) {
+      return (
+          <ImageTextEditor
+            imageSrc={editingImageSrc}
+            onCancel={cancelTextEdit}
+            onComplete={handleTextEditComplete}
+          />
+      );
+  }
+
   // Image Cropper
   if (mediaType === "IMAGE" && mediaSrc) {
     return (
@@ -263,7 +297,7 @@ export default function UploadForm() {
         <div className="p-4 bg-white dark:bg-zinc-900 border-b flex flex-col gap-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <label className="text-xs text-gray-500 mb-1 block">Zoom</label>
+              <label className="text-xs text-gray-500 mb-1 block">ズーム</label>
               <input
                 type="range"
                 value={zoom}
@@ -279,7 +313,7 @@ export default function UploadForm() {
               <button
                 type="button"
                 onClick={cancelCrop}
-                aria-label="Cancel crop"
+                aria-label="キャンセル"
                 className="p-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
               >
                 <X className="w-6 h-6" />
@@ -287,7 +321,7 @@ export default function UploadForm() {
               <button
                 type="button"
                 onClick={handleCropConfirm}
-                aria-label="Confirm crop"
+                aria-label="決定"
                 className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold text-sm hover:bg-indigo-500"
               >
                 <Check className="w-5 h-5" />
@@ -306,7 +340,7 @@ export default function UploadForm() {
               }`}
             >
               <Smartphone className="w-3 h-3" />
-              Square (1:1)
+              正方形 (1:1)
             </button>
             <button
               type="button"
@@ -318,7 +352,7 @@ export default function UploadForm() {
               }`}
             >
               <ImageIcon className="w-3 h-3" />
-              Original
+              オリジナル
             </button>
           </div>
         </div>
@@ -405,7 +439,7 @@ export default function UploadForm() {
                   <Camera className="w-8 h-8" />
                   <Video className="w-8 h-8" />
               </div>
-              <span>Tap to select image or video</span>
+              <span>タップして画像または動画を選択</span>
             </div>
             <input
               ref={fileInputRef}
@@ -425,7 +459,7 @@ export default function UploadForm() {
           >
               <div className="text-gray-400 flex items-center gap-2 text-sm">
                   <Camera className="w-4 h-4" />
-                  <span>Add another image ({croppedImages.length}/4)</span>
+                  <span>画像を追加 ({croppedImages.length}/4)</span>
               </div>
                <input
                   ref={fileInputRef}
@@ -454,7 +488,7 @@ export default function UploadForm() {
               onChange={(e) => setComment(e.target.value)}
               disabled={!hasMedia || isUploading || isPending}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
-              placeholder="Write a caption..."
+              placeholder="キャプションを入力..."
             />
             <span className="absolute right-3 top-1.5 text-xs text-gray-400">
               {comment.length}/173
@@ -512,10 +546,10 @@ export default function UploadForm() {
           {isUploading || isPending ? (
             <>
               <Spinner className="w-4 h-4 text-white" />
-              <span>{isUploading ? "Processing..." : "Posting..."}</span>
+              <span>{isUploading ? "処理中..." : "送信中..."}</span>
             </>
           ) : (
-            "Share"
+            "シェア"
           )}
         </button>
       </form>

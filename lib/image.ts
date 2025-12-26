@@ -144,3 +144,73 @@ export async function resizeImage(
     }, 'image/jpeg', quality);
   });
 }
+
+export type TextOverlay = {
+  id: string;
+  text: string;
+  x: number; // percentage 0-1 (center point)
+  y: number; // percentage 0-1 (center point)
+  scale: number; // scale relative to base font size
+  rotation: number; // degrees
+  color: string;
+  outlineColor: string;
+  fontFamily?: string;
+};
+
+export async function addTextToImage(
+  imageSrc: string,
+  overlays: TextOverlay[]
+): Promise<string> {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    throw new Error('Canvas context not available');
+  }
+
+  canvas.width = image.width;
+  canvas.height = image.height;
+
+  // Draw original image
+  ctx.drawImage(image, 0, 0);
+
+  // Base font size logic to match WYSIWYG editor
+  // Editor uses: (containerWidth / 20) * scale
+  // Here we use: (imageWidth / 20) * scale
+  const baseSize = image.width / 20;
+
+  overlays.forEach((overlay) => {
+    const { text, x, y, scale, rotation, color, outlineColor } = overlay;
+
+    ctx.save();
+
+    // Translate to position
+    ctx.translate(x * canvas.width, y * canvas.height);
+
+    // Rotate
+    ctx.rotate((rotation * Math.PI) / 180);
+
+    // Font settings
+    const fontSize = baseSize * scale;
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Outline
+    if (outlineColor && outlineColor !== 'transparent') {
+      ctx.strokeStyle = outlineColor;
+      ctx.lineWidth = fontSize * 0.1; // proportional stroke width
+      ctx.lineJoin = 'round';
+      ctx.strokeText(text, 0, 0);
+    }
+
+    // Fill
+    ctx.fillStyle = color;
+    ctx.fillText(text, 0, 0);
+
+    ctx.restore();
+  });
+
+  return canvas.toDataURL('image/jpeg', 0.9);
+}
