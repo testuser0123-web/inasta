@@ -6,7 +6,7 @@ import { Heart, MessageCircle } from 'lucide-react';
 import DiaryEditor from '@/components/DiaryEditor';
 import { toggleDiaryLike, addDiaryComment } from '@/app/actions/diary';
 
-export default function DiaryDetailClient({ diary, currentUserId }: { diary: any, currentUserId?: number }) {
+export default function DiaryDetailClient({ diary, currentUserId, isGuest }: { diary: any, currentUserId?: number, isGuest?: boolean }) {
   const [hasLiked, setHasLiked] = useState(diary.likes.some((l: any) => l.userId === currentUserId));
   const [commentText, setCommentText] = useState('');
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
@@ -68,8 +68,10 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
          <div className="flex items-center gap-6 pt-6 border-t dark:border-gray-800">
             <button
                onClick={handleLike}
-               disabled={!currentUserId}
-               className={`flex items-center gap-2 text-lg transition-colors ${hasLiked ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'}`}
+               disabled={!currentUserId || isGuest}
+               className={`flex items-center gap-2 text-lg transition-colors ${
+                  isGuest ? 'cursor-not-allowed opacity-50' : ''
+               } ${hasLiked ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'}`}
             >
                <Heart className={`w-6 h-6 ${hasLiked ? 'fill-current' : ''}`} />
                <span>{diary.likes.length}</span>
@@ -114,7 +116,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
             )}
          </div>
 
-         {currentUserId && (
+         {currentUserId && !isGuest && (
             <form onSubmit={handleCommentSubmit} className="flex gap-3">
                <input
                   type="text"

@@ -56,7 +56,7 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
     );
 }
 
-export default function ContestFeed({ initialPosts, contestId, isTrophyView = false }: { initialPosts: ContestPost[], contestId: number, isTrophyView?: boolean }) {
+export default function ContestFeed({ initialPosts, contestId, isTrophyView = false, isGuest }: { initialPosts: ContestPost[], contestId: number, isTrophyView?: boolean, isGuest?: boolean }) {
     const [posts, setPosts] = useState(initialPosts);
     const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -69,7 +69,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
     const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
     const handleLike = async (post: ContestPost) => {
-        if (post.isEnded) return;
+        if (post.isEnded || isGuest) return;
 
         setPosts(current => current.map(p =>
             p.id === post.id
@@ -117,7 +117,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                                         <span className="font-bold">@{post.user.username}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <Heart className="w-5 h-5 fill-red-500 text-red-500" />
+                                        <Heart className={`w-5 h-5 fill-red-500 text-red-500 ${isGuest ? 'opacity-50' : ''}`} />
                                         <span>{post.likesCount}</span>
                                     </div>
                                 </div>
@@ -154,7 +154,11 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                         <div className="p-4 overflow-y-auto flex-1 dark:text-gray-100">
                              <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                     <button onClick={() => handleLike(selectedPost)} disabled={selectedPost.isEnded} className="flex items-center gap-1.5 transition-colors group">
+                                     <button
+                                        onClick={() => handleLike(selectedPost)}
+                                        disabled={selectedPost.isEnded || isGuest}
+                                        className={`flex items-center gap-1.5 transition-colors group ${isGuest ? 'cursor-not-allowed opacity-50' : ''}`}
+                                     >
                                          <Heart className={`w-6 h-6 transition-colors ${selectedPost.hasLiked ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-gray-300 group-hover:text-red-500'}`} />
                                          <span className="font-semibold text-gray-700 dark:text-gray-300">{selectedPost.likesCount}</span>
                                      </button>

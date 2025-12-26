@@ -60,6 +60,10 @@ export async function createContest(prevState: any, formData: FormData) {
   const session = await getSession();
   if (!session) return { message: 'ログインが必要です' };
 
+  if (session.username === 'guest') {
+    return { message: 'ゲストユーザーはコンテストを作成できません' };
+  }
+
   const validatedFields = createContestSchema.safeParse({
     title: formData.get('title'),
     description: formData.get('description'),
@@ -110,6 +114,10 @@ const createPostSchema = z.object({
 export async function createContestPost(prevState: any, formData: FormData) {
   const session = await getSession();
   if (!session) return { message: 'ログインが必要です', success: false };
+
+  if (session.username === 'guest') {
+      return { message: 'ゲストユーザーはコンテストに参加できません', success: false };
+  }
 
   const validatedFields = createPostSchema.safeParse({
     contestId: formData.get('contestId'),
@@ -204,6 +212,8 @@ export async function fetchContestPosts({ contestId, sortBy }: { contestId: numb
 export async function toggleContestLike(postId: number) {
   const session = await getSession();
   if (!session) return;
+
+  if (session.username === 'guest') return;
 
   const post = await db.contestPost.findUnique({
       where: { id: postId },

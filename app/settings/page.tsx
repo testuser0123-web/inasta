@@ -9,6 +9,11 @@ export default async function SettingsPage() {
     redirect('/login');
   }
 
+  // Check guest status
+  if (session.username === 'guest') {
+    redirect('/');
+  }
+
   const user = await db.user.findUnique({
     where: { id: session.id },
     select: { excludeUnverifiedPosts: true },

@@ -17,6 +17,7 @@ export default async function DiaryDetailPage(props: { params: Promise<{ id: str
      <DiaryDetailClient
         diary={diary}
         currentUserId={session?.id}
+        isGuest={session?.username === 'guest'}
      />
   );
 }

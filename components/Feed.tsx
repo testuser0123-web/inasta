@@ -249,7 +249,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             ) : post.mediaType === "VIDEO" ? (
                 <div className="w-full h-full relative">
                     <ImageWithSpinner
-                        src={post.thumbnailUrl || post.imageUrl || `/api/image/${post.id}.jpg`}
+                        src={post.thumbnailUrl || `/api/post_thumbnail/${post.id}.jpg`}
                         alt=""
                         className="w-full h-full object-cover"
                     />
