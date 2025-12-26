@@ -16,6 +16,8 @@ export default async function FeedContent({
 
     const posts = await fetchFeedPosts({ feedType, searchQuery });
 
+    const isGuest = session.username === 'guest';
+
     if (feedType === 'following' && posts.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm">
@@ -39,7 +41,7 @@ export default async function FeedContent({
             currentUserId={session.id}
             feedType={feedType}
             searchQuery={searchQuery}
-            isGuest={session.username === 'guest'}
+            isGuest={isGuest}
         />
     );
 }

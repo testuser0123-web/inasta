@@ -36,17 +36,14 @@ type ProfileHeaderProps = {
       silver: number;
       bronze: number;
   };
-  isGuest?: boolean;
 };
 
-export default function ProfileHeader({ user, currentUser, initialCounts, initialStatus, trophies, isGuest }: ProfileHeaderProps) {
+export default function ProfileHeader({ user, currentUser, initialCounts, initialStatus, trophies }: ProfileHeaderProps) {
   const [counts, setCounts] = useState(initialCounts);
   const [status, setStatus] = useState(initialStatus);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleFollowToggle = async () => {
-    if (isGuest) return;
-
     // Optimistic update
     setStatus(prev => ({ ...prev, isFollowing: !prev.isFollowing }));
     setCounts(prev => ({
@@ -62,8 +59,6 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
   };
 
   const handleMuteToggle = async () => {
-    if (isGuest) return;
-
     setStatus(prev => ({ ...prev, isMuted: !prev.isMuted }));
     setIsMenuOpen(false); // Close menu
     
@@ -156,40 +151,37 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
         <div className="flex items-center gap-2">
            <button
              onClick={handleFollowToggle}
-             disabled={isGuest}
              className={`px-6 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                  status.isFollowing 
                  ? 'bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
-             } ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
+             }`}
            >
              {status.isFollowing ? 'Following' : 'Follow'}
            </button>
            
-           {!isGuest && (
-               <div className="relative">
-                 <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300"
-                 >
-                    <MoreHorizontal className="w-6 h-6" />
-                 </button>
+           <div className="relative">
+             <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300"
+             >
+                <MoreHorizontal className="w-6 h-6" />
+             </button>
 
-                 {isMenuOpen && (
-                     <>
-                       <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
-                       <div className="absolute top-full right-0 mt-1 w-32 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg z-20 overflow-hidden">
-                           <button
-                             onClick={handleMuteToggle}
-                             className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
-                           >
-                               {status.isMuted ? 'Unmute' : 'Mute'}
-                           </button>
-                       </div>
-                     </>
-                 )}
-               </div>
-           )}
+             {isMenuOpen && (
+                 <>
+                   <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
+                   <div className="absolute top-full right-0 mt-1 w-32 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg z-20 overflow-hidden">
+                       <button
+                         onClick={handleMuteToggle}
+                         className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
+                       >
+                           {status.isMuted ? 'Unmute' : 'Mute'}
+                       </button>
+                   </div>
+                 </>
+             )}
+           </div>
         </div>
       )}
     </div>

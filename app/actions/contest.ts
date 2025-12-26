@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { getSignedUploadUrl } from './storage';
 
 export async function getContests(tab: 'active' | 'ended') {
   const now = new Date();
@@ -116,7 +117,7 @@ export async function createContestPost(prevState: any, formData: FormData) {
   if (!session) return { message: 'ログインが必要です', success: false };
 
   if (session.username === 'guest') {
-      return { message: 'ゲストユーザーはコンテストに参加できません', success: false };
+    return { message: 'ゲストユーザーはコンテストに参加できません', success: false };
   }
 
   const validatedFields = createPostSchema.safeParse({
@@ -193,7 +194,9 @@ export async function fetchContestPosts({ contestId, sortBy }: { contestId: numb
 
   return posts.map(post => ({
       ...post,
-      imageUrl: `/api/contest_image/${post.id}.png`,
+      imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+          ? post.imageUrl
+          : `/api/contest_image/${post.id}.jpg`, // Use jpg as default or detect type
       user: {
           ...post.user,
           avatarUrl: post.user.avatarUrl
@@ -284,7 +287,9 @@ export async function getContestWinners(contestId: number) {
 
     return posts.map(post => ({
         ...post,
-        imageUrl: `/api/contest_image/${post.id}.png`,
+        imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+          ? post.imageUrl
+          : `/api/contest_image/${post.id}.jpg`,
         user: {
             ...post.user,
             avatarUrl: post.user.avatarUrl
@@ -298,4 +303,8 @@ export async function getContestWinners(contestId: number) {
         likes: undefined,
         _count: undefined
     }));
+}
+
+export async function getContestUploadUrl() {
+    return getSignedUploadUrl('contest_image');
 }

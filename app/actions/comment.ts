@@ -1,50 +1,49 @@
 'use server';
 
-import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
 
-const commentSchema = z.object({
-  postId: z.number(),
-  text: z.string().min(1).max(31, 'Comment must be 31 characters or less'),
-});
-
-export async function addComment(prevState: any, formData: FormData) {
+export async function addComment(prevState: unknown, formData: FormData) {
   const session = await getSession();
   if (!session) {
     return { message: 'Unauthorized' };
   }
 
-  if (session.username === "guest") {
-    return { message: "ゲストユーザーはコメントできません" };
+  if (session.username === 'guest') {
+    return { message: 'ゲストユーザーはコメントできません' };
   }
 
-  const postId = Number(formData.get('postId'));
-  const text = formData.get('text') as string;
+  const postIdStr = formData.get('postId');
+  const text = formData.get('text');
 
-  const validatedFields = commentSchema.safeParse({
-    postId,
-    text,
-  });
+  if (!postIdStr || !text || typeof text !== 'string') {
+    return { message: 'Invalid input' };
+  }
 
-  if (!validatedFields.success) {
-    return {
-      message: validatedFields.error.flatten().fieldErrors.text?.[0] || 'Invalid input',
-    };
+  const postId = parseInt(postIdStr as string, 10);
+  const commentText = text.trim();
+
+  if (commentText.length === 0) {
+    return { message: 'Comment cannot be empty' };
+  }
+
+  if (commentText.length > 31) {
+    return { message: 'Comment too long (max 31 chars)' };
   }
 
   try {
     await db.comment.create({
       data: {
-        text: validatedFields.data.text,
-        postId: validatedFields.data.postId,
-        userId: session.id, // session.id is the correct property name in lib/auth.ts
+        text: commentText,
+        postId,
+        userId: session.id,
       },
     });
 
-    revalidatePath('/');
-    return { success: true, message: 'Comment added' };
+    revalidatePath('/'); // Revalidate feed
+    revalidatePath(`/p/${postId}`); // Revalidate single post page
+    return { message: 'Comment added', success: true };
   } catch (error) {
     console.error('Failed to add comment:', error);
     return { message: 'Failed to add comment' };

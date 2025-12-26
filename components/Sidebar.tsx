@@ -17,7 +17,7 @@ export default function Sidebar({ username }: { username?: string }) {
     { icon: Search, label: 'Search', href: '/?feed=search' },
     { icon: Trophy, label: 'Contests', href: '/contests' },
     { icon: Book, label: 'Diary', href: '/diary' },
-    ...(username !== 'guest' ? [{ icon: PlusSquare, label: 'Create', href: '/upload' }] : []),
+    { icon: PlusSquare, label: 'Create', href: '/upload' },
     { icon: User, label: 'Profile', href: '/profile' },
   ];
 

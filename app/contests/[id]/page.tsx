@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import ContestPostsFetcher from '@/components/ContestPostsFetcher';
 import { Spinner } from '@/components/ui/spinner';
-import { getSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +20,6 @@ export default async function ContestDetailPage({
   const resolvedSearchParams = await searchParams;
   const sort = resolvedSearchParams.sort || 'newest'; // newest, oldest, likes_desc, likes_asc, trophy
 
-  const session = await getSession();
   const contest = await getContest(contestId);
   if (!contest) return notFound();
 
@@ -36,7 +34,7 @@ export default async function ContestDetailPage({
                 <ArrowLeft className="w-6 h-6" />
              </Link>
              <h1 className="text-lg font-bold dark:text-white truncate flex-1">{contest.title}</h1>
-             {!isEnded && session?.username !== 'guest' && (
+             {!isEnded && (
                  <Link href={`/contests/${contest.id}/upload`} className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-indigo-700 whitespace-nowrap">
                     参加する
                  </Link>

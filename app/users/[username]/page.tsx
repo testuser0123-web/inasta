@@ -247,7 +247,6 @@ export default async function UserPage({ params }: { params: Promise<{ username:
               isMe
           }}
           trophies={trophies}
-          isGuest={session?.username === 'guest'}
       />
     </main>
   );

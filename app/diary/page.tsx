@@ -40,7 +40,6 @@ export default async function DiaryPage(props: { searchParams: Promise<{ date?: 
         diaries={diaries}
         postedDates={postedDates}
         hasPostedToday={hasPostedToday}
-        isGuest={session.username === 'guest'}
       />
     </div>
   );

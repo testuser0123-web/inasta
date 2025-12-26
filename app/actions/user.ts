@@ -13,6 +13,10 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
     return { message: 'Unauthorized' };
   }
 
+  if (session.username === 'guest') {
+    return { message: 'ゲストユーザーはプロフィールを変更できません' };
+  }
+
   const username = formData.get('username') as string;
   const avatarUrl = formData.get('avatarUrl') as string;
   const bio = formData.get('bio') as string;
@@ -84,6 +88,7 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
 export async function followUser(targetUserId: number) {
   const session = await getSession();
   if (!session) return { message: 'Unauthorized' };
+  if (session.username === 'guest') return { message: 'Forbidden' };
   if (session.id === targetUserId) return { message: 'Cannot follow yourself' };
 
   try {
@@ -104,6 +109,7 @@ export async function followUser(targetUserId: number) {
 export async function unfollowUser(targetUserId: number) {
   const session = await getSession();
   if (!session) return { message: 'Unauthorized' };
+  if (session.username === 'guest') return { message: 'Forbidden' };
 
   try {
     await db.follow.delete({
@@ -124,6 +130,7 @@ export async function unfollowUser(targetUserId: number) {
 export async function muteUser(targetUserId: number) {
   const session = await getSession();
   if (!session) return { message: 'Unauthorized' };
+  if (session.username === 'guest') return { message: 'Forbidden' };
   if (session.id === targetUserId) return { message: 'Cannot mute yourself' };
 
   try {
@@ -143,6 +150,7 @@ export async function muteUser(targetUserId: number) {
 export async function unmuteUser(targetUserId: number) {
   const session = await getSession();
   if (!session) return { message: 'Unauthorized' };
+  if (session.username === 'guest') return { message: 'Forbidden' };
 
   try {
     await db.mute.delete({
@@ -164,6 +172,10 @@ export async function changePassword(prevState: unknown, formData: FormData) {
   const session = await getSession();
   if (!session) {
     return { message: 'Unauthorized' };
+  }
+
+  if (session.username === 'guest') {
+    return { message: 'ゲストユーザーはパスワードを変更できません' };
   }
 
   const currentPassword = formData.get('currentPassword') as string;
@@ -207,6 +219,10 @@ export async function updateSettings(prevState: unknown, formData: FormData) {
   const session = await getSession();
   if (!session) {
     return { message: 'Unauthorized' };
+  }
+
+  if (session.username === 'guest') {
+    return { message: 'ゲストユーザーは設定を変更できません' };
   }
 
   const excludeUnverifiedPosts = formData.get('excludeUnverifiedPosts') === 'on';

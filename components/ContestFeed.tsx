@@ -22,7 +22,7 @@ type ContestPost = {
         isGold?: boolean;
     };
     images?: { id: number; url: string; order: number }[];
-    isEnded: boolean;
+    // isEnded property might not be on individual post if we pass global isEnded
 };
 
 function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, className?: string }) {
@@ -56,22 +56,18 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
     );
 }
 
-export default function ContestFeed({ initialPosts, contestId, isTrophyView = false, isGuest }: { initialPosts: ContestPost[], contestId: number, isTrophyView?: boolean, isGuest?: boolean }) {
-    const [posts, setPosts] = useState(initialPosts);
+export default function ContestFeed({ posts, isEnded, isGuest, isTrophyView = false }: { posts: ContestPost[], isEnded?: boolean, isGuest?: boolean, isTrophyView?: boolean }) {
+    const [localPosts, setLocalPosts] = useState(posts);
     const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-    // In Trophy view we usually show just top 3 so no pagination. In regular view we might.
-    // For simplicity, let's assume simple feed for now.
 
     const router = useRouter();
 
-    const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
+    const selectedPost = selectedPostId ? localPosts.find(p => p.id === selectedPostId) : null;
 
     const handleLike = async (post: ContestPost) => {
-        if (post.isEnded || isGuest) return;
+        if (isEnded || isGuest) return;
 
-        setPosts(current => current.map(p =>
+        setLocalPosts(current => current.map(p =>
             p.id === post.id
                 ? { ...p, likesCount: p.hasLiked ? p.likesCount - 1 : p.likesCount + 1, hasLiked: !p.hasLiked }
                 : p
@@ -80,20 +76,11 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
         await toggleContestLike(post.id);
     };
 
-    const handleShare = async (url: string) => {
-        try {
-            await navigator.clipboard.writeText(url);
-            alert('Link copied!');
-        } catch (err) {
-            console.error('Failed to copy', err);
-        }
-    };
-
     return (
         <div className="pb-20">
             {isTrophyView ? (
                  <div className="space-y-8 p-4">
-                    {posts.map((post, index) => (
+                    {localPosts.map((post, index) => (
                         <div key={post.id} className="relative bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg border-2 border-yellow-500/20">
                             {/* Rank Badge */}
                             <div className="absolute top-4 left-4 z-20 bg-black/70 backdrop-blur text-white px-4 py-2 rounded-full font-bold text-lg flex items-center gap-2 border border-white/20">
@@ -117,7 +104,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                                         <span className="font-bold">@{post.user.username}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <Heart className={`w-5 h-5 fill-red-500 text-red-500 ${isGuest ? 'opacity-50' : ''}`} />
+                                        <Heart className="w-5 h-5 fill-red-500 text-red-500" />
                                         <span>{post.likesCount}</span>
                                     </div>
                                 </div>
@@ -128,7 +115,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                  </div>
             ) : (
                 <div className="grid grid-cols-3 gap-0.5">
-                    {posts.map((post) => (
+                    {localPosts.map((post) => (
                         <div key={post.id} onClick={() => setSelectedPostId(post.id)} className="aspect-square relative cursor-pointer bg-gray-100 dark:bg-gray-800">
                              <ImageWithSpinner src={post.imageUrl} alt="" className="w-full h-full object-cover" />
                              {post.images && post.images.length > 0 && (
@@ -146,7 +133,6 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                         <button onClick={() => setSelectedPostId(null)} className="absolute top-2 right-2 p-1 bg-black/20 rounded-full text-white z-10 hover:bg-black/40"><X className="w-5 h-5" /></button>
 
                         <div className="w-full relative bg-gray-100 dark:bg-gray-800 min-h-[200px] shrink-0">
-                             {/* Simplified Slider for Contest Post */}
                              {/* eslint-disable-next-line @next/next/no-img-element */}
                              <img src={selectedPost.imageUrl} alt="" className="w-full h-auto max-h-[50vh] object-contain mx-auto" />
                         </div>
@@ -156,8 +142,8 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                                 <div className="flex items-center gap-3">
                                      <button
                                         onClick={() => handleLike(selectedPost)}
-                                        disabled={selectedPost.isEnded || isGuest}
-                                        className={`flex items-center gap-1.5 transition-colors group ${isGuest ? 'cursor-not-allowed opacity-50' : ''}`}
+                                        disabled={isEnded || isGuest}
+                                        className={`flex items-center gap-1.5 transition-colors group ${isEnded || isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
                                      >
                                          <Heart className={`w-6 h-6 transition-colors ${selectedPost.hasLiked ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-gray-300 group-hover:text-red-500'}`} />
                                          <span className="font-semibold text-gray-700 dark:text-gray-300">{selectedPost.likesCount}</span>

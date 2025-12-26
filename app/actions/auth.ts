@@ -6,34 +6,6 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { USERNAME_REGEX, PASSWORD_REGEX } from "@/lib/validation";
-import { v4 as uuidv4 } from "uuid";
-
-export async function guestLogin() {
-  let guestUser = await db.user.findUnique({
-    where: { username: "guest" },
-  });
-
-  if (!guestUser) {
-    const hashedPassword = await bcrypt.hash(uuidv4(), 10);
-    guestUser = await db.user.create({
-      data: {
-        username: "guest",
-        password: hashedPassword,
-        isVerified: false,
-        bio: "Guest User",
-      },
-    });
-  }
-
-  const session = await encrypt({ id: guestUser.id, username: guestUser.username });
-  const cookieStore = await cookies();
-  cookieStore.set("session", session, {
-    httpOnly: true,
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  });
-
-  redirect("/");
-}
 
 export async function signup(prevState: unknown, formData: FormData) {
   const username = formData.get("username") as string;
@@ -115,6 +87,33 @@ export async function login(prevState: unknown, formData: FormData) {
   cookieStore.set("session", session, {
     httpOnly: true,
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
+
+  redirect("/");
+}
+
+export async function guestLogin() {
+  const username = "guest";
+
+  // Create guest user if not exists (upsert)
+  // We need a password for the model, even if unused.
+  const dummyPassword = await bcrypt.hash("guest_password_123", 10);
+
+  const user = await db.user.upsert({
+    where: { username },
+    update: {}, // No updates if exists
+    create: {
+      username,
+      password: dummyPassword,
+      bio: "I am a guest user.",
+    },
+  });
+
+  const session = await encrypt({ id: user.id, username: user.username });
+  const cookieStore = await cookies();
+  cookieStore.set("session", session, {
+    httpOnly: true,
+    expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day for guest
   });
 
   redirect("/");

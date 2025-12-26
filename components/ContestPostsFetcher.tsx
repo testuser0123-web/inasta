@@ -1,32 +1,34 @@
 import { fetchContestPosts, getContestWinners } from '@/app/actions/contest';
 import ContestFeed from '@/components/ContestFeed';
-import { getSession } from '@/lib/auth';
 
 export default async function ContestPostsFetcher({
-    contestId,
-    sort,
-    isEnded
+  contestId,
+  sort,
+  isEnded,
+  isGuest
 }: {
-    contestId: number,
-    sort: string,
-    isEnded: boolean
+  contestId: number;
+  sort: string;
+  isEnded?: boolean;
+  isGuest?: boolean;
 }) {
-  const session = await getSession();
-  const isTrophyView = isEnded && sort === 'trophy';
+  let posts = [];
 
-  let posts: any[] = [];
-  if (isTrophyView) {
+  if (sort === 'trophy' && isEnded) {
       posts = await getContestWinners(contestId);
+      // Assign ranks
+      posts = posts.map((p, i) => ({ ...p, rank: i + 1 }));
   } else {
       posts = await fetchContestPosts({ contestId, sortBy: sort });
   }
 
-  return (
-       <ContestFeed
-         initialPosts={posts.map(p => ({...p, isEnded}))}
-         contestId={contestId}
-         isTrophyView={isTrophyView}
-         isGuest={session?.username === 'guest'}
-       />
-  );
+  if (posts.length === 0) {
+      return (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+              <p>投稿がありません</p>
+          </div>
+      );
+  }
+
+  return <ContestFeed posts={posts} isEnded={isEnded} isGuest={isGuest} />;
 }

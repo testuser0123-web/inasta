@@ -16,7 +16,7 @@ type AspectRatio = "1:1" | "original";
 
 import { use } from "react";
 
-export default function ContestUploadPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ContestUploadPage({ params, isGuest }: { params: Promise<{ id: string }>, isGuest?: boolean }) {
   const { id: contestId } = use(params);
   const [state, action, isPending] = useActionState(createContestPost, undefined);
   const router = useRouter();
@@ -38,6 +38,14 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
   const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  if (isGuest) {
+      return (
+          <div className="min-h-screen flex items-center justify-center p-4 text-center">
+              <p className="text-gray-500">ゲストユーザーはコンテストに参加できません。</p>
+          </div>
+      );
+  }
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
