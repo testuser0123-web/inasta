@@ -25,10 +25,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Guest Allowed Routes
+  const isGuestAllowed =
+      pathname === '/' ||
+      pathname.startsWith('/diary') ||
+      pathname.startsWith('/contests') ||
+      pathname.startsWith('/users/') ||
+      pathname.startsWith('/p/') ||
+      pathname.startsWith('/search');
+
   // Protected routes (everything else)
   // Exclude static files, images, etc.
   if (
     !session &&
+    !isGuestAllowed &&
     !pathname.startsWith('/_next') &&
     !pathname.includes('.') // naive static file check
   ) {

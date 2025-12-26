@@ -98,6 +98,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
   const router = useRouter();
 
+  // Guest check: if currentUserId is -1 (or undefined/null if upstream not handled, but we expect -1 from FeedContent)
+  // Actually check for valid ID.
+  const isGuest = currentUserId === -1 || !currentUserId;
+
   useEffect(() => {
     setPosts(initialPosts);
     setHasMore(initialPosts.length >= 12); // Reset hasMore when initialPosts change (e.g. tab switch)
@@ -141,6 +145,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   };
 
   const handleLike = async (post: Post) => {
+    if (isGuest) {
+      alert("いいね機能を使用するにはログインが必要です。");
+      return;
+    }
+
     // Optimistic update
     setPosts((current) =>
       current.map((p) =>
@@ -212,6 +221,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
   const handleAddComment = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (isGuest) {
+        alert("コメント機能を使用するにはログインが必要です。");
+        return;
+      }
       if (!selectedPost || !commentText.trim()) return;
 
       setIsSubmittingComment(true);
@@ -287,13 +300,15 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
           </div>
       )}
 
-      {/* FAB */}
-      <Link
-        href="/upload"
-        className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors z-20"
-      >
-        <Plus className="w-6 h-6" />
-      </Link>
+      {/* FAB - Only show if not guest */}
+      {!isGuest && (
+        <Link
+            href="/upload"
+            className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors z-20"
+        >
+            <Plus className="w-6 h-6" />
+        </Link>
+      )}
 
       {/* Modal */}
       {selectedPost && (
@@ -336,7 +351,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => handleLike(selectedPost)}
-                        className="flex items-center gap-1.5 transition-colors group"
+                        className={`flex items-center gap-1.5 transition-colors group ${isGuest ? 'cursor-not-allowed opacity-50' : ''}`}
                     >
                         <Heart 
                             className={`w-6 h-6 transition-colors ${
@@ -394,7 +409,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                     )}
                 </div>
 
-                {currentUserId === selectedPost.userId && (
+                {!isGuest && currentUserId === selectedPost.userId && (
                    <button
                     onClick={() => handleDelete(selectedPost.id)}
                     disabled={isDeleting}
@@ -459,6 +474,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             </div>
 
             {/* Add Comment Form */}
+            {!isGuest && (
             <div className="p-3 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-800 shrink-0">
                 <form onSubmit={handleAddComment} className="flex gap-2">
                     <input
@@ -483,6 +499,14 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                     </span>
                 </div>
             </div>
+            )}
+            {isGuest && (
+                <div className="p-3 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-800 shrink-0 text-center">
+                    <p className="text-sm text-gray-500">
+                        <Link href="/login" className="text-indigo-500 hover:underline">ログイン</Link>してコメントに参加
+                    </p>
+                </div>
+            )}
           </div>
         </div>
       )}

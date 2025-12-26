@@ -3,8 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { UIProvider } from "@/components/providers/ui-provider";
-import Sidebar from "@/components/Sidebar";
 import { getSession } from "@/lib/auth";
+import LayoutShell from "@/components/LayoutShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,12 +40,9 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
           <UIProvider>
-            <div className="flex min-h-screen">
-              {session && <Sidebar username={session.username} />}
-              <main className={`flex-1 ${session ? 'md:ml-64' : ''} w-full`}>
+            <LayoutShell session={session}>
                 {children}
-              </main>
-            </div>
+            </LayoutShell>
           </UIProvider>
         </ThemeProvider>
       </body>

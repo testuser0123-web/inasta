@@ -56,19 +56,23 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
     );
 }
 
-export default function ContestFeed({ initialPosts, contestId, isTrophyView = false }: { initialPosts: ContestPost[], contestId: number, isTrophyView?: boolean }) {
+export default function ContestFeed({ initialPosts, contestId, isTrophyView = false, currentUserId }: { initialPosts: ContestPost[], contestId: number, isTrophyView?: boolean, currentUserId?: number }) {
     const [posts, setPosts] = useState(initialPosts);
     const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-    // In Trophy view we usually show just top 3 so no pagination. In regular view we might.
-    // For simplicity, let's assume simple feed for now.
+    // Guest check
+    const isGuest = !currentUserId || currentUserId === -1;
 
     const router = useRouter();
 
     const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
     const handleLike = async (post: ContestPost) => {
+        if (isGuest) {
+            alert("いいね機能を使用するにはログインが必要です。");
+            return;
+        }
         if (post.isEnded) return;
 
         setPosts(current => current.map(p =>
@@ -78,15 +82,6 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
         ));
 
         await toggleContestLike(post.id);
-    };
-
-    const handleShare = async (url: string) => {
-        try {
-            await navigator.clipboard.writeText(url);
-            alert('Link copied!');
-        } catch (err) {
-            console.error('Failed to copy', err);
-        }
     };
 
     return (
@@ -154,7 +149,11 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                         <div className="p-4 overflow-y-auto flex-1 dark:text-gray-100">
                              <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                     <button onClick={() => handleLike(selectedPost)} disabled={selectedPost.isEnded} className="flex items-center gap-1.5 transition-colors group">
+                                     <button
+                                        onClick={() => handleLike(selectedPost)}
+                                        disabled={selectedPost.isEnded && !isGuest}
+                                        className={`flex items-center gap-1.5 transition-colors group ${isGuest ? 'cursor-not-allowed opacity-50' : ''}`}
+                                     >
                                          <Heart className={`w-6 h-6 transition-colors ${selectedPost.hasLiked ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-gray-300 group-hover:text-red-500'}`} />
                                          <span className="font-semibold text-gray-700 dark:text-gray-300">{selectedPost.likesCount}</span>
                                      </button>

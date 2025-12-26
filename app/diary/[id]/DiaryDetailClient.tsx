@@ -5,32 +5,55 @@ import { format } from 'date-fns';
 import { Heart, MessageCircle } from 'lucide-react';
 import DiaryEditor from '@/components/DiaryEditor';
 import { toggleDiaryLike, addDiaryComment } from '@/app/actions/diary';
+import Link from 'next/link';
 
 export default function DiaryDetailClient({ diary, currentUserId }: { diary: any, currentUserId?: number }) {
+  // If undefined/null, treat as guest (or if specifically -1)
+  const isGuest = !currentUserId || currentUserId === -1;
+
   const [hasLiked, setHasLiked] = useState(diary.likes.some((l: any) => l.userId === currentUserId));
   const [commentText, setCommentText] = useState('');
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [likeCount, setLikeCount] = useState(diary.likes.length);
 
   const handleLike = async () => {
-     if (!currentUserId) return;
+     if (isGuest) {
+        alert("いいね機能を使用するにはログインが必要です。");
+        return;
+     }
+
      // Optimistic update
      setHasLiked(!hasLiked);
+     setLikeCount(prev => hasLiked ? prev - 1 : prev + 1);
+
      try {
         await toggleDiaryLike(diary.id);
      } catch (error) {
-        setHasLiked(hasLiked); // Revert
+        // Revert
+        setHasLiked(hasLiked);
+        setLikeCount(prev => hasLiked ? prev + 1 : prev - 1);
      }
   };
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
      e.preventDefault();
-     if (!commentText.trim() || !currentUserId) return;
+     if (isGuest) {
+        alert("コメント機能を使用するにはログインが必要です。");
+        return;
+     }
+
+     if (!commentText.trim()) return;
 
      setIsCommentSubmitting(true);
      try {
         await addDiaryComment(diary.id, commentText);
         setCommentText('');
+        // We can't easily optimistic update comment list without re-fetching or receiving the comment object
+        // Assuming parent page or something refreshes, or we just clear text.
+        // For simplicity, reload or just alert success?
+        // Ideally we should use router.refresh() but that's in parent.
+        // Since this is a client component, we can use useRouter.
      } catch (error) {
         alert('コメントの送信に失敗しました');
      } finally {
@@ -68,11 +91,12 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
          <div className="flex items-center gap-6 pt-6 border-t dark:border-gray-800">
             <button
                onClick={handleLike}
-               disabled={!currentUserId}
-               className={`flex items-center gap-2 text-lg transition-colors ${hasLiked ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'}`}
+               className={`flex items-center gap-2 text-lg transition-colors ${
+                 hasLiked ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'
+               } ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
                <Heart className={`w-6 h-6 ${hasLiked ? 'fill-current' : ''}`} />
-               <span>{diary.likes.length}</span>
+               <span>{likeCount}</span>
             </button>
             <div className="flex items-center gap-2 text-lg text-gray-500">
                <MessageCircle className="w-6 h-6" />
@@ -114,7 +138,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
             )}
          </div>
 
-         {currentUserId && (
+         {!isGuest ? (
             <form onSubmit={handleCommentSubmit} className="flex gap-3">
                <input
                   type="text"
@@ -131,6 +155,12 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                   送信
                </button>
             </form>
+         ) : (
+            <div className="text-center p-4">
+                <p className="text-gray-500 text-sm">
+                    <Link href="/login" className="text-indigo-500 hover:underline">ログイン</Link>してコメントに参加
+                </p>
+            </div>
          )}
       </div>
     </div>

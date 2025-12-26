@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book } from 'lucide-react';
+import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { logout } from '@/app/actions/logout';
@@ -12,7 +12,16 @@ export default function Sidebar({ username }: { username?: string }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isSidebarVisible } = useUI();
 
-  const navItems = [
+  // Guest nav items (Reduced)
+  const guestNavItems = [
+    { icon: Home, label: 'Home', href: '/' },
+    { icon: Search, label: 'Search', href: '/?feed=search' },
+    { icon: Trophy, label: 'Contests', href: '/contests' },
+    { icon: Book, label: 'Diary', href: '/diary' },
+  ];
+
+  // User nav items (Full)
+  const userNavItems = [
     { icon: Home, label: 'Home', href: '/' },
     { icon: Search, label: 'Search', href: '/?feed=search' },
     { icon: Trophy, label: 'Contests', href: '/contests' },
@@ -20,6 +29,8 @@ export default function Sidebar({ username }: { username?: string }) {
     { icon: PlusSquare, label: 'Create', href: '/upload' },
     { icon: User, label: 'Profile', href: '/profile' },
   ];
+
+  const navItems = username ? userNavItems : guestNavItems;
 
   // Hide mobile menu button and prevent interaction when sidebar is hidden (e.g. video editor)
   if (!isSidebarVisible) {
@@ -89,16 +100,21 @@ export default function Sidebar({ username }: { username?: string }) {
           })}
         </nav>
 
-        {username && (
-          <div className="p-4 border-t dark:border-gray-800">
+        <div className="p-4 border-t dark:border-gray-800">
+          {username ? (
             <form action={logout}>
               <button className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 w-full text-left text-red-500">
                 <LogOut className="w-6 h-6" />
                 <span className="text-lg">Log out</span>
               </button>
             </form>
-          </div>
-        )}
+          ) : (
+            <Link href="/login" className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 w-full text-left text-indigo-600">
+                <LogIn className="w-6 h-6" />
+                <span className="text-lg">Log in</span>
+            </Link>
+          )}
+        </div>
       </aside>
     </>
   );

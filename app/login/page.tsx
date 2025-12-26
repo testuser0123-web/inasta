@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { login } from '@/app/actions/auth';
 import Link from 'next/link';
+import { User } from 'lucide-react';
 
 export default function LoginPage() {
   const [state, action, isPending] = useActionState(login, undefined);
@@ -47,7 +48,7 @@ export default function LoginPage() {
             <div className="text-sm text-red-500 text-center">{state.message}</div>
           )}
 
-          <div>
+          <div className="space-y-3">
             <button
               type="submit"
               disabled={isPending}
@@ -55,6 +56,14 @@ export default function LoginPage() {
             >
               {isPending ? 'Signing in...' : 'Sign in'}
             </button>
+
+            <Link
+              href="/"
+              className="group relative flex w-full justify-center items-center gap-2 rounded-md bg-gray-100 dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+            >
+              <User className="w-4 h-4" />
+              ゲストとして閲覧
+            </Link>
           </div>
         </form>
         <p className="text-center text-sm text-gray-500 dark:text-gray-400">

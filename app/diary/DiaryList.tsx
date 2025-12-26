@@ -16,6 +16,7 @@ type DiaryListProps = {
 export function DiaryList({ dateParam, currentUserId, diaries, postedDates, hasPostedToday }: DiaryListProps) {
   const currentDate = new Date().toISOString().split('T')[0];
   const isToday = dateParam === currentDate;
+  const isGuest = currentUserId === -1 || !currentUserId;
 
   return (
     <div>
@@ -24,7 +25,7 @@ export function DiaryList({ dateParam, currentUserId, diaries, postedDates, hasP
           <DiaryDateFilter selectedDate={dateParam} validDates={postedDates} />
         </div>
 
-        {!hasPostedToday && isToday && (
+        {!isGuest && !hasPostedToday && isToday && (
           <Link
             href={`/diary/new?date=${dateParam}`}
             className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
