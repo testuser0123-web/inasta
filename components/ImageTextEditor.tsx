@@ -301,7 +301,7 @@ export default function ImageTextEditor({ imageSrc, onCancel, onComplete }: Imag
                         />
                         {activeColorPicker === 'fill' && (
                             <div className="absolute bottom-full mb-2 left-0 z-50">
-                                <div className="p-3 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700">
+                                <div className="relative z-50 p-3 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700">
                                     <HexColorPicker
                                         color={selectedOverlay.color}
                                         onChange={(color) => updateOverlay(selectedOverlay.id, { color })}
@@ -333,7 +333,7 @@ export default function ImageTextEditor({ imageSrc, onCancel, onComplete }: Imag
                         </button>
                         {activeColorPicker === 'outline' && (
                             <div className="absolute bottom-full mb-2 right-0 z-50">
-                                <div className="p-3 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 flex flex-col gap-3">
+                                <div className="relative z-50 p-3 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 flex flex-col gap-3">
                                     <HexColorPicker
                                         color={selectedOverlay.outlineColor === 'transparent' ? '#000000' : selectedOverlay.outlineColor}
                                         onChange={(color) => updateOverlay(selectedOverlay.id, { outlineColor: color })}
