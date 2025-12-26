@@ -44,11 +44,13 @@ export default function UploadForm() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Manage Sidebar visibility based on video editing state
+  // Manage Sidebar visibility based on video editing state or text editing state
   useEffect(() => {
       const isEditingVideo = mediaType === "VIDEO" && !!mediaFile; // Trimming mode
-      // If editing video, hide sidebar.
-      if (isEditingVideo) {
+      const isEditingText = !!editingImageSrc;
+
+      // If editing video or text, hide sidebar.
+      if (isEditingVideo || isEditingText) {
           setSidebarVisible(false);
       } else {
           setSidebarVisible(true);
@@ -56,7 +58,7 @@ export default function UploadForm() {
 
       // Cleanup: ensure sidebar is visible when unmounting or switching modes
       return () => setSidebarVisible(true);
-  }, [mediaType, mediaFile, setSidebarVisible]);
+  }, [mediaType, mediaFile, editingImageSrc, setSidebarVisible]);
 
   const onCropComplete = useCallback(
     (croppedArea: Area, croppedAreaPixels: Area) => {
