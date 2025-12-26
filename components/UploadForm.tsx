@@ -71,6 +71,12 @@ export default function UploadForm() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check if file size is > 500MB (example limit)
+    if (file.size > 500 * 1024 * 1024) {
+        alert("ファイルサイズが大きすぎます (最大500MB)");
+        return;
+    }
+
     if (file.type.startsWith("video/")) {
         setMediaType("VIDEO");
         setMediaFile(file);

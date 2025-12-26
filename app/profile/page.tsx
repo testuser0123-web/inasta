@@ -252,6 +252,7 @@ export default async function ProfilePage() {
               isMe: true
           }}
           trophies={trophies}
+          isGuest={session.username === 'guest'}
       />
     </main>
   );

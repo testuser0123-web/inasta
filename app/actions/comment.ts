@@ -16,6 +16,10 @@ export async function addComment(prevState: any, formData: FormData) {
     return { message: 'Unauthorized' };
   }
 
+  if (session.username === "guest") {
+    return { message: "ゲストユーザーはコメントできません" };
+  }
+
   const postId = Number(formData.get('postId'));
   const text = formData.get('text') as string;
 

@@ -338,6 +338,10 @@ export async function createPost(prevState: unknown, formData: FormData) {
     return { message: "Unauthorized" };
   }
 
+  if (session.username === "guest") {
+    return { message: "ゲストユーザーは投稿できません" };
+  }
+
   const imageUrlsJson = formData.get("imageUrls") as string;
   const imageUrl = formData.get("imageUrl") as string; // Fallback or first image
   const comment = formData.get("comment") as string;
@@ -452,6 +456,8 @@ export async function toggleLike(postId: number) {
   const session = await getSession();
   if (!session) return;
 
+  if (session.username === "guest") return;
+
   const existingLike = await db.like.findUnique({
     where: {
       userId_postId: {
@@ -486,6 +492,10 @@ export async function toggleLike(postId: number) {
 export async function deletePost(postId: number) {
   const session = await getSession();
   if (!session) return { message: "Unauthorized" };
+
+  if (session.username === "guest") {
+    return { message: "Forbidden" };
+  }
 
   const post = await db.post.findUnique({
     where: { id: postId },

@@ -39,6 +39,7 @@ export default async function FeedContent({
             currentUserId={session.id}
             feedType={feedType}
             searchQuery={searchQuery}
+            isGuest={session.username === 'guest'}
         />
     );
 }

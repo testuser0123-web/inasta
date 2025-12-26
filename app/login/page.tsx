@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { login } from '@/app/actions/auth';
+import { login, guestLogin } from '@/app/actions/auth';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -13,7 +13,26 @@ export default function LoginPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Sign in to INASTA</h1>
         </div>
-        <form action={action} className="mt-8 space-y-6">
+
+        <form action={guestLogin} className="mt-8">
+            <button
+                type="submit"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+                Guest Login (View Only)
+            </button>
+        </form>
+
+        <div className="relative mt-6">
+            <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-black text-gray-500">Or sign in with username</span>
+            </div>
+        </div>
+
+        <form action={action} className="mt-6 space-y-6">
           <div className="-space-y-px rounded-md shadow-sm">
             <div>
               <label htmlFor="username" className="sr-only">

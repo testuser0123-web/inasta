@@ -86,7 +86,7 @@ function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, c
     );
 }
 
-export default function Feed({ initialPosts, currentUserId, feedType, searchQuery, targetUserId }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search' | 'user_posts' | 'user_likes', searchQuery?: string, targetUserId?: number }) {
+export default function Feed({ initialPosts, currentUserId, feedType, searchQuery, targetUserId, isGuest }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search' | 'user_posts' | 'user_likes', searchQuery?: string, targetUserId?: number, isGuest?: boolean }) {
   const [posts, setPosts] = useState(initialPosts);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -288,12 +288,14 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       )}
 
       {/* FAB */}
-      <Link
-        href="/upload"
-        className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors z-20"
-      >
-        <Plus className="w-6 h-6" />
-      </Link>
+      {!isGuest && (
+        <Link
+          href="/upload"
+          className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors z-20"
+        >
+          <Plus className="w-6 h-6" />
+        </Link>
+      )}
 
       {/* Modal */}
       {selectedPost && (
@@ -335,8 +337,9 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={() => handleLike(selectedPost)}
-                        className="flex items-center gap-1.5 transition-colors group"
+                        onClick={() => !isGuest && handleLike(selectedPost)}
+                        className={`flex items-center gap-1.5 transition-colors group ${isGuest ? 'cursor-not-allowed opacity-50' : ''}`}
+                        disabled={isGuest}
                     >
                         <Heart 
                             className={`w-6 h-6 transition-colors ${
@@ -459,30 +462,32 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             </div>
 
             {/* Add Comment Form */}
-            <div className="p-3 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-800 shrink-0">
-                <form onSubmit={handleAddComment} className="flex gap-2">
-                    <input
-                        type="text"
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        placeholder="Add a comment..."
-                        maxLength={31}
-                        className="flex-1 rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2"
-                    />
-                    <button
-                        type="submit"
-                        disabled={!commentText.trim() || isSubmittingComment}
-                        className="p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isSubmittingComment ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                    </button>
-                </form>
-                <div className="text-right">
-                    <span className={`text-[10px] ${commentText.length >= 31 ? 'text-red-500' : 'text-gray-400'}`}>
-                        {commentText.length}/31
-                    </span>
-                </div>
-            </div>
+            {!isGuest && (
+              <div className="p-3 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-800 shrink-0">
+                  <form onSubmit={handleAddComment} className="flex gap-2">
+                      <input
+                          type="text"
+                          value={commentText}
+                          onChange={(e) => setCommentText(e.target.value)}
+                          placeholder="Add a comment..."
+                          maxLength={31}
+                          className="flex-1 rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2"
+                      />
+                      <button
+                          type="submit"
+                          disabled={!commentText.trim() || isSubmittingComment}
+                          className="p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                          {isSubmittingComment ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                      </button>
+                  </form>
+                  <div className="text-right">
+                      <span className={`text-[10px] ${commentText.length >= 31 ? 'text-red-500' : 'text-gray-400'}`}>
+                          {commentText.length}/31
+                      </span>
+                  </div>
+              </div>
+            )}
           </div>
         </div>
       )}

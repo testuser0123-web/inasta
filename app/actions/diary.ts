@@ -52,6 +52,10 @@ export async function createDiary(formData: FormData) {
     throw new Error('ログインが必要です');
   }
 
+  if (session.username === "guest") {
+    throw new Error('ゲストユーザーは日記を作成できません');
+  }
+
   // Check for thumbnailUrl first (Supabase)
   let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
 
@@ -343,6 +347,8 @@ export async function toggleDiaryLike(diaryId: number) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
 
+  if (session.username === "guest") throw new Error('Forbidden');
+
   const existingLike = await db.diaryLike.findUnique({
     where: {
       userId_diaryId: {
@@ -370,6 +376,8 @@ export async function toggleDiaryLike(diaryId: number) {
 export async function addDiaryComment(diaryId: number, text: string) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
+
+  if (session.username === "guest") throw new Error('Forbidden');
 
   await db.diaryComment.create({
     data: {
@@ -409,6 +417,10 @@ export async function saveDraft(formData: FormData) {
   const session = await getSession();
   if (!session) {
     throw new Error('ログインが必要です');
+  }
+
+  if (session.username === "guest") {
+    throw new Error('Forbidden');
   }
 
   // Same logic as createDiary for thumbnail

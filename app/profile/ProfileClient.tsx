@@ -26,9 +26,10 @@ type ProfileClientProps = {
       silver: number;
       bronze: number;
   };
+  isGuest?: boolean;
 };
 
-export default function ProfileClient({ user, currentUser, posts, likedPosts = [], diaries = [], initialStatus, trophies }: ProfileClientProps) {
+export default function ProfileClient({ user, currentUser, posts, likedPosts = [], diaries = [], initialStatus, trophies, isGuest }: ProfileClientProps) {
   const [activeTab, setActiveTab] = useState<'posts' | 'likes' | 'diaries'>('posts');
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -131,6 +132,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                     currentUserId={currentUser?.id ?? -1}
                     feedType="user_posts"
                     targetUserId={user.id}
+                    isGuest={isGuest}
                 />
             )}
             {activeTab === 'diaries' && (
@@ -145,6 +147,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                     currentUserId={currentUser?.id ?? -1}
                     feedType="user_likes"
                     targetUserId={user.id}
+                    isGuest={isGuest}
                 />
             )}
         </>
