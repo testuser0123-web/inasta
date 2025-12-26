@@ -194,7 +194,7 @@ export default function UploadForm() {
       formData.set('mediaType', mediaType);
 
       if (mediaType === "IMAGE") {
-          setUploadProgress("送信中... ✉️ᶘｲ^⇁^ﾅ川💦");
+          setUploadProgress("✉️ᶘｲ^⇁^ﾅ川💦");
           // Convert base64 cropped images to files and upload to Supabase
           const uploadPromises = croppedImages.map(async (base64, index) => {
             const res = await fetch(base64);
