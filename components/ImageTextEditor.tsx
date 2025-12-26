@@ -196,6 +196,7 @@ export default function ImageTextEditor({ imageSrc, onCancel, onComplete }: Imag
                         WebkitTextStroke: overlay.outlineColor && overlay.outlineColor !== 'transparent'
                             ? `${getFontSizePx(overlay.scale) * 0.1}px ${overlay.outlineColor}`
                             : 'none',
+                        paintOrder: 'stroke fill',
                         // Fallback text shadow for browsers that don't support text-stroke well or for smoother look
                         textShadow: overlay.outlineColor && overlay.outlineColor !== 'transparent'
                              ? `-1px -1px 0 ${overlay.outlineColor}, 1px -1px 0 ${overlay.outlineColor}, -1px 1px 0 ${overlay.outlineColor}, 1px 1px 0 ${overlay.outlineColor}`
