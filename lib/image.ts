@@ -175,12 +175,10 @@ export async function addTextToImage(
   // Draw original image
   ctx.drawImage(image, 0, 0);
 
-  // Base font size - logic:
-  // Let's say base size is 5% of the image's smaller dimension
-  // or a fixed pixel size if we assume standard post size (512x512).
-  // In the editor, we will likely visualize it.
-  // Let's use a standard base of 24px for a 512px image.
-  const baseSize = Math.min(canvas.width, canvas.height) * (24 / 512);
+  // Base font size logic to match WYSIWYG editor
+  // Editor uses: (containerWidth / 20) * scale
+  // Here we use: (imageWidth / 20) * scale
+  const baseSize = image.width / 20;
 
   overlays.forEach((overlay) => {
     const { text, x, y, scale, rotation, color, outlineColor } = overlay;
