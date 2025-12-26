@@ -15,7 +15,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
   const [commentText, setCommentText] = useState('');
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [likeCount, setLikeCount] = useState(diary.likes.length);
+  const [likeCount, setLikeCount] = useState<number>(diary.likes.length);
 
   const handleLike = async () => {
      if (isGuest) {
@@ -25,14 +25,14 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
 
      // Optimistic update
      setHasLiked(!hasLiked);
-     setLikeCount(prev => hasLiked ? prev - 1 : prev + 1);
+     setLikeCount((prev: number) => hasLiked ? prev - 1 : prev + 1);
 
      try {
         await toggleDiaryLike(diary.id);
      } catch (error) {
         // Revert
         setHasLiked(hasLiked);
-        setLikeCount(prev => hasLiked ? prev + 1 : prev - 1);
+        setLikeCount((prev: number) => hasLiked ? prev + 1 : prev - 1);
      }
   };
 
