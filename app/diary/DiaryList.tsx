@@ -13,7 +13,7 @@ type DiaryListProps = {
   hasPostedToday: boolean;
 };
 
-export function DiaryList({ dateParam, currentUserId, diaries, postedDates, hasPostedToday }: DiaryListProps) {
+export function DiaryList({ dateParam, currentUserId, diaries, postedDates, hasPostedToday, isGuest }: DiaryListProps & { isGuest?: boolean }) {
   const currentDate = new Date().toISOString().split('T')[0];
   const isToday = dateParam === currentDate;
 
@@ -24,7 +24,7 @@ export function DiaryList({ dateParam, currentUserId, diaries, postedDates, hasP
           <DiaryDateFilter selectedDate={dateParam} validDates={postedDates} />
         </div>
 
-        {!hasPostedToday && isToday && (
+        {!hasPostedToday && isToday && !isGuest && (
           <Link
             href={`/diary/new?date=${dateParam}`}
             className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
