@@ -130,6 +130,12 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             );
         } catch (error) {
             console.error("Failed to load comments", error);
+            // In case of error, set empty comments to stop the spinner
+            setPosts(current =>
+                current.map(p =>
+                    p.id === post.id ? { ...p, comments: [] } : p
+                )
+            );
         }
     }
   };

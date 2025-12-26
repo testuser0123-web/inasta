@@ -70,82 +70,87 @@ export async function fetchFeedPosts({
     };
   }
 
-  const postsData = await db.post.findMany({
-    take: 12,
-    skip: cursorId ? 1 : 0,
-    cursor: cursorId ? { id: cursorId } : undefined,
-    where: whereClause,
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      imageUrl: true,
-      mediaType: true,
-      thumbnailUrl: true,
-      comment: true,
-      isSpoiler: true,
-      createdAt: true,
-      userId: true,
-      hashtags: {
-        select: {
-          name: true,
+  try {
+    const postsData = await db.post.findMany({
+      take: 12,
+      skip: cursorId ? 1 : 0,
+      cursor: cursorId ? { id: cursorId } : undefined,
+      where: whereClause,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        imageUrl: true,
+        mediaType: true,
+        thumbnailUrl: true,
+        comment: true,
+        isSpoiler: true,
+        createdAt: true,
+        userId: true,
+        hashtags: {
+          select: {
+            name: true,
+          },
+        },
+        images: {
+          select: {
+            id: true,
+            order: true,
+            url: true,
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
+        user: {
+          select: {
+            username: true,
+            avatarUrl: true,
+            updatedAt: true,
+            isVerified: true,
+            isGold: true,
+            roles: true,
+          },
+        },
+        // Removed comments fetch for feed optimization
+        _count: {
+          select: { likes: true },
+        },
+        likes: {
+          where: { userId: session.id },
+          select: { userId: true },
         },
       },
-      images: {
-        select: {
-          id: true,
-          order: true,
-          url: true,
-        },
-        orderBy: {
-          order: 'asc',
-        },
-      },
-      user: {
-        select: {
-          username: true,
-          avatarUrl: true,
-          updatedAt: true,
-          isVerified: true,
-          isGold: true,
-          roles: true,
-        },
-      },
-      // Removed comments fetch for feed optimization
-      _count: {
-        select: { likes: true },
-      },
-      likes: {
-        where: { userId: session.id },
-        select: { userId: true },
-      },
-    },
-  });
+    });
 
-  return postsData.map((post) => ({
-    ...post,
-    imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
-        ? post.imageUrl
-        : `/api/image/${post.id}.jpg`,
-    thumbnailUrl: post.thumbnailUrl
-      ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
-      : null,
-    images: post.images.map(img => ({
-      ...img,
-      url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
-    })),
-    user: {
-      ...post.user,
-      avatarUrl: post.user.avatarUrl
-        ? (post.user.avatarUrl.startsWith('http')
-             ? post.user.avatarUrl
-             : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
+    return postsData.map((post) => ({
+      ...post,
+      imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+          ? post.imageUrl
+          : `/api/image/${post.id}.jpg`,
+      thumbnailUrl: post.thumbnailUrl
+        ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
         : null,
-    },
-    likesCount: post._count.likes,
-    hasLiked: post.likes.length > 0,
-    likes: undefined,
-    _count: undefined,
-  }));
+      images: post.images.map(img => ({
+        ...img,
+        url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
+      })),
+      user: {
+        ...post.user,
+        avatarUrl: post.user.avatarUrl
+          ? (post.user.avatarUrl.startsWith('http')
+               ? post.user.avatarUrl
+               : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
+          : null,
+      },
+      likesCount: post._count.likes,
+      hasLiked: post.likes.length > 0,
+      likes: undefined,
+      _count: undefined,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch feed posts:", error);
+    return [];
+  }
 }
 
 export async function fetchUserPosts({
@@ -157,80 +162,85 @@ export async function fetchUserPosts({
 }) {
   const session = await getSession();
 
-  const postsData = await db.post.findMany({
-    take: 12,
-    skip: cursorId ? 1 : 0,
-    cursor: cursorId ? { id: cursorId } : undefined,
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      imageUrl: true,
-      mediaType: true,
-      thumbnailUrl: true,
-      comment: true,
-      isSpoiler: true,
-      createdAt: true,
-      userId: true,
-      hashtags: {
-        select: {
-          name: true,
+  try {
+    const postsData = await db.post.findMany({
+      take: 12,
+      skip: cursorId ? 1 : 0,
+      cursor: cursorId ? { id: cursorId } : undefined,
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        imageUrl: true,
+        mediaType: true,
+        thumbnailUrl: true,
+        comment: true,
+        isSpoiler: true,
+        createdAt: true,
+        userId: true,
+        hashtags: {
+          select: {
+            name: true,
+          },
+        },
+        images: {
+          select: {
+            id: true,
+            order: true,
+            url: true,
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
+        user: {
+          select: {
+            username: true,
+            avatarUrl: true,
+            updatedAt: true,
+            isVerified: true,
+            isGold: true,
+          },
+        },
+        _count: {
+          select: { likes: true },
+        },
+        likes: {
+          where: { userId: session?.id ?? -1 },
+          select: { userId: true },
         },
       },
-      images: {
-        select: {
-          id: true,
-          order: true,
-          url: true,
-        },
-        orderBy: {
-          order: 'asc',
-        },
-      },
-      user: {
-        select: {
-          username: true,
-          avatarUrl: true,
-          updatedAt: true,
-          isVerified: true,
-          isGold: true,
-        },
-      },
-      _count: {
-        select: { likes: true },
-      },
-      likes: {
-        where: { userId: session?.id ?? -1 },
-        select: { userId: true },
-      },
-    },
-  });
+    });
 
-  return postsData.map((post) => ({
-    ...post,
-    imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
-        ? post.imageUrl
-        : `/api/image/${post.id}.jpg`,
-    thumbnailUrl: post.thumbnailUrl
-      ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
-      : null,
-    images: post.images.map(img => ({
-      ...img,
-      url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
-    })),
-    user: {
-      ...post.user,
-      avatarUrl: post.user.avatarUrl
-        ? (post.user.avatarUrl.startsWith('http')
-             ? post.user.avatarUrl
-             : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
+    return postsData.map((post) => ({
+      ...post,
+      imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+          ? post.imageUrl
+          : `/api/image/${post.id}.jpg`,
+      thumbnailUrl: post.thumbnailUrl
+        ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
         : null,
-    },
-    likesCount: post._count.likes,
-    hasLiked: post.likes.length > 0,
-    likes: undefined,
-    _count: undefined,
-  }));
+      images: post.images.map(img => ({
+        ...img,
+        url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
+      })),
+      user: {
+        ...post.user,
+        avatarUrl: post.user.avatarUrl
+          ? (post.user.avatarUrl.startsWith('http')
+               ? post.user.avatarUrl
+               : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
+          : null,
+      },
+      likesCount: post._count.likes,
+      hasLiked: post.likes.length > 0,
+      likes: undefined,
+      _count: undefined,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch user posts:", error);
+    return [];
+  }
 }
 
 export async function fetchLikedPosts({
@@ -244,77 +254,82 @@ export async function fetchLikedPosts({
 
   if (!session || session.id !== userId) return [];
 
-  const likedPostsData = await db.like.findMany({
-    take: 12,
-    skip: cursorId ? 1 : 0,
-    cursor: cursorId ? { userId_postId: { userId: userId, postId: cursorId } } : undefined,
-    where: { userId: userId },
-    orderBy: { createdAt: "desc" },
-    select: {
-      post: {
-        select: {
-            id: true,
-            imageUrl: true,
-            mediaType: true,
-            thumbnailUrl: true,
-            comment: true,
-            isSpoiler: true,
-            createdAt: true,
-            userId: true,
-            hashtags: {
-                select: { name: true }
-            },
-            images: {
-                select: { id: true, order: true, url: true },
-                orderBy: { order: 'asc' }
-            },
-            user: {
-                select: {
-                    username: true,
-                    avatarUrl: true,
-                    updatedAt: true,
-                    isVerified: true,
-                    isGold: true,
-                    roles: true,
-                }
-            },
-            _count: {
-                select: { likes: true }
-            },
-            likes: {
-                where: { userId: session.id },
-                select: { userId: true }
-            }
+  try {
+    const likedPostsData = await db.like.findMany({
+      take: 12,
+      skip: cursorId ? 1 : 0,
+      cursor: cursorId ? { userId_postId: { userId: userId, postId: cursorId } } : undefined,
+      where: { userId: userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        post: {
+          select: {
+              id: true,
+              imageUrl: true,
+              mediaType: true,
+              thumbnailUrl: true,
+              comment: true,
+              isSpoiler: true,
+              createdAt: true,
+              userId: true,
+              hashtags: {
+                  select: { name: true }
+              },
+              images: {
+                  select: { id: true, order: true, url: true },
+                  orderBy: { order: 'asc' }
+              },
+              user: {
+                  select: {
+                      username: true,
+                      avatarUrl: true,
+                      updatedAt: true,
+                      isVerified: true,
+                      isGold: true,
+                      roles: true,
+                  }
+              },
+              _count: {
+                  select: { likes: true }
+              },
+              likes: {
+                  where: { userId: session.id },
+                  select: { userId: true }
+              }
+          }
         }
       }
-    }
-  });
+    });
 
-  return likedPostsData.map((item) => ({
-    ...item.post,
-    imageUrl: item.post.imageUrl && item.post.imageUrl.startsWith('http')
-        ? item.post.imageUrl
-        : `/api/image/${item.post.id}.jpg`,
-    thumbnailUrl: item.post.thumbnailUrl
-      ? (item.post.thumbnailUrl.startsWith('http') ? item.post.thumbnailUrl : `/api/post_thumbnail/${item.post.id}.jpg`)
-      : null,
-    images: item.post.images.map(img => ({
-      ...img,
-      url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
-    })),
-    user: {
-      ...item.post.user,
-      avatarUrl: item.post.user.avatarUrl
-        ? (item.post.user.avatarUrl.startsWith('http')
-             ? item.post.user.avatarUrl
-             : `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`)
+    return likedPostsData.map((item) => ({
+      ...item.post,
+      imageUrl: item.post.imageUrl && item.post.imageUrl.startsWith('http')
+          ? item.post.imageUrl
+          : `/api/image/${item.post.id}.jpg`,
+      thumbnailUrl: item.post.thumbnailUrl
+        ? (item.post.thumbnailUrl.startsWith('http') ? item.post.thumbnailUrl : `/api/post_thumbnail/${item.post.id}.jpg`)
         : null,
-    },
-    likesCount: item.post._count.likes,
-    hasLiked: item.post.likes.length > 0,
-    likes: undefined,
-    _count: undefined,
-  }));
+      images: item.post.images.map(img => ({
+        ...img,
+        url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
+      })),
+      user: {
+        ...item.post.user,
+        avatarUrl: item.post.user.avatarUrl
+          ? (item.post.user.avatarUrl.startsWith('http')
+               ? item.post.user.avatarUrl
+               : `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`)
+          : null,
+      },
+      likesCount: item.post._count.likes,
+      hasLiked: item.post.likes.length > 0,
+      likes: undefined,
+      _count: undefined,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch liked posts:", error);
+    return [];
+  }
 }
 
 export async function createPost(prevState: unknown, formData: FormData) {
