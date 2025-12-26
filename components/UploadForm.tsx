@@ -8,11 +8,13 @@ import { getCroppedImg } from "@/lib/image";
 import { uploadImageToSupabase } from "@/lib/client-upload";
 import { Spinner } from "@/components/ui/spinner";
 import VideoEditor from "@/components/VideoEditor";
+import ImageTextEditor from "@/components/ImageTextEditor";
 import { useUI } from "@/components/providers/ui-provider";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
 type MediaType = "IMAGE" | "VIDEO";
+type Step = "SELECT" | "CROP" | "EDIT" | "UPLOAD";
 
 export default function UploadForm() {
   const [state, action, isPending] = useActionState(createPost, undefined);
@@ -20,6 +22,9 @@ export default function UploadForm() {
   const [mediaType, setMediaType] = useState<MediaType>("IMAGE");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [trimmedVideo, setTrimmedVideo] = useState<File | null>(null);
+
+  // State for Image Text Editing
+  const [editingImageSrc, setEditingImageSrc] = useState<string | null>(null);
 
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -126,10 +131,11 @@ export default function UploadForm() {
       );
 
       if (cropped) {
-          setCroppedImages(prev => [...prev, cropped]);
+        // Instead of adding directly to list, go to Text Edit mode
+        setEditingImageSrc(cropped);
       }
 
-      // Reset crop state
+      // Hide Cropper
       setMediaSrc(null);
       setZoom(1);
     } catch (e) {
@@ -137,9 +143,24 @@ export default function UploadForm() {
     }
   }, [mediaSrc, croppedAreaPixels, aspectRatio]);
 
+  const handleTextEditComplete = (finalImageSrc: string) => {
+      setCroppedImages(prev => [...prev, finalImageSrc]);
+      setEditingImageSrc(null);
+  };
+
   const cancelCrop = () => {
     setMediaSrc(null);
     setZoom(1);
+  };
+
+  const cancelTextEdit = () => {
+    // Return to crop mode? Or cancel everything?
+    // Let's just cancel the current image add process
+    setEditingImageSrc(null);
+    // Optionally restore mediaSrc to allow re-crop if we had it?
+    // Current flow clears mediaSrc in handleCropConfirm.
+    // To allow "Back", we'd need to keep mediaSrc.
+    // For now, simpler to just cancel to main screen.
   };
 
   const cancelVideo = () => {
@@ -254,6 +275,17 @@ export default function UploadForm() {
             onComplete={handleVideoComplete}
           />
       )
+  }
+
+  // Text Editor
+  if (editingImageSrc) {
+      return (
+          <ImageTextEditor
+            imageSrc={editingImageSrc}
+            onCancel={cancelTextEdit}
+            onComplete={handleTextEditComplete}
+          />
+      );
   }
 
   // Image Cropper
