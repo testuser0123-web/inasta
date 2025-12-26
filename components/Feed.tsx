@@ -295,7 +295,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 className="px-6 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full text-sm font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
               >
                   {isLoadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Load More
+                  <span>Load More</span>
               </button>
           </div>
       )}
