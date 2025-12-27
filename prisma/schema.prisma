@@ -221,6 +221,7 @@ model Notification {
   content   String?
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
+  metadata  Json?
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
