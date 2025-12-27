@@ -95,6 +95,8 @@ export async function createDiary(formData: FormData) {
     },
   });
 
+  let diaryId: number;
+
   if (existingDiary) {
     if (!existingDiary.isDraft) {
       throw new Error('この日付の日記は既に投稿されています');
@@ -110,8 +112,9 @@ export async function createDiary(formData: FormData) {
         isDraft: false,
       },
     });
+    diaryId = existingDiary.id;
   } else {
-    await db.diary.create({
+    const newDiary = await db.diary.create({
       data: {
         title,
         content,
@@ -121,6 +124,7 @@ export async function createDiary(formData: FormData) {
         isDraft: false,
       },
     });
+    diaryId = newDiary.id;
   }
 
   // Notify followers
@@ -137,6 +141,7 @@ export async function createDiary(formData: FormData) {
         type: NotificationType.SYSTEM,
         title: `新しい日記`,
         content: `${posterName}さんが「${title}」を投稿しました。`,
+        metadata: { diaryId: diaryId, diaryTitle: title },
       })),
     });
   }

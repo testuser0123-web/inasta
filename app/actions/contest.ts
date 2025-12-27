@@ -76,7 +76,7 @@ export async function createContest(prevState: any, formData: FormData) {
   const endDate = new Date(startDate.getTime() + duration * 24 * 60 * 60 * 1000);
 
   try {
-    await db.contest.create({
+    const newContest = await db.contest.create({
       data: {
         title,
         description,
@@ -121,6 +121,7 @@ export async function createContest(prevState: any, formData: FormData) {
                     type: NotificationType.SYSTEM,
                     title: notificationTitle,
                     content: notificationContent,
+                    metadata: { contestId: newContest.id, contestTitle: title },
                 })),
             });
         }
