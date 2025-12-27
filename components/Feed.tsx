@@ -66,9 +66,12 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const isGuest = currentUserId === -1 || !currentUserId;
 
   useEffect(() => {
+    // Only reset posts if the feed context (type, query, user) changes.
+    // This prevents revalidations (e.g. from addComment) from resetting the list to page 1
+    // while the user has loaded more posts.
     setPosts(initialPosts);
-    setHasMore(initialPosts.length >= 12); // Reset hasMore when initialPosts change (e.g. tab switch)
-  }, [initialPosts]);
+    setHasMore(initialPosts.length >= 12);
+  }, [feedType, searchQuery, targetUserId]);
 
   // Initial Sync from URL (only on mount)
   useEffect(() => {
