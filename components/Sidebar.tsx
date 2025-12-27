@@ -31,8 +31,8 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false }: 
 
   if (isAdmin) {
     userNavItems.push(
-      { icon: ShieldAlert, label: 'Admin Notifications', href: '/admin/notifications', badge: null },
-      { icon: Mail, label: 'Admin Inbox', href: '/admin/inbox', badge: null }
+      { icon: ShieldAlert, label: '管理者通知', href: '/admin/notifications', badge: null },
+      { icon: Mail, label: '管理者受信箱', href: '/admin/inbox', badge: null }
     );
   }
 
