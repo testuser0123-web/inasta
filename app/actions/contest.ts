@@ -90,8 +90,8 @@ export async function createContest(prevState: any, formData: FormData) {
 
     // Broadcast notification efficiently using raw SQL
     // Exclude the creator from the notification
-    const notificationTitle = 'コンテストが作成されました';
-    const notificationContent = `新しいコンテスト「${title}」が作成されました。`;
+    const notificationTitle = '新しいコンテスト';
+    const notificationContent = `コンテスト「${title}」が開催されました。`;
     const now = new Date();
 
     // Note: Prisma models map to standard capitalization in the DB usually, but we should verify table names if possible.
