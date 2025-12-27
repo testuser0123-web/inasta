@@ -110,7 +110,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     setHasMore(initialPosts.length >= 12); // Reset hasMore when initialPosts change (e.g. tab switch)
   }, [initialPosts]);
 
-  // Sync URL with modal state
+  // Initial Sync from URL (only on mount)
   useEffect(() => {
     const postIdParam = searchParams.get('postId');
     if (postIdParam) {
@@ -120,13 +120,37 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             const postExists = posts.some(p => p.id === id);
             if (postExists) {
                 setSelectedPostId(id);
+                // Mark as opened via nav so back button works correctly if user refreshes then closes
+                // Actually, if loaded from URL, popping back might leave the site or go to previous page.
+                // We should let handleCloseModal assume it's NOT via nav (so it replaces state),
+                // unless we manually push state here. But we don't want to push state on load.
+                openedViaNav.current = false;
                 return;
             }
         }
     }
-    // If param is missing or invalid/not found, close modal
-    setSelectedPostId(null);
-  }, [searchParams, posts]);
+  }, []); // Run only on mount
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+      const handlePopState = () => {
+          const params = new URLSearchParams(window.location.search);
+          const postIdParam = params.get('postId');
+          if (postIdParam) {
+              const id = parseInt(postIdParam, 10);
+              if (!isNaN(id) && posts.some(p => p.id === id)) {
+                  setSelectedPostId(id);
+              } else {
+                  setSelectedPostId(null);
+              }
+          } else {
+              setSelectedPostId(null);
+          }
+      };
+
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+  }, [posts]);
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
@@ -162,21 +186,28 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
     }
 
-    // Instead of setting state directly, update URL
-    openedViaNav.current = true;
-    const params = new URLSearchParams(searchParams.toString());
+    // Update state immediately
+    setSelectedPostId(post.id);
+
+    // Update URL without triggering navigation
+    const params = new URLSearchParams(window.location.search);
     params.set('postId', post.id.toString());
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({ postId: post.id }, '', newUrl);
+    openedViaNav.current = true;
   };
 
   const handleCloseModal = () => {
       if (openedViaNav.current) {
-          router.back();
+          window.history.back();
           openedViaNav.current = false;
       } else {
-          const params = new URLSearchParams(searchParams.toString());
+          // If opened via deep link (refresh), replace state to remove query param
+          const params = new URLSearchParams(window.location.search);
           params.delete('postId');
-          router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+          const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+          window.history.replaceState(null, '', newUrl);
+          setSelectedPostId(null);
       }
   };
 

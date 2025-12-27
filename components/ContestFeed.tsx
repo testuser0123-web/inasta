@@ -69,7 +69,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
     // Guest check
     const isGuest = !currentUserId || currentUserId === -1;
 
-    // Sync URL with modal state
+    // Initial Sync from URL
     useEffect(() => {
         const postIdParam = searchParams.get('postId');
         if (postIdParam) {
@@ -78,30 +78,58 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                 const postExists = posts.some(p => p.id === id);
                 if (postExists) {
                     setSelectedPostId(id);
+                    openedViaNav.current = false;
                     return;
                 }
             }
         }
-        setSelectedPostId(null);
-    }, [searchParams, posts]);
+    }, []); // Run only on mount
+
+    // Handle browser back/forward buttons
+    useEffect(() => {
+        const handlePopState = () => {
+            const params = new URLSearchParams(window.location.search);
+            const postIdParam = params.get('postId');
+            if (postIdParam) {
+                const id = parseInt(postIdParam, 10);
+                if (!isNaN(id) && posts.some(p => p.id === id)) {
+                    setSelectedPostId(id);
+                } else {
+                    setSelectedPostId(null);
+                }
+            } else {
+                setSelectedPostId(null);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [posts]);
 
     const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
     const handlePostClick = (postId: number) => {
-        openedViaNav.current = true;
-        const params = new URLSearchParams(searchParams.toString());
+        // Update state
+        setSelectedPostId(postId);
+
+        // Update URL via History API
+        const params = new URLSearchParams(window.location.search);
         params.set('postId', postId.toString());
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.pushState({ postId }, '', newUrl);
+        openedViaNav.current = true;
     };
 
     const handleCloseModal = () => {
         if (openedViaNav.current) {
-            router.back();
+            window.history.back();
             openedViaNav.current = false;
         } else {
-            const params = new URLSearchParams(searchParams.toString());
+            const params = new URLSearchParams(window.location.search);
             params.delete('postId');
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+            const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+            window.history.replaceState(null, '', newUrl);
+            setSelectedPostId(null);
         }
     };
 
