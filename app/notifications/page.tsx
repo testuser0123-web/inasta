@@ -93,7 +93,7 @@ export default function NotificationsPage() {
                          ? 'border-indigo-200 bg-indigo-100 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-900 dark:text-indigo-300'
                          : 'border-gray-200 bg-gray-100 text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-400'
                     }`}>
-                        {notification.type === 'DEVELOPER' ? '開発者から' : 'システム'}
+                        {notification.type === 'DEVELOPER' ? '開発者' : 'システム'}
                     </span>
                     {!notification.isRead && (
                         <span className="w-2 h-2 rounded-full bg-red-500" title="Unread"></span>
