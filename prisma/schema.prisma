@@ -35,6 +35,7 @@ model User {
   mutedBy                Mute[]         @relation("mutedBy")
   muted                  Mute[]         @relation("muted")
   posts                  Post[]
+  notifications          Notification[]
 }
 
 model Post {
@@ -199,6 +200,24 @@ model DiaryComment {
   createdAt DateTime @default(now())
   diary     Diary    @relation(fields: [diaryId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  type      NotificationType
+  title     String
+  content   String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum NotificationType {
+  SYSTEM
+  DEVELOPER
 }
 
 enum MediaType {

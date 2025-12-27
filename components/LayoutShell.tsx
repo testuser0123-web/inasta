@@ -6,17 +6,19 @@ import type { Session } from '@/lib/auth';
 
 export default function LayoutShell({
     children,
-    session
+    session,
+    unreadCount = 0
 }: {
     children: React.ReactNode,
-    session: Session | null
+    session: Session | null,
+    unreadCount?: number
 }) {
     const pathname = usePathname();
     const isAuthPage = pathname === '/login' || pathname === '/signup';
 
     return (
         <div className="flex min-h-screen">
-            {!isAuthPage && <Sidebar username={session?.username} />}
+            {!isAuthPage && <Sidebar username={session?.username} unreadCount={unreadCount} />}
             <main className={`flex-1 ${!isAuthPage ? 'md:ml-64' : ''} w-full`}>
                 {children}
             </main>

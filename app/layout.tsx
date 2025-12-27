@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { UIProvider } from "@/components/providers/ui-provider";
 import { getSession } from "@/lib/auth";
 import LayoutShell from "@/components/LayoutShell";
+import { getUnreadNotificationCount } from "@/app/actions/notification";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,6 +28,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getSession();
+  let unreadCount = 0;
+  if (session?.id) {
+    unreadCount = await getUnreadNotificationCount(session.id);
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -40,7 +45,7 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
           <UIProvider>
-            <LayoutShell session={session}>
+            <LayoutShell session={session} unreadCount={unreadCount}>
                 {children}
             </LayoutShell>
           </UIProvider>

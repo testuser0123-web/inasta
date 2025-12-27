@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn } from 'lucide-react';
+import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { logout } from '@/app/actions/logout';
 import { useUI } from '@/components/providers/ui-provider';
 
-export default function Sidebar({ username }: { username?: string }) {
+export default function Sidebar({ username, unreadCount = 0 }: { username?: string, unreadCount?: number }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isSidebarVisible } = useUI();
@@ -26,11 +26,15 @@ export default function Sidebar({ username }: { username?: string }) {
     { icon: Search, label: 'Search', href: '/?feed=search' },
     { icon: Trophy, label: 'Contests', href: '/contests' },
     { icon: Book, label: 'Diary', href: '/diary' },
+    { icon: Bell, label: 'Notifications', href: '/notifications', badge: unreadCount > 0 ? unreadCount : null },
     { icon: PlusSquare, label: 'Create', href: '/upload' },
     { icon: User, label: 'Profile', href: '/profile' },
   ];
 
   const navItems = username ? userNavItems : guestNavItems;
+
+  // Helper to safely access badge prop since it only exists on some items
+  const getBadge = (item: any) => item.badge;
 
   // Hide mobile menu button and prevent interaction when sidebar is hidden (e.g. video editor)
   if (!isSidebarVisible) {
@@ -46,6 +50,11 @@ export default function Sidebar({ username }: { username?: string }) {
         className="md:hidden fixed bottom-6 left-6 z-[100] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
       >
         <Menu className="w-6 h-6" />
+        {unreadCount > 0 && (
+           <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
+             {unreadCount}
+           </span>
+        )}
       </button>
 
       {/* Overlay for mobile */}
@@ -87,13 +96,20 @@ export default function Sidebar({ username }: { username?: string }) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center gap-4 p-3 rounded-lg transition-colors ${
+                className={`flex items-center gap-4 p-3 rounded-lg transition-colors relative ${
                   isActive
                     ? 'font-bold bg-gray-100 dark:bg-gray-900'
                     : 'hover:bg-gray-50 dark:hover:bg-gray-900'
                 }`}
               >
-                <item.icon className={`w-6 h-6 ${isActive ? 'stroke-[3px]' : ''}`} />
+                <div className="relative">
+                    <item.icon className={`w-6 h-6 ${isActive ? 'stroke-[3px]' : ''}`} />
+                    {getBadge(item) && (
+                        <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                            {getBadge(item)}
+                        </span>
+                    )}
+                </div>
                 <span className="text-lg">{item.label}</span>
               </Link>
             );
