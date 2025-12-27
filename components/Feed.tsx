@@ -109,6 +109,27 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
+  useEffect(() => {
+    if (!selectedPostId) return;
+
+    const post = posts.find((p) => p.id === selectedPostId);
+    if (post && post.comments === undefined) {
+      fetchPostComments(post.id)
+        .then((comments) => {
+          setPosts((current) =>
+            current.map((p) => (p.id === post.id ? { ...p, comments } : p))
+          );
+        })
+        .catch((error) => {
+          console.error('Failed to load comments', error);
+          // In case of error, set empty comments to stop the spinner
+          setPosts((current) =>
+            current.map((p) => (p.id === post.id ? { ...p, comments: [] } : p))
+          );
+        });
+    }
+  }, [selectedPostId, posts]);
+
   const handlePostClick = async (post: Post) => {
     if (post.isSpoiler) {
       const confirmMessage = post.comment
@@ -121,27 +142,6 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     }
 
     setSelectedPostId(post.id);
-
-    // Fetch comments on demand if they are not already loaded
-    // Note: We check if comments are undefined. Empty array is valid loaded state.
-    if (post.comments === undefined) {
-        try {
-            const comments = await fetchPostComments(post.id);
-            setPosts(current =>
-                current.map(p =>
-                    p.id === post.id ? { ...p, comments } : p
-                )
-            );
-        } catch (error) {
-            console.error("Failed to load comments", error);
-            // In case of error, set empty comments to stop the spinner
-            setPosts(current =>
-                current.map(p =>
-                    p.id === post.id ? { ...p, comments: [] } : p
-                )
-            );
-        }
-    }
   };
 
   const handleLike = async (post: Post) => {

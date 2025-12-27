@@ -15,7 +15,6 @@ export default function Sidebar({ username, unreadCount = 0 }: { username?: stri
   // Guest nav items (Reduced)
   const guestNavItems = [
     { icon: Home, label: 'ホーム', href: '/' },
-    { icon: Search, label: '検索', href: '/?feed=search' },
     { icon: Trophy, label: 'コンテスト', href: '/contests' },
     { icon: Book, label: '日記', href: '/diary' },
   ];
@@ -23,11 +22,9 @@ export default function Sidebar({ username, unreadCount = 0 }: { username?: stri
   // User nav items (Full)
   const userNavItems = [
     { icon: Home, label: 'ホーム', href: '/' },
-    { icon: Search, label: '検索', href: '/?feed=search' },
     { icon: Trophy, label: 'コンテスト', href: '/contests' },
     { icon: Book, label: '日記', href: '/diary' },
     { icon: Bell, label: '通知', href: '/notifications', badge: unreadCount > 0 ? unreadCount : null },
-    { icon: PlusSquare, label: '作成', href: '/upload' },
     { icon: User, label: 'プロフィール', href: '/profile' },
   ];
 
