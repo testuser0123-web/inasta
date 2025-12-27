@@ -61,7 +61,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                     className="flex items-center justify-center gap-2 px-4 py-2 border dark:border-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors dark:text-gray-100"
                 >
                     <Settings className="w-4 h-4" />
-                    Edit Profile
+                    プロフィールを編集
                 </Link>
 
                 <Link
@@ -69,7 +69,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                     className="flex items-center justify-center gap-2 px-4 py-2 border dark:border-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors dark:text-gray-100"
                 >
                     <MoreHorizontal className="w-4 h-4" />
-                    Other Settings
+                    その他の設定
                 </Link>
                 
                 {!user.isVerified && (
@@ -78,7 +78,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 rounded-lg text-sm font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                     >
                         <ShieldCheck className="w-4 h-4" />
-                        Verify Account
+                        アカウント認証
                     </button>
                 )}
             </div>
@@ -93,7 +93,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                 }`}
             >
                 <Grid className="w-5 h-5 mr-2" />
-                Posts
+                投稿
             </button>
             <button
                 onClick={() => handleTabChange('diaries')}
@@ -112,7 +112,7 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                     }`}
                 >
                     <Heart className="w-5 h-5 mr-2" />
-                    Likes
+                    いいね
                 </button>
             )}
          </div>

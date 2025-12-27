@@ -26,13 +26,13 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
             <Link href="/profile" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white mr-4">
                 <ArrowLeft className="w-6 h-6" />
             </Link>
-            <h1 className="text-lg font-bold">Settings</h1>
+            <h1 className="text-lg font-bold">設定</h1>
         </div>
 
         <div className="p-4 max-w-lg mx-auto space-y-8">
             {/* Theme Settings */}
             <section className="space-y-4">
-                <h2 className="text-xl font-semibold">カラースキーム</h2>
+                <h2 className="text-xl font-semibold">外観</h2>
                 <div className="border dark:border-gray-800 p-4 rounded-lg shadow-sm">
                     {mounted ? (
                         <div className="flex space-x-2">
@@ -45,7 +45,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
                                 }`}
                             >
                                 <Sun className="w-6 h-6 mb-2" />
-                                <span className="text-sm font-medium">Light</span>
+                                <span className="text-sm font-medium">ライト</span>
                             </button>
                             <button
                                 onClick={() => setTheme('dark')}
@@ -56,7 +56,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
                                 }`}
                             >
                                 <Moon className="w-6 h-6 mb-2" />
-                                <span className="text-sm font-medium">Dark</span>
+                                <span className="text-sm font-medium">ダーク</span>
                             </button>
                             <button
                                 onClick={() => setTheme('system')}
@@ -67,7 +67,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
                                 }`}
                             >
                                 <Laptop className="w-6 h-6 mb-2" />
-                                <span className="text-sm font-medium">System</span>
+                                <span className="text-sm font-medium">端末設定</span>
                             </button>
                         </div>
                     ) : (
@@ -82,7 +82,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
                 <form action={settingsAction} className="space-y-4 border dark:border-gray-800 p-4 rounded-lg shadow-sm">
                      <div className="flex items-center justify-between">
                         <label htmlFor="excludeUnverifiedPosts" className="text-gray-900 dark:text-gray-100 font-medium">
-                            未認証ユーザーの投稿を除外する (ALLタブ)
+                            未認証ユーザーの投稿を除外する (すべてタブ)
                         </label>
                         <input
                             type="checkbox"
@@ -93,7 +93,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
                         />
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                        ※FOLLOWINGタブには影響しません
+                        ※フォロータブには影響しません
                     </div>
 
                     {settingsState?.message && (
@@ -107,7 +107,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
                         disabled={isSettingsPending}
                         className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                     >
-                        {isSettingsPending ? 'Saving...' : '設定を保存'}
+                        {isSettingsPending ? '保存中...' : '設定を保存'}
                     </button>
                 </form>
             </section>
@@ -152,7 +152,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
                         disabled={isPasswordPending}
                         className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                     >
-                        {isPasswordPending ? 'Changing...' : 'パスワードを変更'}
+                        {isPasswordPending ? '変更中...' : 'パスワードを変更'}
                     </button>
                 </form>
             </section>

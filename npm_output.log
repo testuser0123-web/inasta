@@ -1,0 +1,52 @@
+
+> inasta@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · optimizePackageImports
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1602ms
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (middleware.ts:3:1)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+ GET / 404 in 1784ms (compile: -281468µs, proxy.ts: 1772ms, render: 293ms)
+○ Compiling /_not-found/page ...
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (app/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__5a8e929f._.js:14:47)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (app/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__5a8e929f._.js:14:47)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
