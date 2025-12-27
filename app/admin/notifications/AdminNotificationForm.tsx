@@ -35,7 +35,7 @@ export default function AdminNotificationForm() {
           <label className="block text-sm font-medium mb-1">送るユーザー名 (あれば)</label>
           <input
             name="targetUsername"
-            placeholder="Leave empty to send to all users"
+            placeholder="全ユーザーに送るには空にしてください"
             className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
           />
         </div>
