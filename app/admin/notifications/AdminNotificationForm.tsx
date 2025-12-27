@@ -28,20 +28,20 @@ export default function AdminNotificationForm() {
 
   return (
     <div className="max-w-md mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Create Notification</h1>
+      <h1 className="text-2xl font-bold mb-6">通知を作成</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Target Username (Optional)</label>
+          <label className="block text-sm font-medium mb-1">送るユーザー名 (あれば)</label>
           <input
             name="targetUsername"
-            placeholder="Leave empty to send to all users"
+            placeholder="全ユーザーに送るには空にしてください"
             className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Title</label>
+          <label className="block text-sm font-medium mb-1"> タイトル </label>
           <input
             name="title"
             required
@@ -50,7 +50,7 @@ export default function AdminNotificationForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Content</label>
+          <label className="block text-sm font-medium mb-1"> 内容 </label>
           <textarea
             name="content"
             className="w-full p-2 border rounded h-32 dark:bg-gray-800 dark:border-gray-700"
@@ -58,15 +58,15 @@ export default function AdminNotificationForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Type</label>
+          <label className="block text-sm font-medium mb-1"> 送信元 </label>
           <select name="type" className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700">
-            <option value="DEVELOPER">Developer (Blue/Indigo)</option>
-            <option value="SYSTEM">System (Gray/White)</option>
+            <option value="DEVELOPER"> 開発者 </option>
+            <option value="SYSTEM"> システム </option>
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Admin Password</label>
+          <label className="block text-sm font-medium mb-1"> 管理者パスワード </label>
           <input
             name="password"
             type="password"
@@ -83,7 +83,7 @@ export default function AdminNotificationForm() {
             disabled={isSubmitting}
             className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 disabled:opacity-50"
         >
-            {isSubmitting ? 'Sending...' : 'Send Notification'}
+            {isSubmitting ? '送信中...' : '通知を送る'}
         </button>
       </form>
     </div>

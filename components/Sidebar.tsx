@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell, Inbox } from 'lucide-react';
+import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell, Inbox, ShieldAlert, Mail } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { logout } from '@/app/actions/logout';
 import { useUI } from '@/components/providers/ui-provider';
 
-export default function Sidebar({ username, unreadCount = 0 }: { username?: string, unreadCount?: number }) {
+export default function Sidebar({ username, unreadCount = 0, isAdmin = false }: { username?: string, unreadCount?: number, isAdmin?: boolean }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isSidebarVisible } = useUI();
@@ -28,6 +28,13 @@ export default function Sidebar({ username, unreadCount = 0 }: { username?: stri
     { icon: Inbox, label: '投書箱', href: '/suggestions' },
     { icon: User, label: 'プロフィール', href: '/profile' },
   ];
+
+  if (isAdmin) {
+    userNavItems.push(
+      { icon: ShieldAlert, label: '管理者通知', href: '/admin/notifications', badge: null },
+      { icon: Mail, label: '管理者受信箱', href: '/admin/inbox', badge: null }
+    );
+  }
 
   const navItems = username ? userNavItems : guestNavItems;
 

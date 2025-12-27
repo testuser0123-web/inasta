@@ -33,6 +33,9 @@ export default async function RootLayout({
     unreadCount = await getUnreadNotificationCount(session.id);
   }
 
+  const adminUserId = process.env.ADMIN_USER_ID;
+  const isAdmin = !!(session?.id && adminUserId && String(session.id) === adminUserId);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -45,7 +48,7 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
           <UIProvider>
-            <LayoutShell session={session} unreadCount={unreadCount}>
+            <LayoutShell session={session} unreadCount={unreadCount} isAdmin={isAdmin}>
                 {children}
             </LayoutShell>
           </UIProvider>
