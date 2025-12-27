@@ -11,6 +11,7 @@ import { fetchPostComments } from '@/app/actions/comment-fetch';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
+import { ImageWithSpinner } from '@/components/ImageWithSpinner';
 
 type Comment = {
   id: number;
@@ -44,47 +45,6 @@ type Post = {
   hashtags?: { name: string }[];
   images?: { id: number; order: number; url?: string }[];
 };
-
-function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, className?: string }) {
-    const [loaded, setLoaded] = useState(false);
-
-    const cleanSrc = src?.trim() || '';
-    const isExternal = cleanSrc.startsWith('http') || cleanSrc.startsWith('//');
-
-    return (
-        <div className={`relative w-full h-full ${className}`}>
-            {!loaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
-                    <div className="scale-50">
-                        <Spinner />
-                    </div>
-                </div>
-            )}
-            {isExternal ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                    src={cleanSrc}
-                    alt={alt}
-                    className={`object-cover w-full h-full transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-                    onLoad={() => setLoaded(true)}
-                    onError={() => setLoaded(true)}
-                    crossOrigin="anonymous"
-                />
-            ) : (
-                <Image
-                    src={src} // Keep original src for Next.js image if it expects relative path
-                    alt={alt}
-                    fill
-                    sizes="(max-width: 768px) 33vw, 25vw"
-                    className={`object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-                    onLoad={() => setLoaded(true)}
-                    onError={() => setLoaded(true)}
-                    unoptimized={src.startsWith('/api/')}
-                />
-            )}
-        </div>
-    );
-}
 
 export default function Feed({ initialPosts, currentUserId, feedType, searchQuery, targetUserId }: { initialPosts: Post[], currentUserId: number, feedType?: 'all' | 'following' | 'search' | 'user_posts' | 'user_likes', searchQuery?: string, targetUserId?: number }) {
   const [posts, setPosts] = useState(initialPosts);
@@ -307,6 +267,29 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
       if (result?.success) {
           setCommentText('');
+
+          if (selectedPost && result.comment) {
+             const newComment: Comment = {
+                id: result.comment.id,
+                text: result.comment.text,
+                userId: result.comment.userId,
+                user: {
+                    username: result.comment.user.username,
+                    avatarUrl: result.comment.user.avatarUrl
+                }
+             };
+
+             setPosts(current => current.map(p => {
+                 if (p.id === selectedPost.id) {
+                     return {
+                         ...p,
+                         comments: [...(p.comments || []), newComment]
+                     };
+                 }
+                 return p;
+             }));
+          }
+
           // Re-fetch data using router refresh instead of full reload to avoid client-side exceptions
           router.refresh();
       } else {

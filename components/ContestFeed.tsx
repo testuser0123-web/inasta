@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { toggleContestLike } from '@/app/actions/contest';
 import { Spinner } from '@/components/ui/spinner';
+import { ImageWithSpinner } from '@/components/ImageWithSpinner';
 
 type ContestPost = {
     id: number;
@@ -24,37 +25,6 @@ type ContestPost = {
     images?: { id: number; url: string; order: number }[];
     isEnded: boolean;
 };
-
-function ImageWithSpinner({ src, alt, className }: { src: string, alt: string, className?: string }) {
-    const [loaded, setLoaded] = useState(false);
-    const imgRef = useRef<HTMLImageElement>(null);
-
-    useEffect(() => {
-        if (imgRef.current && imgRef.current.complete) {
-            setLoaded(true);
-        }
-    }, []);
-
-    return (
-        <div className={`relative w-full h-full ${className}`}>
-            {!loaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
-                    <div className="scale-50"><Spinner /></div>
-                </div>
-            )}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-                ref={imgRef}
-                src={src}
-                alt={alt}
-                crossOrigin="anonymous"
-                className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-                onLoad={() => setLoaded(true)}
-                onError={() => setLoaded(true)}
-            />
-        </div>
-    );
-}
 
 export default function ContestFeed({ initialPosts, contestId, isTrophyView = false, currentUserId }: { initialPosts: ContestPost[], contestId: number, isTrophyView?: boolean, currentUserId?: number }) {
     const [posts, setPosts] = useState(initialPosts);
