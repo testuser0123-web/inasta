@@ -8,9 +8,10 @@ import { useTheme } from 'next-themes';
 
 type SettingsPageProps = {
     initialExcludeUnverifiedPosts: boolean;
+    initialShowMobileQuickNav: boolean;
 };
 
-export default function SettingsClient({ initialExcludeUnverifiedPosts }: SettingsPageProps) {
+export default function SettingsClient({ initialExcludeUnverifiedPosts, initialShowMobileQuickNav }: SettingsPageProps) {
   const [passwordState, passwordAction, isPasswordPending] = useActionState(changePassword, undefined);
   const [settingsState, settingsAction, isSettingsPending] = useActionState(updateSettings, undefined);
   const { theme, setTheme } = useTheme();
@@ -78,7 +79,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
 
             {/* Feed Settings */}
             <section className="space-y-4">
-                <h2 className="text-xl font-semibold">フィード設定</h2>
+                <h2 className="text-xl font-semibold">その他の設定</h2>
                 <form action={settingsAction} className="space-y-4 border dark:border-gray-800 p-4 rounded-lg shadow-sm">
                      <div className="flex items-center justify-between">
                         <label htmlFor="excludeUnverifiedPosts" className="text-gray-900 dark:text-gray-100 font-medium">
@@ -94,6 +95,19 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts }: Settin
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                         ※フォロータブには影響しません
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t dark:border-gray-700">
+                        <label htmlFor="showMobileQuickNav" className="text-gray-900 dark:text-gray-100 font-medium">
+                            ホーム画面にクイックナビを表示 (モバイルのみ)
+                        </label>
+                        <input
+                            type="checkbox"
+                            id="showMobileQuickNav"
+                            name="showMobileQuickNav"
+                            defaultChecked={initialShowMobileQuickNav}
+                            className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-600 dark:bg-gray-700"
+                        />
                     </div>
 
                     {settingsState?.message && (

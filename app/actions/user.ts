@@ -210,12 +210,14 @@ export async function updateSettings(prevState: unknown, formData: FormData) {
   }
 
   const excludeUnverifiedPosts = formData.get('excludeUnverifiedPosts') === 'on';
+  const showMobileQuickNav = formData.get('showMobileQuickNav') === 'on';
 
   try {
     await db.user.update({
       where: { id: session.id },
       data: {
         excludeUnverifiedPosts,
+        showMobileQuickNav,
       },
     });
 

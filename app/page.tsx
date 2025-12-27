@@ -5,6 +5,8 @@ import FeedContent from "@/components/FeedContent";
 import { Suspense } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import Snowfall from "@/components/Snowfall";
+import { db } from "@/lib/db";
+import QuickNav from "@/components/QuickNav";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +17,14 @@ export default async function Home({
 }) {
   const session = await getSession();
 
-  // Note: We no longer redirect to /login here. Guests are allowed.
-  // const session = await getSession();
-  // if (!session) {
-  //   redirect("/login");
-  // }
+  let showQuickNav = false;
+  if (session) {
+    const user = await db.user.findUnique({
+      where: { id: session.id },
+      select: { showMobileQuickNav: true },
+    });
+    showQuickNav = user?.showMobileQuickNav ?? false;
+  }
 
   const resolvedSearchParams = await searchParams;
   let feedType: "all" | "following" | "search" = "all";
@@ -62,6 +67,9 @@ export default async function Home({
              <div className="w-6" /> // Spacer if guest
           )}
         </div>
+
+        {/* Quick Nav (Mobile Only, Enabled by User) */}
+        {showQuickNav && <QuickNav />}
 
         {/* Tabs */}
         <div className="flex">

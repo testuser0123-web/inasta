@@ -11,12 +11,20 @@ export default async function SettingsPage() {
 
   const user = await db.user.findUnique({
     where: { id: session.id },
-    select: { excludeUnverifiedPosts: true },
+    select: {
+      excludeUnverifiedPosts: true,
+      showMobileQuickNav: true,
+    },
   });
 
   if (!user) {
       redirect('/login');
   }
 
-  return <SettingsClient initialExcludeUnverifiedPosts={user.excludeUnverifiedPosts} />;
+  return (
+    <SettingsClient
+      initialExcludeUnverifiedPosts={user.excludeUnverifiedPosts}
+      initialShowMobileQuickNav={user.showMobileQuickNav}
+    />
+  );
 }
