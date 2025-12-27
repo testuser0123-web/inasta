@@ -9,76 +9,110 @@
   · optimizePackageImports
 
 ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
 ✓ Ready in 1522ms
-○ Compiling /login ...
- GET /login 200 in 4.5s (compile: 4.0s, proxy.ts: 107ms, render: 475ms)
-prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
-Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0'
-}
-prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
-Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0'
-}
- GET / 200 in 280ms (compile: 7ms, proxy.ts: 5ms, render: 268ms)
- GET /login 200 in 89ms (compile: 13ms, proxy.ts: 8ms, render: 68ms)
-prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
-Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0'
-}
- GET / 200 in 264ms (compile: 10ms, proxy.ts: 5ms, render: 249ms)
- GET /login 200 in 158ms (compile: 15ms, proxy.ts: 9ms, render: 134ms)
-prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
-Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0'
-}
- GET / 200 in 185ms (compile: 16ms, proxy.ts: 9ms, render: 159ms)
- GET /login 200 in 70ms (compile: 6ms, proxy.ts: 4ms, render: 60ms)
-prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
-Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0'
-}
- GET / 200 in 113ms (compile: 10ms, proxy.ts: 4ms, render: 99ms)
-Missing SUPABASE_SERVICE_KEY, upload operations may fail.
-prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId", "public"."Diary"."isDraft", COALESCE("aggr_selection_0_DiaryLike"."_aggr_count_likes", 0) AS "_aggr_count_likes", COALESCE("aggr_selection_1_DiaryComment"."_aggr_count_comments", 0) AS "_aggr_count_comments" FROM "public"."Diary" LEFT JOIN (SELECT "public"."DiaryLike"."diaryId", COUNT(*) AS "_aggr_count_likes" FROM "public"."DiaryLike" WHERE 1=1 GROUP BY "public"."DiaryLike"."diaryId") AS "aggr_selection_0_DiaryLike" ON ("public"."Diary"."id" = "aggr_selection_0_DiaryLike"."diaryId") LEFT JOIN (SELECT "public"."DiaryComment"."diaryId", COUNT(*) AS "_aggr_count_comments" FROM "public"."DiaryComment" WHERE 1=1 GROUP BY "public"."DiaryComment"."diaryId") AS "aggr_selection_1_DiaryComment" ON ("public"."Diary"."id" = "aggr_selection_1_DiaryComment"."diaryId") WHERE ("public"."Diary"."date" >= $1 AND "public"."Diary"."date" <= $2 AND "public"."Diary"."isDraft" = $3) ORDER BY "public"."Diary"."date" DESC OFFSET $4
-⨯ Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0',
-  digest: '3872607252'
-}
- GET /diary 200 in 1738ms (compile: 1466ms, proxy.ts: 4ms, render: 268ms)
-prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
-⨯ Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0',
-  digest: '3872607252'
-}
- GET /contests 200 in 773ms (compile: 599ms, proxy.ts: 4ms, render: 170ms)
- GET /login 200 in 84ms (compile: 10ms, proxy.ts: 5ms, render: 69ms)
-prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
-Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0'
-}
- GET / 200 in 149ms (compile: 9ms, proxy.ts: 4ms, render: 136ms)
-Missing SUPABASE_SERVICE_KEY, upload operations may fail.
-prisma:query SELECT "public"."Diary"."id", "public"."Diary"."title", "public"."Diary"."content", "public"."Diary"."thumbnailUrl", "public"."Diary"."date", "public"."Diary"."createdAt", "public"."Diary"."updatedAt", "public"."Diary"."userId", "public"."Diary"."isDraft", COALESCE("aggr_selection_0_DiaryLike"."_aggr_count_likes", 0) AS "_aggr_count_likes", COALESCE("aggr_selection_1_DiaryComment"."_aggr_count_comments", 0) AS "_aggr_count_comments" FROM "public"."Diary" LEFT JOIN (SELECT "public"."DiaryLike"."diaryId", COUNT(*) AS "_aggr_count_likes" FROM "public"."DiaryLike" WHERE 1=1 GROUP BY "public"."DiaryLike"."diaryId") AS "aggr_selection_0_DiaryLike" ON ("public"."Diary"."id" = "aggr_selection_0_DiaryLike"."diaryId") LEFT JOIN (SELECT "public"."DiaryComment"."diaryId", COUNT(*) AS "_aggr_count_comments" FROM "public"."DiaryComment" WHERE 1=1 GROUP BY "public"."DiaryComment"."diaryId") AS "aggr_selection_1_DiaryComment" ON ("public"."Diary"."id" = "aggr_selection_1_DiaryComment"."diaryId") WHERE ("public"."Diary"."date" >= $1 AND "public"."Diary"."date" <= $2 AND "public"."Diary"."isDraft" = $3) ORDER BY "public"."Diary"."date" DESC OFFSET $4
-⨯ Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0',
-  digest: '3872607252'
-}
- GET /diary 200 in 627ms (compile: 237ms, proxy.ts: 5ms, render: 385ms)
-prisma:query SELECT "public"."Contest"."id", "public"."Contest"."title", "public"."Contest"."description", "public"."Contest"."startDate", "public"."Contest"."endDate", "public"."Contest"."creatorId", "public"."Contest"."createdAt", COALESCE("aggr_selection_0_ContestPost"."_aggr_count_posts", 0) AS "_aggr_count_posts" FROM "public"."Contest" LEFT JOIN (SELECT "public"."ContestPost"."contestId", COUNT(*) AS "_aggr_count_posts" FROM "public"."ContestPost" WHERE 1=1 GROUP BY "public"."ContestPost"."contestId") AS "aggr_selection_0_ContestPost" ON ("public"."Contest"."id" = "aggr_selection_0_ContestPost"."contestId") WHERE "public"."Contest"."endDate" > $1 ORDER BY "public"."Contest"."createdAt" DESC OFFSET $2
-⨯ Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
-    at ignore-listed frames {
-  clientVersion: '5.22.0',
-  digest: '3872607252'
-}
- GET /contests 200 in 202ms (compile: 6ms, proxy.ts: 4ms, render: 192ms)
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (middleware.ts:3:1)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+ GET / 404 in 1567ms (compile: -143353µs, proxy.ts: 1562ms, render: 148ms)
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (middleware.ts:3:1)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+ GET /login 404 in 38ms (compile: -13577µs, proxy.ts: 36ms, render: 16ms)
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (middleware.ts:3:1)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+ GET /signup 404 in 28ms (compile: -13413µs, proxy.ts: 25ms, render: 16ms)
+○ Compiling /_not-found/page ...
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (app/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__5a8e929f._.js:14:47)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (app/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__5a8e929f._.js:14:47)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (app/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__5a8e929f._.js:14:47)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (app/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__5a8e929f._.js:14:47)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (app/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__5a8e929f._.js:14:47)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |
+⨯ Error: SESSION_SECRET is not set
+    at module evaluation (lib/auth.ts:7:9)
+    at module evaluation (app/layout.tsx:6:1)
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__5a8e929f._.js:14:47)
+   5 | const secretKey = process.env.SESSION_SECRET;
+   6 | if (!secretKey) {
+>  7 |   throw new Error("SESSION_SECRET is not set");
+     |         ^
+   8 | }
+   9 | const key = new TextEncoder().encode(secretKey);
+  10 |

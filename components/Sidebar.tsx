@@ -14,21 +14,21 @@ export default function Sidebar({ username, unreadCount = 0 }: { username?: stri
 
   // Guest nav items (Reduced)
   const guestNavItems = [
-    { icon: Home, label: 'Home', href: '/' },
-    { icon: Search, label: 'Search', href: '/?feed=search' },
-    { icon: Trophy, label: 'Contests', href: '/contests' },
-    { icon: Book, label: 'Diary', href: '/diary' },
+    { icon: Home, label: 'ホーム', href: '/' },
+    { icon: Search, label: '検索', href: '/?feed=search' },
+    { icon: Trophy, label: 'コンテスト', href: '/contests' },
+    { icon: Book, label: '日記', href: '/diary' },
   ];
 
   // User nav items (Full)
   const userNavItems = [
-    { icon: Home, label: 'Home', href: '/' },
-    { icon: Search, label: 'Search', href: '/?feed=search' },
-    { icon: Trophy, label: 'Contests', href: '/contests' },
-    { icon: Book, label: 'Diary', href: '/diary' },
-    { icon: Bell, label: 'Notifications', href: '/notifications', badge: unreadCount > 0 ? unreadCount : null },
-    { icon: PlusSquare, label: 'Create', href: '/upload' },
-    { icon: User, label: 'Profile', href: '/profile' },
+    { icon: Home, label: 'ホーム', href: '/' },
+    { icon: Search, label: '検索', href: '/?feed=search' },
+    { icon: Trophy, label: 'コンテスト', href: '/contests' },
+    { icon: Book, label: '日記', href: '/diary' },
+    { icon: Bell, label: '通知', href: '/notifications', badge: unreadCount > 0 ? unreadCount : null },
+    { icon: PlusSquare, label: '作成', href: '/upload' },
+    { icon: User, label: 'プロフィール', href: '/profile' },
   ];
 
   const navItems = username ? userNavItems : guestNavItems;
@@ -121,13 +121,13 @@ export default function Sidebar({ username, unreadCount = 0 }: { username?: stri
             <form action={logout}>
               <button className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 w-full text-left text-red-500">
                 <LogOut className="w-6 h-6" />
-                <span className="text-lg">Log out</span>
+                <span className="text-lg">ログアウト</span>
               </button>
             </form>
           ) : (
             <Link href="/login" className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 w-full text-left text-indigo-600">
                 <LogIn className="w-6 h-6" />
-                <span className="text-lg">Log in</span>
+                <span className="text-lg">ログイン</span>
             </Link>
           )}
         </div>
