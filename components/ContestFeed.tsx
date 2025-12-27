@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Heart, Loader2, Share2, AlertTriangle, Layers, X, ChevronLeft, ChevronRight, BadgeCheck, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { toggleContestLike } from '@/app/actions/contest';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -61,12 +61,49 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
     const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+    const openedViaNav = useRef(false);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+
     // Guest check
     const isGuest = !currentUserId || currentUserId === -1;
 
-    const router = useRouter();
+    // Sync URL with modal state
+    useEffect(() => {
+        const postIdParam = searchParams.get('postId');
+        if (postIdParam) {
+            const id = parseInt(postIdParam, 10);
+            if (!isNaN(id)) {
+                const postExists = posts.some(p => p.id === id);
+                if (postExists) {
+                    setSelectedPostId(id);
+                    return;
+                }
+            }
+        }
+        setSelectedPostId(null);
+    }, [searchParams, posts]);
 
     const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
+
+    const handlePostClick = (postId: number) => {
+        openedViaNav.current = true;
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('postId', postId.toString());
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    const handleCloseModal = () => {
+        if (openedViaNav.current) {
+            router.back();
+            openedViaNav.current = false;
+        } else {
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('postId');
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
+    };
 
     const handleLike = async (post: ContestPost) => {
         if (isGuest) {
@@ -98,7 +135,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                                 <span>#{index + 1}</span>
                             </div>
 
-                            <div className="aspect-square cursor-pointer" onClick={() => setSelectedPostId(post.id)}>
+                            <div className="aspect-square cursor-pointer" onClick={() => handlePostClick(post.id)}>
                                  <ImageWithSpinner src={post.imageUrl} alt="" className="w-full h-full object-cover" />
                             </div>
 
@@ -124,7 +161,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
             ) : (
                 <div className="grid grid-cols-3 gap-0.5">
                     {posts.map((post) => (
-                        <div key={post.id} onClick={() => setSelectedPostId(post.id)} className="aspect-square relative cursor-pointer bg-gray-100 dark:bg-gray-800">
+                        <div key={post.id} onClick={() => handlePostClick(post.id)} className="aspect-square relative cursor-pointer bg-gray-100 dark:bg-gray-800">
                              <ImageWithSpinner src={post.imageUrl} alt="" className="w-full h-full object-cover" />
                              {post.images && post.images.length > 0 && (
                                 <div className="absolute top-2 right-2 z-10"><Layers className="w-5 h-5 text-white drop-shadow-md" /></div>
@@ -136,9 +173,9 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
 
             {/* Post Modal */}
             {selectedPost && (
-                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedPostId(null)}>
+                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={handleCloseModal}>
                      <div className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden w-full max-w-sm relative flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setSelectedPostId(null)} className="absolute top-2 right-2 p-1 bg-black/20 rounded-full text-white z-10 hover:bg-black/40"><X className="w-5 h-5" /></button>
+                        <button onClick={handleCloseModal} className="absolute top-2 right-2 p-1 bg-black/20 rounded-full text-white z-10 hover:bg-black/40"><X className="w-5 h-5" /></button>
 
                         <div className="w-full relative bg-gray-100 dark:bg-gray-800 min-h-[200px] shrink-0">
                              {/* Simplified Slider for Contest Post */}
