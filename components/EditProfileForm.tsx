@@ -189,7 +189,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
             <div className="space-y-2">
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Username
+                    ユーザー名
                 </label>
                 <input
                     type="text"
@@ -205,7 +205,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
             <div className="space-y-2">
                 <label htmlFor="bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Bio
+                    説明
                 </label>
                 <textarea
                     id="bio"
