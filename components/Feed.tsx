@@ -466,7 +466,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                           </div>
                       ))}
                       {selectedPost.comments.length === 0 && (
-                          <p className="text-gray-400 text-xs italic">No comments yet.</p>
+                          <p className="text-gray-400 text-xs italic">コメントはまだありません。</p>
                       )}
                     </>
                   )}

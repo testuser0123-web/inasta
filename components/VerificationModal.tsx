@@ -43,7 +43,7 @@ export default function VerificationModal({
     } else {
       setMessage({
         type: "error",
-        text: result.message || "Failed to generate token",
+        text: result.message || "トークンの生成に失敗しました",
       });
     }
     setIsLoading(false);

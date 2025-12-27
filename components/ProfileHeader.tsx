@@ -146,11 +146,11 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
       <div className="flex gap-6 mb-4 text-sm">
          <Link href={`/users/${user.username}/followers`} className="text-center hover:opacity-70 transition-opacity">
              <span className="font-bold block">{counts.followers}</span>
-             <span className="text-gray-500 dark:text-gray-400">Followers</span>
+             <span className="text-gray-500 dark:text-gray-400">フォロワー</span>
          </Link>
          <Link href={`/users/${user.username}/following`} className="text-center hover:opacity-70 transition-opacity">
              <span className="font-bold block">{counts.following}</span>
-             <span className="text-gray-500 dark:text-gray-400">Following</span>
+             <span className="text-gray-500 dark:text-gray-400">フォロー中</span>
          </Link>
       </div>
 
