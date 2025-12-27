@@ -184,7 +184,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     onChange={handleFileChange}
                     disabled={isUploading || isPending}
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">タップして画像を変更<p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">タップして画像を変更</p>
             </div>
 
             <div className="space-y-2">
