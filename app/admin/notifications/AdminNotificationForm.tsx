@@ -32,6 +32,15 @@ export default function AdminNotificationForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
+          <label className="block text-sm font-medium mb-1">Target Username (Optional)</label>
+          <input
+            name="targetUsername"
+            placeholder="Leave empty to send to all users"
+            className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium mb-1">Title</label>
           <input
             name="title"

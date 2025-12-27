@@ -89,6 +89,7 @@ export async function createDeveloperNotification(formData: FormData) {
   const content = formData.get('content') as string;
   const password = formData.get('password') as string;
   const type = (formData.get('type') as NotificationType) || 'DEVELOPER';
+  const targetUsername = formData.get('targetUsername') as string;
 
   const validation = developerNotificationSchema.safeParse({ title, content, password, type });
 
@@ -101,9 +102,23 @@ export async function createDeveloperNotification(formData: FormData) {
   }
 
   try {
-    const users = await prisma.user.findMany({
-      select: { id: true },
-    });
+    let users;
+
+    if (targetUsername && targetUsername.trim() !== '') {
+      const user = await prisma.user.findUnique({
+        where: { username: targetUsername.trim() },
+        select: { id: true },
+      });
+
+      if (!user) {
+        return { success: false, error: `User "${targetUsername}" not found` };
+      }
+      users = [user];
+    } else {
+      users = await prisma.user.findMany({
+        select: { id: true },
+      });
+    }
 
     if (users.length === 0) {
         return { success: true, message: 'No users to notify' };
