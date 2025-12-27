@@ -154,7 +154,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
             <X className="w-6 h-6" />
         </button>
 
-        <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white"プロフィール編集</h2>
+        <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white">プロフィー</h2>
 
         <form action={handleSubmit} className="space-y-6">
             <input type="hidden" name="avatarUrl" value={avatarPreview || ''} />
