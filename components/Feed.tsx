@@ -167,7 +167,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   };
 
   const handleDelete = async (postId: number) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
+    if (!confirm('この投稿を削除してもよろしいですか？')) return;
     
     setIsDeleting(true);
     await deletePost(postId);
@@ -211,11 +211,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       const url = `${window.location.origin}/p/${postId}`;
       try {
           await navigator.clipboard.writeText(url);
-          setShareFeedback('Link copied!');
+          setShareFeedback('リンクをコピーしました！');
           setTimeout(() => setShareFeedback(null), 2000);
       } catch (err) {
           console.error('Failed to copy', err);
-          setShareFeedback('Failed to copy');
+          setShareFeedback('コピーに失敗しました');
       }
   };
 
@@ -295,7 +295,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 className="px-6 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full text-sm font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
               >
                   {isLoadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>Load More</span>
+                  <span>もっと見る</span>
               </button>
           </div>
       )}
@@ -481,7 +481,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                         type="text"
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}
-                        placeholder="Add a comment..."
+                        placeholder="コメントを追加..."
                         maxLength={31}
                         className="flex-1 rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2"
                     />
