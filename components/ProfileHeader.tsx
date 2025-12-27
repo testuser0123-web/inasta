@@ -72,7 +72,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
     if (status.isMuted) {
       await unmuteUser(user.id);
     } else {
-        if (confirm(`Are you sure you want to mute @${user.username}? Their posts will not appear in your ALL feed.`)) {
+        if (confirm(`@${user.username}をミュートしてよろしいですか?`)) {
             await muteUser(user.id);
         } else {
              // Revert if cancelled
@@ -164,7 +164,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
              }`}
            >
-             {status.isFollowing ? 'Following' : 'Follow'}
+             {status.isFollowing ? 'フォロー中' : 'フォロー'}
            </button>
            
            <div className="relative">
@@ -183,7 +183,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
                          onClick={handleMuteToggle}
                          className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
                        >
-                           {status.isMuted ? 'Unmute' : 'Mute'}
+                           {status.isMuted ? 'ミュート解除' : 'ミュート'}
                        </button>
                    </div>
                  </>
