@@ -135,7 +135,7 @@ export async function createDiary(formData: FormData) {
       data: followers.map((f) => ({
         userId: f.followerId,
         type: NotificationType.SYSTEM,
-        title: `${posterName}さんが日記を投稿しました`,
+        title: `新しい日記`,
         content: `${posterName}さんが「${title}」を投稿しました。`,
       })),
     });
