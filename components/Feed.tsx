@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, Layers, AlertTriangle, Play } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment } from '@/app/actions/comment';
 import { fetchPostComments } from '@/app/actions/comment-fetch';
@@ -96,7 +96,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
+  const openedViaNav = useRef(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // Guest check: if currentUserId is -1 (or undefined/null if upstream not handled, but we expect -1 from FeedContent)
   // Actually check for valid ID.
@@ -106,6 +109,48 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     setPosts(initialPosts);
     setHasMore(initialPosts.length >= 12); // Reset hasMore when initialPosts change (e.g. tab switch)
   }, [initialPosts]);
+
+  // Initial Sync from URL (only on mount)
+  useEffect(() => {
+    const postIdParam = searchParams.get('postId');
+    if (postIdParam) {
+        const id = parseInt(postIdParam, 10);
+        if (!isNaN(id)) {
+            // Only open if the post exists in the current feed list
+            const postExists = posts.some(p => p.id === id);
+            if (postExists) {
+                setSelectedPostId(id);
+                // Mark as opened via nav so back button works correctly if user refreshes then closes
+                // Actually, if loaded from URL, popping back might leave the site or go to previous page.
+                // We should let handleCloseModal assume it's NOT via nav (so it replaces state),
+                // unless we manually push state here. But we don't want to push state on load.
+                openedViaNav.current = false;
+                return;
+            }
+        }
+    }
+  }, []); // Run only on mount
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+      const handlePopState = () => {
+          const params = new URLSearchParams(window.location.search);
+          const postIdParam = params.get('postId');
+          if (postIdParam) {
+              const id = parseInt(postIdParam, 10);
+              if (!isNaN(id) && posts.some(p => p.id === id)) {
+                  setSelectedPostId(id);
+              } else {
+                  setSelectedPostId(null);
+              }
+          } else {
+              setSelectedPostId(null);
+          }
+      };
+
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+  }, [posts]);
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
@@ -141,7 +186,29 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
     }
 
+    // Update state immediately
     setSelectedPostId(post.id);
+
+    // Update URL without triggering navigation
+    const params = new URLSearchParams(window.location.search);
+    params.set('postId', post.id.toString());
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({ postId: post.id }, '', newUrl);
+    openedViaNav.current = true;
+  };
+
+  const handleCloseModal = () => {
+      if (openedViaNav.current) {
+          window.history.back();
+          openedViaNav.current = false;
+      } else {
+          // If opened via deep link (refresh), replace state to remove query param
+          const params = new URLSearchParams(window.location.search);
+          params.delete('postId');
+          const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+          window.history.replaceState(null, '', newUrl);
+          setSelectedPostId(null);
+      }
   };
 
   const handleLike = async (post: Post) => {
@@ -174,7 +241,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     
     // Optimistic remove
     setPosts((current) => current.filter((p) => p.id !== postId));
-    setSelectedPostId(null);
+    // Close modal if deleted
+    if (selectedPostId === postId) {
+        handleCloseModal();
+    }
     setIsDeleting(false);
   };
 
@@ -312,13 +382,13 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
       {/* Modal */}
       {selectedPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedPostId(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={handleCloseModal}>
           <div 
             className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden w-full max-w-sm relative flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
              <button 
-                onClick={() => setSelectedPostId(null)}
+                onClick={handleCloseModal}
                 className="absolute top-2 right-2 p-1 bg-black/20 rounded-full text-white z-10 hover:bg-black/40"
              >
                 <X className="w-5 h-5" />
