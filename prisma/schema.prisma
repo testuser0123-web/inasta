@@ -36,6 +36,17 @@ model User {
   muted                  Mute[]         @relation("muted")
   posts                  Post[]
   notifications          Notification[]
+  suggestions            Suggestion[]
+}
+
+model Suggestion {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Post {
