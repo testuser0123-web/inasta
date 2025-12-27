@@ -31,16 +31,24 @@ export async function addComment(prevState: any, formData: FormData) {
   }
 
   try {
-    await db.comment.create({
+    const newComment = await db.comment.create({
       data: {
         text: validatedFields.data.text,
         postId: validatedFields.data.postId,
         userId: session.id, // session.id is the correct property name in lib/auth.ts
       },
+      include: {
+        user: {
+          select: {
+            username: true,
+            avatarUrl: true
+          }
+        }
+      }
     });
 
     revalidatePath('/');
-    return { success: true, message: 'Comment added' };
+    return { success: true, message: 'Comment added', comment: newComment };
   } catch (error) {
     console.error('Failed to add comment:', error);
     return { message: 'Failed to add comment' };

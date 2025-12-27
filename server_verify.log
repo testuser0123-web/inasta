@@ -1,0 +1,18 @@
+
+> inasta@0.1.0 start
+> next start
+
+▲ Next.js 16.1.1
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+✓ Ready in 1363ms
+Missing SUPABASE_SERVICE_KEY, upload operations may fail.
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."_HashtagToPost"."B", "public"."_HashtagToPost"."A" FROM "public"."_HashtagToPost" WHERE "public"."_HashtagToPost"."B" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+prisma:query SELECT "public"."Hashtag"."id", "public"."Hashtag"."name" FROM "public"."Hashtag" WHERE "public"."Hashtag"."id" IN ($1,$2,$3,$4,$5,$6,$7) OFFSET $8
+prisma:query SELECT "public"."PostImage"."id", "public"."PostImage"."order", "public"."PostImage"."url", "public"."PostImage"."postId" FROM "public"."PostImage" WHERE "public"."PostImage"."postId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."PostImage"."order" ASC OFFSET $13
+prisma:query SELECT "public"."User"."id", "public"."User"."username", "public"."User"."avatarUrl", "public"."User"."updatedAt", "public"."User"."isVerified", "public"."User"."isGold", "public"."User"."roles" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) OFFSET $11
+prisma:query SELECT "public"."Like"."id", "public"."Like"."userId", "public"."Like"."postId" FROM "public"."Like" WHERE ("public"."Like"."userId" = $1 AND "public"."Like"."postId" IN ($2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)) OFFSET $14
+Missing SUPABASE_SERVICE_KEY, upload operations may fail.
