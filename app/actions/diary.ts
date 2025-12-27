@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin, BUCKET_NAME } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
+import { NotificationType } from '@prisma/client';
 
 const diarySchema = z.object({
   title: z.string().min(1, 'タイトルは必須です').max(100, 'タイトルが長すぎます'),
@@ -119,6 +120,24 @@ export async function createDiary(formData: FormData) {
         userId: session.id,
         isDraft: false,
       },
+    });
+  }
+
+  // Notify followers
+  const followers = await db.follow.findMany({
+    where: { followingId: session.id },
+    select: { followerId: true },
+  });
+
+  if (followers.length > 0) {
+    const posterName = session.username ?? 'ユーザー';
+    await db.notification.createMany({
+      data: followers.map((f) => ({
+        userId: f.followerId,
+        type: NotificationType.SYSTEM,
+        title: `新しい日記`,
+        content: `${posterName}さんが「${title}」を投稿しました。`,
+      })),
     });
   }
 

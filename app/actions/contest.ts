@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { NotificationType } from '@prisma/client';
 
 export async function getContests(tab: 'active' | 'ended') {
   const now = new Date();
@@ -86,6 +87,44 @@ export async function createContest(prevState: any, formData: FormData) {
         },
       },
     });
+
+    // Broadcast notification efficiently using raw SQL
+    // Exclude the creator from the notification
+    const notificationTitle = '新しいコンテスト';
+    const notificationContent = `コンテスト「${title}」が開催されました。`;
+    const now = new Date();
+
+    // Note: Prisma models map to standard capitalization in the DB usually, but we should verify table names if possible.
+    // Assuming standard "User" and "Notification" tables and camelCase mapped to database columns.
+    // However, typically Prisma uses "User" and "Notification" as table names if not mapped.
+    // And columns "userId", "type", "title", "content", "isRead", "createdAt".
+    // We must handle the enum 'SYSTEM' correctly. In raw SQL, it might be a string or enum type.
+
+    // Fallback to optimized findMany + createMany for safety against raw SQL mismatches (e.g. table names, enum casting),
+    // but optimized to not load objects, just IDs.
+    // Actually, createMany is reasonably efficient if we batch it, but Node memory is the limit.
+    // For now, given the uncertainty of raw SQL schema names (quoted identifiers etc.), I will stick to Prisma but optimize filtering.
+
+    const allUsers = await db.user.findMany({
+        where: { NOT: { id: session.id } },
+        select: { id: true }
+    });
+
+    if (allUsers.length > 0) {
+        // Batch insert in chunks of 1000 to avoid query size limits
+        const chunkSize = 1000;
+        for (let i = 0; i < allUsers.length; i += chunkSize) {
+            const chunk = allUsers.slice(i, i + chunkSize);
+            await db.notification.createMany({
+                data: chunk.map((user) => ({
+                    userId: user.id,
+                    type: NotificationType.SYSTEM,
+                    title: notificationTitle,
+                    content: notificationContent,
+                })),
+            });
+        }
+    }
   } catch (e) {
     console.error(e);
     return { message: 'コンテストの作成に失敗しました' };
