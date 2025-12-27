@@ -154,7 +154,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
             <X className="w-6 h-6" />
         </button>
 
-        <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white">Edit Profile</h2>
+        <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white"プロフィール編集</h2>
 
         <form action={handleSubmit} className="space-y-6">
             <input type="hidden" name="avatarUrl" value={avatarPreview || ''} />
@@ -184,7 +184,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                     onChange={handleFileChange}
                     disabled={isUploading || isPending}
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Tap to change photo</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">タップして画像を変更<p>
             </div>
 
             <div className="space-y-2">
@@ -253,7 +253,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                         <Spinner className="w-4 h-4 text-white" />
                         <span>{isUploading ? "Uploading..." : "Saving..."}</span>
                     </>
-                ) : 'Save Changes'}
+                ) : '変更を保存する'}
             </button>
         </form>
       </div>
