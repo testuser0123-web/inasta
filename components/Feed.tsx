@@ -291,7 +291,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
           }
 
           // Re-fetch data using router refresh instead of full reload to avoid client-side exceptions
-          router.refresh();
+          // No refresh needed as we update state locally to preserve scroll position/loaded posts
       } else {
           alert(result?.message || 'Failed to add comment');
       }
