@@ -10,41 +10,94 @@ interface ImageCarouselProps {
 
 export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
 
-  const scrollTo = (index: number) => {
-      if (!scrollContainerRef.current) return;
-      const width = scrollContainerRef.current.clientWidth;
-      scrollContainerRef.current.scrollTo({
-          left: width * index,
-          behavior: 'smooth'
-      });
-      setCurrentIndex(index);
+  // Use refs for touch tracking to avoid state batching issues during fast swipes
+  const touchStartRef = useRef<number | null>(null);
+  const touchCurrentRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = e.targetTouches[0].clientX;
+    touchCurrentRef.current = e.targetTouches[0].clientX;
+    setIsDragging(true);
+    setDragOffset(0);
   };
 
-  const handleScroll = () => {
-      if (!scrollContainerRef.current) return;
-      const width = scrollContainerRef.current.clientWidth;
-      const scrollLeft = scrollContainerRef.current.scrollLeft;
-      const newIndex = Math.round(scrollLeft / width);
-      if (newIndex !== currentIndex) {
-          setCurrentIndex(newIndex);
-      }
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null) return;
+
+    const currentX = e.targetTouches[0].clientX;
+    touchCurrentRef.current = currentX;
+
+    // Update visual drag offset
+    const diff = currentX - touchStartRef.current;
+    setDragOffset(diff);
+  };
+
+  const onTouchEnd = () => {
+    if (touchStartRef.current === null || touchCurrentRef.current === null) {
+        setIsDragging(false);
+        setDragOffset(0);
+        return;
+    }
+
+    const distance = touchCurrentRef.current - touchStartRef.current; // Negative = Left Swipe (Next), Positive = Right Swipe (Prev)
+
+    // In touch gestures:
+    // Dragging finger LEFT (startX > currentX) results in negative distance. This means we want to go NEXT.
+    // Dragging finger RIGHT (startX < currentX) results in positive distance. This means we want to go PREV.
+
+    const isNextSwipe = distance < -minSwipeDistance;
+    const isPrevSwipe = distance > minSwipeDistance;
+
+    if (isNextSwipe && currentIndex < imageUrls.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+    } else if (isPrevSwipe && currentIndex > 0) {
+        setCurrentIndex(prev => prev - 1);
+    }
+
+    // Reset state
+    touchStartRef.current = null;
+    touchCurrentRef.current = null;
+    setIsDragging(false);
+    setDragOffset(0);
+  };
+
+  const nextSlide = () => {
+    if (currentIndex < imageUrls.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+    }
+  };
+
+  const prevSlide = () => {
+    if (currentIndex > 0) {
+        setCurrentIndex(prev => prev - 1);
+    }
   };
 
   return (
-      <div className="w-full relative bg-gray-100 dark:bg-gray-800 min-h-[300px] shrink-0 group">
-           {/* Slider */}
+      <div className="w-full relative bg-gray-100 dark:bg-gray-800 min-h-[300px] shrink-0 group overflow-hidden touch-pan-y">
+           {/* Slider Container */}
           <div
-              ref={scrollContainerRef}
-              className="flex w-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              onScroll={handleScroll}
+              ref={containerRef}
+              className="flex w-full h-full"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+              style={{
+                  transform: `translateX(calc(-${currentIndex * 100}% + ${isDragging ? dragOffset : 0}px))`,
+                  transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+              }}
           >
               {imageUrls.map((url, idx) => {
                   const isExternal = url.startsWith('http');
                   return (
-                      <div key={idx} className="w-full flex-shrink-0 snap-center snap-stop-always relative h-[50vh] min-h-[300px]">
+                      <div key={idx} className="w-full flex-shrink-0 relative h-[50vh] min-h-[300px]">
                           {isExternal ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
@@ -52,6 +105,7 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
                                   alt={`Slide ${idx}`}
                                   className="object-contain w-full h-full"
                                   crossOrigin="anonymous"
+                                  draggable={false} // Prevent native drag
                               />
                           ) : (
                               <Image
@@ -62,6 +116,7 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
                                   sizes="(max-width: 768px) 100vw, 50vw"
                                   priority={idx === 0}
                                   unoptimized={url.startsWith('/api/')}
+                                  draggable={false}
                               />
                           )}
                       </div>
@@ -74,7 +129,7 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
               <>
                   {currentIndex > 0 && (
                       <button
-                          onClick={(e) => { e.stopPropagation(); scrollTo(currentIndex - 1); }}
+                          onClick={(e) => { e.stopPropagation(); prevSlide(); }}
                           className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/40 text-white rounded-full transition-opacity hover:bg-black/60 z-10"
                       >
                           <ChevronLeft className="w-6 h-6" />
@@ -82,7 +137,7 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
                   )}
                   {currentIndex < imageUrls.length - 1 && (
                       <button
-                          onClick={(e) => { e.stopPropagation(); scrollTo(currentIndex + 1); }}
+                          onClick={(e) => { e.stopPropagation(); nextSlide(); }}
                           className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/40 text-white rounded-full transition-opacity hover:bg-black/60 z-10"
                       >
                           <ChevronRight className="w-6 h-6" />
