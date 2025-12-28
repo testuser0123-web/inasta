@@ -212,7 +212,7 @@ export default function UploadForm() {
             formData.set('imageUrl', uploadedUrls[0]);
           }
       } else if (mediaType === "VIDEO" && trimmedVideo) {
-          setUploadProgress("アップロード中... 🎞️ᶘｲ^⇁^ﾅ川💦");
+          setUploadProgress("🎞️ᶘｲ^⇁^ﾅ川💦");
           const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
           const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
