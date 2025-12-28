@@ -10,11 +10,12 @@ import { Spinner } from "@/components/ui/spinner";
 import VideoEditor from "@/components/VideoEditor";
 import ImageTextEditor from "@/components/ImageTextEditor";
 import { useUI } from "@/components/providers/ui-provider";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
 type MediaType = "IMAGE" | "VIDEO";
-type Step = "SELECT" | "CROP" | "EDIT" | "UPLOAD";
 
 export default function UploadForm() {
   const [state, action, isPending] = useActionState(createPost, undefined);
@@ -42,6 +43,10 @@ export default function UploadForm() {
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
 
+  // GIF Conversion State
+  const [isConverting, setIsConverting] = useState(false);
+  const ffmpegRef = useRef<FFmpeg | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Manage Sidebar visibility based on video editing state or text editing state
@@ -67,16 +72,77 @@ export default function UploadForm() {
     []
   );
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const loadFFmpeg = async () => {
+    if (ffmpegRef.current) return ffmpegRef.current;
+
+    const ffmpeg = new FFmpeg();
+    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+
+    // Log progress if needed
+    // ffmpeg.on("log", ({ message }) => console.log(message));
+
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+    });
+
+    ffmpegRef.current = ffmpeg;
+    return ffmpeg;
+  };
+
+  const convertGifToMp4 = async (file: File): Promise<File> => {
+    const ffmpeg = await loadFFmpeg();
+    const inputName = "input.gif";
+    const outputName = "output.mp4";
+
+    await ffmpeg.writeFile(inputName, await fetchFile(file));
+
+    // Convert GIF to MP4
+    // -pix_fmt yuv420p is required for broad compatibility
+    // scale filter ensures even dimensions
+    await ffmpeg.exec([
+      "-i", inputName,
+      "-movflags", "faststart",
+      "-pix_fmt", "yuv420p",
+      "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+      outputName
+    ]);
+
+    const data = await ffmpeg.readFile(outputName);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const blob = new Blob([data as any], { type: "video/mp4" });
+    return new File([blob], file.name.replace(/\.gif$/i, ".mp4"), { type: "video/mp4" });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type.startsWith("video/")) {
+    // Reset file input value so same file can be selected again
+    e.target.value = "";
+
+    if (file.type === "image/gif") {
+        setIsConverting(true);
+        try {
+            const mp4File = await convertGifToMp4(file);
+            setMediaType("VIDEO");
+            setMediaFile(null); // Bypass Editor
+            setTrimmedVideo(mp4File); // Set directly as "trimmed" result
+            // Clear any image state just in case
+            setCroppedImages([]);
+            setMediaSrc(null);
+        } catch (error) {
+            console.error("GIF conversion failed:", error);
+            alert("GIFの変換に失敗しました。");
+        } finally {
+            setIsConverting(false);
+        }
+    } else if (file.type.startsWith("video/")) {
         setMediaType("VIDEO");
         setMediaFile(file);
         // Reset image state
         setCroppedImages([]);
-        setImageSrc(null);
+        setMediaSrc(null);
     } else {
         setMediaType("IMAGE");
         setMediaFile(null);
@@ -84,7 +150,7 @@ export default function UploadForm() {
 
         const reader = new FileReader();
         reader.addEventListener("load", () => {
-          setImageSrc(reader.result as string);
+          setMediaSrc(reader.result as string);
 
           // Load image to get dimensions
           const img = new Image();
@@ -95,12 +161,6 @@ export default function UploadForm() {
         });
         reader.readAsDataURL(file);
     }
-    // Reset file input value so same file can be selected again if needed
-    e.target.value = "";
-  };
-
-  const setImageSrc = (src: string | null) => {
-      setMediaSrc(src);
   };
 
   const handleCropConfirm = useCallback(async () => {
@@ -375,14 +435,16 @@ export default function UploadForm() {
 
   return (
     <>
-      {(isUploading || isPending) && (
+      {(isUploading || isPending || isConverting) && (
         <div className="fixed inset-0 z-[9999] bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm">
           <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl flex flex-col items-center gap-4 shadow-xl">
             <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
             <div className="text-center">
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">送信中...</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {isConverting ? "処理中..." : "送信中..."}
+              </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {uploadProgress || "✉️ᶘｲ^⇁^ﾅ川💦"}
+                {isConverting ? "GIFを動画に変換しています" : (uploadProgress || "✉️ᶘｲ^⇁^ﾅ川💦")}
               </p>
             </div>
           </div>
@@ -486,7 +548,7 @@ export default function UploadForm() {
               maxLength={173}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending}
+              disabled={!hasMedia || isUploading || isPending || isConverting}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="キャプションを入力..."
             />
@@ -510,7 +572,7 @@ export default function UploadForm() {
               name="hashtags"
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending}
+              disabled={!hasMedia || isUploading || isPending || isConverting}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="#travel #food #nature"
             />
@@ -540,13 +602,13 @@ export default function UploadForm() {
 
         <button
           type="submit"
-          disabled={isPending || isUploading || !hasMedia}
+          disabled={isPending || isUploading || isConverting || !hasMedia}
           className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
         >
-          {isUploading || isPending ? (
+          {isUploading || isPending || isConverting ? (
             <>
               <Spinner className="w-4 h-4 text-white" />
-              <span>{isUploading ? "処理中..." : "送信中..."}</span>
+              <span>{isUploading ? "処理中..." : isConverting ? "処理中..." : "送信中..."}</span>
             </>
           ) : (
             "シェア"
