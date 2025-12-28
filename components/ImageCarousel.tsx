@@ -21,6 +21,13 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
 
+  const resetDrag = () => {
+    touchStartRef.current = null;
+    touchCurrentRef.current = null;
+    setIsDragging(false);
+    setDragOffset(0);
+  };
+
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = e.targetTouches[0].clientX;
     touchCurrentRef.current = e.targetTouches[0].clientX;
@@ -41,8 +48,7 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
 
   const onTouchEnd = () => {
     if (touchStartRef.current === null || touchCurrentRef.current === null) {
-        setIsDragging(false);
-        setDragOffset(0);
+        resetDrag();
         return;
     }
 
@@ -61,11 +67,11 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
         setCurrentIndex(prev => prev - 1);
     }
 
-    // Reset state
-    touchStartRef.current = null;
-    touchCurrentRef.current = null;
-    setIsDragging(false);
-    setDragOffset(0);
+    resetDrag();
+  };
+
+  const onTouchCancel = () => {
+      resetDrag();
   };
 
   const nextSlide = () => {
@@ -89,6 +95,7 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
+              onTouchCancel={onTouchCancel}
               style={{
                   transform: `translateX(calc(-${currentIndex * 100}% + ${isDragging ? dragOffset : 0}px))`,
                   transition: isDragging ? 'none' : 'transform 0.3s ease-out'
