@@ -1,0 +1,23 @@
+
+> inasta@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · optimizePackageImports
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1532ms
+○ Compiling / ...
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
+}
+ GET / 200 in 6.7s (compile: 5.5s, proxy.ts: 108ms, render: 1038ms)
+✓ Compiled in 62ms
+ GET /upload 200 in 1585ms (compile: 1431ms, proxy.ts: 27ms, render: 128ms)
+✓ Compiled in 46ms
