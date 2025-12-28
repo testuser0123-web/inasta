@@ -6,6 +6,7 @@ import { UIProvider } from "@/components/providers/ui-provider";
 import { getSession } from "@/lib/auth";
 import LayoutShell from "@/components/LayoutShell";
 import { getUnreadNotificationCount } from "@/app/actions/notification";
+import { db as prisma } from "@/lib/db";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,12 +30,26 @@ export default async function RootLayout({
 }>) {
   const session = await getSession();
   let unreadCount = 0;
-  if (session?.id) {
-    unreadCount = await getUnreadNotificationCount(session.id);
-  }
+  let isRoleManager = false;
 
   const adminUserId = process.env.ADMIN_USER_ID;
   const isAdmin = !!(session?.id && adminUserId && String(session.id) === adminUserId);
+
+  if (session?.id) {
+    unreadCount = await getUnreadNotificationCount(session.id);
+
+    if (isAdmin) {
+      isRoleManager = true;
+    } else {
+        const user = await prisma.user.findUnique({
+        where: { id: session.id },
+        select: { roles: true },
+        });
+        if (user && user.roles.includes('role_manager')) {
+        isRoleManager = true;
+        }
+    }
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -48,7 +63,7 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
           <UIProvider>
-            <LayoutShell session={session} unreadCount={unreadCount} isAdmin={isAdmin}>
+            <LayoutShell session={session} unreadCount={unreadCount} isAdmin={isAdmin} isRoleManager={isRoleManager}>
                 {children}
             </LayoutShell>
           </UIProvider>
