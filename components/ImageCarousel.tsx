@@ -44,7 +44,7 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
               {imageUrls.map((url, idx) => {
                   const isExternal = url.startsWith('http');
                   return (
-                      <div key={idx} className="w-full flex-shrink-0 snap-center relative h-[50vh] min-h-[300px]">
+                      <div key={idx} className="w-full flex-shrink-0 snap-center snap-stop-always relative h-[50vh] min-h-[300px]">
                           {isExternal ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
