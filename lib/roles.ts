@@ -15,6 +15,10 @@ export const ROLES = [
     id: 'inastagrammer',
     name: 'Inastagrammer',
   },
+  {
+    id: 'role_manager',
+    name: 'Role Manager',
+  },
 ] as const;
 
 export type RoleId = typeof ROLES[number]['id'];

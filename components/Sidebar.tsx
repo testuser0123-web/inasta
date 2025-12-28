@@ -1,26 +1,26 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell, Inbox, ShieldAlert, Mail } from 'lucide-react';
+import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell, Inbox, ShieldAlert, Mail, UserCog } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { logout } from '@/app/actions/logout';
 import { useUI } from '@/components/providers/ui-provider';
 
-export default function Sidebar({ username, unreadCount = 0, isAdmin = false }: { username?: string, unreadCount?: number, isAdmin?: boolean }) {
+export default function Sidebar({ username, unreadCount = 0, isAdmin = false, isRoleManager = false }: { username?: string, unreadCount?: number, isAdmin?: boolean, isRoleManager?: boolean }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isSidebarVisible } = useUI();
 
-  // Guest nav items (Reduced)
+  // Guest nav items
   const guestNavItems = [
     { icon: Home, label: 'ホーム', href: '/' },
     { icon: Trophy, label: 'コンテスト', href: '/contests' },
     { icon: Book, label: '日記', href: '/diary' },
   ];
 
-  // User nav items (Full)
-  const userNavItems = [
+  // User nav items
+  const baseUserNavItems = [
     { icon: Home, label: 'ホーム', href: '/' },
     { icon: Trophy, label: 'コンテスト', href: '/contests' },
     { icon: Book, label: '日記', href: '/diary' },
@@ -29,10 +29,18 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false }: 
     { icon: User, label: 'プロフィール', href: '/profile' },
   ];
 
+  const userNavItems = [...baseUserNavItems];
+
   if (isAdmin) {
     userNavItems.push(
       { icon: ShieldAlert, label: '管理者通知', href: '/admin/notifications', badge: null },
       { icon: Mail, label: '管理者受信箱', href: '/admin/inbox', badge: null }
+    );
+  }
+
+  if (isRoleManager) {
+    userNavItems.push(
+      { icon: UserCog, label: 'ロール管理', href: '/admin/roles', badge: null }
     );
   }
 
