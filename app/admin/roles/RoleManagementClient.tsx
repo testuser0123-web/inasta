@@ -117,9 +117,9 @@ export default function RoleManagementClient({ isGlobalAdmin }: RoleManagementCl
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 overflow-hidden">
           <div className="p-6 border-b dark:border-gray-800 flex items-center gap-4">
              {user.avatarUrl ? (
-                 <img src={user.avatarUrl} alt={user.username} className="w-16 h-16 rounded-full object-cover" />
+                 <img src={user.avatarUrl} crossOrigin="anonymous" alt={user.username} className="w-16 h-16 rounded-full object-cover shrink-0" />
              ) : (
-                 <div className="w-16 h-16 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                 <div className="w-16 h-16 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center shrink-0">
                      <span className="text-2xl text-gray-500">{user.username[0].toUpperCase()}</span>
                  </div>
              )}
