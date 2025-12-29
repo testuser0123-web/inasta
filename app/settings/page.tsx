@@ -14,6 +14,7 @@ export default async function SettingsPage() {
     select: {
       excludeUnverifiedPosts: true,
       showMobileQuickNav: true,
+      themeColor: true,
     },
   });
 
@@ -25,6 +26,7 @@ export default async function SettingsPage() {
     <SettingsClient
       initialExcludeUnverifiedPosts={user.excludeUnverifiedPosts}
       initialShowMobileQuickNav={user.showMobileQuickNav}
+      initialThemeColor={user.themeColor || '#4f46e5'}
     />
   );
 }

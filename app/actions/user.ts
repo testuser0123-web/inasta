@@ -211,6 +211,12 @@ export async function updateSettings(prevState: unknown, formData: FormData) {
 
   const excludeUnverifiedPosts = formData.get('excludeUnverifiedPosts') === 'on';
   const showMobileQuickNav = formData.get('showMobileQuickNav') === 'on';
+  const themeColor = formData.get('themeColor') as string;
+
+  // Validate themeColor
+  if (themeColor && !/^#[0-9A-Fa-f]{6}$/.test(themeColor)) {
+     return { message: '無効なカラーコードです' };
+  }
 
   try {
     await db.user.update({
@@ -218,10 +224,12 @@ export async function updateSettings(prevState: unknown, formData: FormData) {
       data: {
         excludeUnverifiedPosts,
         showMobileQuickNav,
+        themeColor: themeColor || '#4f46e5',
       },
     });
 
     revalidatePath('/'); // Revalidate feed
+    revalidatePath('/settings'); // Revalidate settings page
   } catch (error) {
     console.error('Failed to update settings:', error);
     return { message: 'Failed to update settings' };

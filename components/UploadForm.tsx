@@ -382,7 +382,7 @@ export default function UploadForm() {
                 type="button"
                 onClick={handleCropConfirm}
                 aria-label="決定"
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold text-sm hover:bg-indigo-500"
+              className="px-4 py-2 bg-brand text-white rounded-md font-semibold text-sm hover:opacity-90"
               >
                 <Check className="w-5 h-5" />
               </button>
@@ -603,7 +603,7 @@ export default function UploadForm() {
         <button
           type="submit"
           disabled={isPending || isUploading || isConverting || !hasMedia}
-          className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
+          className="flex w-full justify-center rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
         >
           {isUploading || isPending || isConverting ? (
             <>

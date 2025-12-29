@@ -31,6 +31,7 @@ export default async function RootLayout({
   const session = await getSession();
   let unreadCount = 0;
   let isRoleManager = false;
+  let themeColor = '#4f46e5';
 
   const adminUserId = process.env.ADMIN_USER_ID;
   const isAdmin = !!(session?.id && adminUserId && String(session.id) === adminUserId);
@@ -38,21 +39,26 @@ export default async function RootLayout({
   if (session?.id) {
     unreadCount = await getUnreadNotificationCount(session.id);
 
-    if (isAdmin) {
-      isRoleManager = true;
-    } else {
-        const user = await prisma.user.findUnique({
-        where: { id: session.id },
-        select: { roles: true },
-        });
-        if (user && user.roles.includes('role_manager')) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { roles: true, themeColor: true },
+    });
+
+    if (user) {
+      themeColor = user.themeColor || '#4f46e5';
+      if (isAdmin) {
         isRoleManager = true;
-        }
+      } else if (user.roles.includes('role_manager')) {
+        isRoleManager = true;
+      }
     }
   }
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: `:root { --brand: ${themeColor}; }` }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
