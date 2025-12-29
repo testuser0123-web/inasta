@@ -62,7 +62,7 @@ export function DiaryDateFilter({ selectedDate, validDates }: DiaryDateFilterPro
       {/* Trigger Button */}
       <button
         onClick={toggleCalendar}
-        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-black border dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors focus:ring-2 focus:ring-indigo-500 outline-none"
+        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-black border dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors focus:ring-2 focus:ring-primary outline-none"
       >
         <CalendarIcon className="w-5 h-5 text-gray-500" />
         <span className="font-medium text-lg">
@@ -113,9 +113,9 @@ export function DiaryDateFilter({ selectedDate, validDates }: DiaryDateFilterPro
                     h-10 w-10 rounded-full flex items-center justify-center text-sm transition-all
                     ${!isCurrentMonth ? 'opacity-30' : ''}
                     ${isSelected
-                      ? 'bg-indigo-600 text-white font-bold shadow-md hover:bg-indigo-700'
+                      ? 'bg-primary text-white font-bold shadow-md hover:bg-primary-hover'
                       : isValid
-                        ? 'hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-gray-900 dark:text-gray-100 font-medium cursor-pointer'
+                        ? 'hover:bg-primary/10 text-gray-900 dark:text-gray-100 font-medium cursor-pointer'
                         : 'text-gray-300 dark:text-gray-700 cursor-not-allowed decoration-slice'
                     }
                   `}

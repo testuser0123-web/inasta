@@ -7,11 +7,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #4f46e5;
+  --primary-hover: color-mix(in srgb, var(--primary), white 10%);
 }
 
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+  /* Dark mode hover might need to be lighter or darker depending on preference, but usually lighter for visibility on dark */
+  --primary-hover: color-mix(in srgb, var(--primary), white 15%);
 }
 
 @theme inline {
@@ -19,6 +23,9 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
 }
 
 /* Base styles */

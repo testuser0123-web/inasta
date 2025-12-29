@@ -21,6 +21,7 @@ model User {
   oshi                   String?
   excludeUnverifiedPosts Boolean        @default(false)
   showMobileQuickNav     Boolean        @default(false)
+  themeColor             String         @default("#4f46e5")
   isGold                 Boolean        @default(false)
   roles                  String[]       @default([])
   comments               Comment[]

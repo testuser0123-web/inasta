@@ -60,7 +60,7 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
       {/* Mobile Hamburger Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="md:hidden fixed bottom-6 left-6 z-[100] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
+        className="md:hidden fixed bottom-6 left-6 z-[100] p-4 bg-primary text-white rounded-full shadow-lg hover:bg-primary-hover transition-colors"
       >
         <Menu className="w-6 h-6" />
         {unreadCount > 0 && (
@@ -138,7 +138,7 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
               </button>
             </form>
           ) : (
-            <Link href="/login" className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 w-full text-left text-indigo-600">
+            <Link href="/login" className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 w-full text-left text-primary">
                 <LogIn className="w-6 h-6" />
                 <span className="text-lg">ログイン</span>
             </Link>

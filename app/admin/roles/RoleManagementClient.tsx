@@ -83,7 +83,7 @@ export default function RoleManagementClient({ isGlobalAdmin }: RoleManagementCl
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8">
       <div className="flex items-center gap-3 mb-8">
-        <UserCog className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+        <UserCog className="w-8 h-8 text-primary" />
         <h1 className="text-2xl font-bold">ロール管理</h1>
       </div>
 
@@ -95,13 +95,13 @@ export default function RoleManagementClient({ isGlobalAdmin }: RoleManagementCl
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="ユーザー名を入力..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-primary outline-none"
           />
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors font-medium"
+          className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors font-medium"
         >
           {loading ? '検索中...' : '検索'}
         </button>
@@ -167,7 +167,7 @@ export default function RoleManagementClient({ isGlobalAdmin }: RoleManagementCl
                     <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value)}
-                        className="flex-1 px-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="flex-1 px-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="">ロールを選択...</option>
                         {availableRolesToAdd.map(role => (
@@ -177,7 +177,7 @@ export default function RoleManagementClient({ isGlobalAdmin }: RoleManagementCl
                     <button
                         onClick={handleAddRole}
                         disabled={!selectedRole}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                     >
                         <Plus className="w-5 h-5" />
                         追加

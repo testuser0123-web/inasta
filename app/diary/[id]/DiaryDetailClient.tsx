@@ -69,7 +69,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                 {diary.user.avatarUrl ? (
                    <img src={diary.user.avatarUrl} alt={diary.user.username} crossOrigin="anonymous" className="w-full h-full object-cover" />
                 ) : (
-                   <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white text-lg">
+                   <div className="w-full h-full bg-primary flex items-center justify-center text-white text-lg">
                       {diary.user.username[0].toUpperCase()}
                    </div>
                 )}
@@ -123,7 +123,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                                className="w-full h-full object-cover"
                             />
                          ) : (
-                            <div className="w-full h-full bg-indigo-500" />
+                            <div className="w-full h-full bg-primary" />
                          )}
                      </div>
                      <div className="bg-white dark:bg-black p-3 rounded-lg border dark:border-gray-800 flex-1">
@@ -145,12 +145,12 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="コメントを書く..."
-                  className="flex-1 text-sm px-2 py-2 rounded-lg border dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="flex-1 text-sm px-2 py-2 rounded-lg border dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-primary outline-none"
                />
                <button
                   type="submit"
                   disabled={isCommentSubmitting || !commentText.trim()}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-50"
+                  className="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50 hover:bg-primary-hover"
                >
                   送信
                </button>
@@ -158,7 +158,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
          ) : (
             <div className="text-center p-4">
                 <p className="text-gray-500 text-sm">
-                    <Link href="/login" className="text-indigo-500 hover:underline">ログイン</Link>してコメントに参加
+                    <Link href="/login" className="text-primary hover:underline">ログイン</Link>してコメントに参加
                 </p>
             </div>
          )}

@@ -31,6 +31,7 @@ export default async function RootLayout({
   const session = await getSession();
   let unreadCount = 0;
   let isRoleManager = false;
+  let themeColor = "#4f46e5"; // Default Indigo
 
   const adminUserId = process.env.ADMIN_USER_ID;
   const isAdmin = !!(session?.id && adminUserId && String(session.id) === adminUserId);
@@ -38,15 +39,20 @@ export default async function RootLayout({
   if (session?.id) {
     unreadCount = await getUnreadNotificationCount(session.id);
 
-    if (isAdmin) {
-      isRoleManager = true;
-    } else {
-        const user = await prisma.user.findUnique({
-        where: { id: session.id },
-        select: { roles: true },
-        });
-        if (user && user.roles.includes('role_manager')) {
-        isRoleManager = true;
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { roles: true, themeColor: true },
+    });
+
+    if (user) {
+        if (user.roles.includes('role_manager')) {
+            isRoleManager = true;
+        }
+        if (isAdmin) {
+            isRoleManager = true;
+        }
+        if (user.themeColor) {
+            themeColor = user.themeColor;
         }
     }
   }
@@ -55,6 +61,10 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        style={{
+            "--primary": themeColor,
+            "--primary-hover": `color-mix(in srgb, ${themeColor}, white 10%)`,
+        } as React.CSSProperties}
       >
         <ThemeProvider
             attribute="class"

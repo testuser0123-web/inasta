@@ -161,7 +161,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
              className={`px-6 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                  status.isFollowing 
                  ? 'bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
-                 : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                 : 'bg-primary text-white hover:bg-primary-hover'
              }`}
            >
              {status.isFollowing ? 'フォロー中' : 'フォロー'}

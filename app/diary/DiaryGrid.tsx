@@ -82,7 +82,7 @@ export function DiaryGrid({ diaries }: { diaries: DiaryEntry[] }) {
                           unoptimized={diary.user.avatarUrl.startsWith('/api/')}
                         />
                       ) : (
-                        <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white text-xs">
+                        <div className="w-full h-full bg-primary flex items-center justify-center text-white text-xs">
                           {diary.user.username[0].toUpperCase()}
                         </div>
                       )}

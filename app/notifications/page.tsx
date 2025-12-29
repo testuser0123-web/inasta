@@ -129,13 +129,13 @@ export default function NotificationsPage() {
               key={notification.id}
               className={`p-4 rounded-lg border flex gap-4 transition-colors ${
                 notification.type === 'DEVELOPER'
-                  ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800'
+                  ? 'bg-primary/5 dark:bg-primary/20 border-primary/20 dark:border-primary/50'
                   : 'bg-white dark:bg-black border-gray-200 dark:border-gray-800'
               }`}
             >
               <div className="shrink-0 pt-1">
                 {notification.type === 'DEVELOPER' ? (
-                  <Info className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  <Info className="w-5 h-5 text-primary" />
                 ) : (
                   <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 )}
@@ -144,7 +144,7 @@ export default function NotificationsPage() {
                 <div className="flex justify-between items-start gap-2">
                   <h3 className={`font-semibold text-lg ${
                      notification.type === 'DEVELOPER'
-                     ? 'text-indigo-700 dark:text-indigo-300'
+                     ? 'text-primary'
                      : 'text-gray-900 dark:text-gray-100'
                   }`}>
                     {notification.title}
@@ -159,7 +159,7 @@ export default function NotificationsPage() {
                 <div className="mt-2 flex items-center gap-2">
                     <span className={`text-xs px-2 py-0.5 rounded-full border ${
                          notification.type === 'DEVELOPER'
-                         ? 'border-indigo-200 bg-indigo-100 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-900 dark:text-indigo-300'
+                         ? 'border-primary/20 bg-primary/10 text-primary'
                          : 'border-gray-200 bg-gray-100 text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-400'
                     }`}>
                         {notification.type === 'DEVELOPER' ? '開発者' : 'システム'}

@@ -23,7 +23,7 @@ export default async function DiaryPage(props: { searchParams: Promise<{ date?: 
 
   return (
     <div className="max-w-4xl mx-auto p-4 pb-24">
-      <header className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 text-white shadow-lg">
+      <header className="relative mb-8 overflow-hidden rounded-2xl bg-primary p-8 text-white shadow-lg">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -mb-16 -ml-16 h-64 w-64 rounded-full bg-black/10 blur-3xl"></div>
 
@@ -33,7 +33,7 @@ export default async function DiaryPage(props: { searchParams: Promise<{ date?: 
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-sm sm:text-4xl">Diary</h1>
-            <p className="mt-2 text-indigo-100 font-medium text-lg opacity-90">
+            <p className="mt-2 text-white/90 font-medium text-lg opacity-90">
               日々の思い出を記録しよう
             </p>
           </div>

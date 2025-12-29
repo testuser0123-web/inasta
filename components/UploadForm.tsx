@@ -382,7 +382,7 @@ export default function UploadForm() {
                 type="button"
                 onClick={handleCropConfirm}
                 aria-label="決定"
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold text-sm hover:bg-indigo-500"
+                className="px-4 py-2 bg-primary text-white rounded-md font-semibold text-sm hover:bg-primary-hover"
               >
                 <Check className="w-5 h-5" />
               </button>
@@ -438,7 +438,7 @@ export default function UploadForm() {
       {(isUploading || isPending || isConverting) && (
         <div className="fixed inset-0 z-[9999] bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm">
           <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl flex flex-col items-center gap-4 shadow-xl">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+            <Loader2 className="w-12 h-12 text-primary animate-spin" />
             <div className="text-center">
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {isConverting ? "処理中..." : "送信中..."}
@@ -549,7 +549,7 @@ export default function UploadForm() {
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               disabled={!hasMedia || isUploading || isPending || isConverting}
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
+              className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="キャプションを入力..."
             />
             <span className="absolute right-3 top-1.5 text-xs text-gray-400">
@@ -573,7 +573,7 @@ export default function UploadForm() {
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
               disabled={!hasMedia || isUploading || isPending || isConverting}
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
+              className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="#travel #food #nature"
             />
           </div>
@@ -589,7 +589,7 @@ export default function UploadForm() {
             name="isSpoiler"
             checked={isSpoiler}
             onChange={(e) => setIsSpoiler(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
           />
           <label htmlFor="isSpoiler" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             ネタバレ注意 (画像を隠す)
@@ -603,7 +603,7 @@ export default function UploadForm() {
         <button
           type="submit"
           disabled={isPending || isUploading || isConverting || !hasMedia}
-          className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
+          className="flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 flex items-center gap-2"
         >
           {isUploading || isPending || isConverting ? (
             <>

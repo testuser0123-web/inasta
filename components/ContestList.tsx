@@ -15,7 +15,7 @@ export default async function ContestList({ tab }: { tab: 'active' | 'ended' }) 
           <Link
             key={contest.id}
             href={`/contests/${contest.id}`}
-            className="block bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors"
+            className="block bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800 hover:border-primary transition-colors"
           >
             <h2 className="text-lg font-bold dark:text-white mb-1">{contest.title}</h2>
             {contest.description && (

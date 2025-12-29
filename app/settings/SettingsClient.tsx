@@ -5,21 +5,29 @@ import { changePassword, updateSettings } from '@/app/actions/user';
 import { ArrowLeft, Moon, Sun, Laptop } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
+import { HexColorPicker } from 'react-colorful';
 
 type SettingsPageProps = {
     initialExcludeUnverifiedPosts: boolean;
     initialShowMobileQuickNav: boolean;
+    initialThemeColor: string;
 };
 
-export default function SettingsClient({ initialExcludeUnverifiedPosts, initialShowMobileQuickNav }: SettingsPageProps) {
+export default function SettingsClient({ initialExcludeUnverifiedPosts, initialShowMobileQuickNav, initialThemeColor }: SettingsPageProps) {
   const [passwordState, passwordAction, isPasswordPending] = useActionState(changePassword, undefined);
   const [settingsState, settingsAction, isSettingsPending] = useActionState(updateSettings, undefined);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [themeColor, setThemeColor] = useState(initialThemeColor);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Sync internal state if initial prop changes (though rarely happens in client nav)
+  useEffect(() => {
+      setThemeColor(initialThemeColor);
+  }, [initialThemeColor]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
@@ -34,14 +42,14 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
             {/* Theme Settings */}
             <section className="space-y-4">
                 <h2 className="text-xl font-semibold">外観</h2>
-                <div className="border dark:border-gray-800 p-4 rounded-lg shadow-sm">
+                <div className="border dark:border-gray-800 p-4 rounded-lg shadow-sm space-y-6">
                     {mounted ? (
                         <div className="flex space-x-2">
                              <button
                                 onClick={() => setTheme('light')}
                                 className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
                                     theme === 'light'
-                                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'
+                                        ? 'border-primary bg-primary/10 text-primary'
                                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                                 }`}
                             >
@@ -52,7 +60,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                                 onClick={() => setTheme('dark')}
                                 className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
                                     theme === 'dark'
-                                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'
+                                        ? 'border-primary bg-primary/10 text-primary'
                                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                                 }`}
                             >
@@ -63,7 +71,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                                 onClick={() => setTheme('system')}
                                 className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
                                     theme === 'system'
-                                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'
+                                        ? 'border-primary bg-primary/10 text-primary'
                                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                                 }`}
                             >
@@ -77,10 +85,30 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                 </div>
             </section>
 
-            {/* Feed Settings */}
+             {/* Other Settings (including Theme Color) */}
             <section className="space-y-4">
                 <h2 className="text-xl font-semibold">その他の設定</h2>
                 <form action={settingsAction} className="space-y-4 border dark:border-gray-800 p-4 rounded-lg shadow-sm">
+                    {/* Theme Color Picker */}
+                     <div className="space-y-2">
+                        <label className="text-gray-900 dark:text-gray-100 font-medium block">
+                            テーマカラー
+                        </label>
+                        <div className="flex flex-col items-center sm:items-start gap-4">
+                            <HexColorPicker color={themeColor} onChange={setThemeColor} />
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm" style={{ backgroundColor: themeColor }}></div>
+                                <span className="text-sm font-mono">{themeColor}</span>
+                                <input type="hidden" name="themeColor" value={themeColor} />
+                            </div>
+                        </div>
+                         <div className="text-sm text-gray-500 dark:text-gray-400">
+                             ※保存後に反映されます
+                         </div>
+                    </div>
+
+                    <div className="border-t dark:border-gray-700 my-4"></div>
+
                      <div className="flex items-center justify-between">
                         <label htmlFor="excludeUnverifiedPosts" className="text-gray-900 dark:text-gray-100 font-medium">
                             未認証ユーザーの投稿を除外する (すべてタブ)
@@ -90,7 +118,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                             id="excludeUnverifiedPosts"
                             name="excludeUnverifiedPosts"
                             defaultChecked={initialExcludeUnverifiedPosts}
-                            className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-600 dark:bg-gray-700"
+                            className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
                         />
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -106,7 +134,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                             id="showMobileQuickNav"
                             name="showMobileQuickNav"
                             defaultChecked={initialShowMobileQuickNav}
-                            className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-600 dark:bg-gray-700"
+                            className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
                         />
                     </div>
 
@@ -119,7 +147,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                     <button
                         type="submit"
                         disabled={isSettingsPending}
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors"
                     >
                         {isSettingsPending ? '保存中...' : '設定を保存'}
                     </button>
@@ -139,7 +167,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                             id="currentPassword"
                             name="currentPassword"
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 py-2 px-3 shadow-sm focus:border-primary focus:ring-primary sm:text-sm border"
                         />
                     </div>
                     <div>
@@ -151,7 +179,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                             id="newPassword"
                             name="newPassword"
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 py-2 px-3 shadow-sm focus:border-primary focus:ring-primary sm:text-sm border"
                         />
                     </div>
 
@@ -164,7 +192,7 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                     <button
                         type="submit"
                         disabled={isPasswordPending}
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors"
                     >
                         {isPasswordPending ? '変更中...' : 'パスワードを変更'}
                     </button>

@@ -37,7 +37,7 @@ export default async function ContestDetailPage({
              </Link>
              <h1 className="text-lg font-bold dark:text-white truncate flex-1">{contest.title}</h1>
              {!isEnded && session && (
-                 <Link href={`/contests/${contest.id}/upload`} className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-indigo-700 whitespace-nowrap">
+                 <Link href={`/contests/${contest.id}/upload`} className="bg-primary text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-primary-hover whitespace-nowrap">
                     参加する
                  </Link>
              )}

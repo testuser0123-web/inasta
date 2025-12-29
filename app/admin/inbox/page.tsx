@@ -58,7 +58,7 @@ export default async function AdminInboxPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-indigo-100 text-indigo-600 font-bold">
+                        <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold">
                           {suggestion.user.username[0].toUpperCase()}
                         </div>
                       )}

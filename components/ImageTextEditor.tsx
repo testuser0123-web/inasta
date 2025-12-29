@@ -159,7 +159,7 @@ export default function ImageTextEditor({ imageSrc, onCancel, onComplete }: Imag
         <button
             onClick={handleSave}
             disabled={isProcessing}
-            className="p-2 text-indigo-600 font-bold disabled:opacity-50"
+            className="p-2 text-primary font-bold disabled:opacity-50"
         >
             {isProcessing ? <Spinner className="w-5 h-5" /> : <Check className="w-6 h-6" />}
         </button>
@@ -185,7 +185,7 @@ export default function ImageTextEditor({ imageSrc, onCancel, onComplete }: Imag
                     onPointerMove={(e) => handlePointerMove(e, overlay.id)}
                     onPointerUp={handlePointerUp}
                     className={`absolute cursor-move select-none whitespace-nowrap px-2 py-1 origin-center ${
-                        selectedId === overlay.id ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-transparent" : ""
+                        selectedId === overlay.id ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent" : ""
                     }`}
                     style={{
                         left: `${overlay.x * 100}%`,
@@ -248,7 +248,7 @@ export default function ImageTextEditor({ imageSrc, onCancel, onComplete }: Imag
                     type="text"
                     value={selectedOverlay.text}
                     onChange={(e) => updateOverlay(selectedOverlay.id, { text: e.target.value })}
-                    className="w-full bg-gray-100 dark:bg-zinc-800 border-none rounded-lg px-4 py-2 text-center font-bold focus:ring-2 focus:ring-indigo-500"
+                    className="w-full bg-gray-100 dark:bg-zinc-800 border-none rounded-lg px-4 py-2 text-center font-bold focus:ring-2 focus:ring-primary"
                     placeholder="テキストを入力..."
                 />
 

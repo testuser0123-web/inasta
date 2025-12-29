@@ -211,14 +211,23 @@ export async function updateSettings(prevState: unknown, formData: FormData) {
 
   const excludeUnverifiedPosts = formData.get('excludeUnverifiedPosts') === 'on';
   const showMobileQuickNav = formData.get('showMobileQuickNav') === 'on';
+  const themeColor = formData.get('themeColor') as string;
 
   try {
+    const data: any = {
+      excludeUnverifiedPosts,
+      showMobileQuickNav,
+    };
+
+    if (themeColor) {
+        if (/^#[0-9A-F]{6}$/i.test(themeColor)) {
+             data.themeColor = themeColor;
+        }
+    }
+
     await db.user.update({
       where: { id: session.id },
-      data: {
-        excludeUnverifiedPosts,
-        showMobileQuickNav,
-      },
+      data,
     });
 
     revalidatePath('/'); // Revalidate feed

@@ -28,7 +28,7 @@ export default async function ContestsPage({
         <h1 className="text-xl font-bold dark:text-white absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">コンテスト</h1>
         <div className="flex items-center justify-end w-20">
             {session && tab === 'active' && (
-                <Link href="/contests/create" className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold hover:bg-indigo-700 flex items-center gap-1 z-10">
+                <Link href="/contests/create" className="bg-primary text-white px-3 py-1.5 rounded-full text-sm font-semibold hover:bg-primary-hover flex items-center gap-1 z-10">
                     <Plus className="w-4 h-4" /> 作成
                 </Link>
             )}

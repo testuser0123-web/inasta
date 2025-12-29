@@ -137,7 +137,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
             </div>
             <div className="flex items-center gap-2">
               <button onClick={cancelCrop} className="p-2"><X className="w-6 h-6" /></button>
-              <button onClick={handleCropConfirm} className="px-4 py-2 bg-indigo-600 text-white rounded-md"><Check className="w-5 h-5" /></button>
+              <button onClick={handleCropConfirm} className="px-4 py-2 bg-primary text-white rounded-md"><Check className="w-5 h-5" /></button>
             </div>
           </div>
           <div className="flex justify-center gap-4">
@@ -183,12 +183,12 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
 
             <div>
                 <label htmlFor="comment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">コメント</label>
-                <input type="text" name="comment" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={200} disabled={isUploading} className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border disabled:opacity-50" placeholder="エントリーの説明..." />
+                <input type="text" name="comment" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={200} disabled={isUploading} className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm px-3 py-2 border disabled:opacity-50" placeholder="エントリーの説明..." />
             </div>
 
             {state?.message && <div className="text-red-500 text-sm text-center">{typeof state.message === 'string' ? state.message : 'エラーが発生しました'}</div>}
 
-            <button type="submit" disabled={isPending || isUploading || croppedImages.length === 0} className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-bold flex items-center justify-center gap-2">
+            <button type="submit" disabled={isPending || isUploading || croppedImages.length === 0} className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-hover disabled:opacity-50 font-bold flex items-center justify-center gap-2">
                 {isPending || isUploading ? (
                   <>
                     <Spinner className="w-4 h-4 text-white" />

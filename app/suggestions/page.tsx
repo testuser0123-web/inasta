@@ -49,7 +49,7 @@ export default function SuggestionPage() {
               id="content"
               name="content"
               rows={6}
-              className="w-full p-3 rounded-lg border dark:border-gray-700 bg-transparent resize-none focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full p-3 rounded-lg border dark:border-gray-700 bg-transparent resize-none focus:ring-2 focus:ring-primary outline-none"
               placeholder="ここに内容を入力してください..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -65,7 +65,7 @@ export default function SuggestionPage() {
             <button
               type="submit"
               disabled={isPending || !content.trim()}
-              className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {isPending ? (
                 <>

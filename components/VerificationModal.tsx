@@ -106,7 +106,7 @@ export default function VerificationModal({
                   type="text"
                   value={bbsName}
                   onChange={(e) => setBbsName(e.target.value)}
-                  className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+                  className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary focus:ring-primary border p-2"
                   placeholder="ABC"
                 />
               </div>
@@ -117,7 +117,7 @@ export default function VerificationModal({
             <button
               onClick={handleGenerateToken}
               disabled={!bbsName || isLoading}
-              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 flex justify-center"
+              className="w-full bg-primary text-white py-2 rounded-md hover:bg-primary-hover disabled:opacity-50 flex justify-center"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -183,7 +183,7 @@ export default function VerificationModal({
             <button
               onClick={handleVerify}
               disabled={isLoading}
-              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 flex justify-center"
+              className="w-full bg-primary text-white py-2 rounded-md hover:bg-primary-hover disabled:opacity-50 flex justify-center"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

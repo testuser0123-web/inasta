@@ -360,7 +360,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       {!isGuest && (
         <Link
             href="/upload"
-            className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors z-20"
+            className="fixed bottom-6 right-6 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary-hover transition-colors z-20"
         >
             <Plus className="w-6 h-6" />
         </Link>
@@ -539,12 +539,12 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                         onChange={(e) => setCommentText(e.target.value)}
                         placeholder="コメントを追加..."
                         maxLength={31}
-                        className="flex-1 rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2"
+                        className="flex-1 rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm px-4 py-2"
                     />
                     <button
                         type="submit"
                         disabled={!commentText.trim() || isSubmittingComment}
-                        className="p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-primary dark:text-primary hover:text-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isSubmittingComment ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                     </button>
@@ -559,7 +559,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             {isGuest && (
                 <div className="p-3 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-800 shrink-0 text-center">
                     <p className="text-sm text-gray-500">
-                        <Link href="/login" className="text-indigo-500 hover:underline">ログイン</Link>してコメントに参加
+                        <Link href="/login" className="text-primary hover:underline">ログイン</Link>してコメントに参加
                     </p>
                 </div>
             )}

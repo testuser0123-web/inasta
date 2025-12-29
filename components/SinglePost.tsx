@@ -295,12 +295,12 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                    onChange={(e) => setCommentText(e.target.value)}
                    placeholder="Add a comment..."
                    maxLength={31}
-                   className="flex-1 rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2"
+                   className="flex-1 rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm px-4 py-2"
                />
                <button
                    type="submit"
                    disabled={!commentText.trim() || isSubmittingComment}
-                   className="p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                   className="p-2 text-primary dark:text-primary hover:text-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
                >
                    {isSubmittingComment ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                </button>

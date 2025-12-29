@@ -251,7 +251,7 @@ export default function Editor({ onChange, initialContent, readOnly = false }: {
              />
              {isUploading && (
                 <div className="absolute inset-0 bg-white/50 z-20 flex items-center justify-center">
-                   <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
              )}
            </>

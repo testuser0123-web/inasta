@@ -28,7 +28,7 @@ export default function CreateContestPage() {
             name="title"
             required
             maxLength={100}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm px-3 py-2 border"
           />
         </div>
 
@@ -41,7 +41,7 @@ export default function CreateContestPage() {
             name="description"
             rows={4}
             maxLength={500}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm px-3 py-2 border"
           />
         </div>
 
@@ -53,7 +53,7 @@ export default function CreateContestPage() {
             id="duration"
             name="duration"
             defaultValue="3"
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm px-3 py-2 border"
           >
             {[1, 2, 3, 4, 5, 6, 7].map((d) => (
               <option key={d} value={d}>
@@ -72,7 +72,7 @@ export default function CreateContestPage() {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
         >
           {isPending ? '作成中...' : 'コンテストを作成'}
         </button>

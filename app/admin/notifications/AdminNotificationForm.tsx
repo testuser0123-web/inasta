@@ -81,7 +81,7 @@ export default function AdminNotificationForm() {
         <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 disabled:opacity-50"
+            className="w-full bg-primary text-white py-2 rounded hover:bg-primary-hover disabled:opacity-50"
         >
             {isSubmitting ? '送信中...' : '通知を送る'}
         </button>
