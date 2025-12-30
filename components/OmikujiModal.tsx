@@ -14,14 +14,14 @@ type Fortune = {
 };
 
 const FORTUNES: Fortune[] = [
-  { name: 'イナ吉', color: '#00A86B', textColor: 'text-[#00A86B]', description: '超レア！イナズマ級の幸運が訪れるかも？' }, // Jade - 1%
-  { name: 'ミイ吉', color: '#ADD8E6', textColor: 'text-[#ADD8E6]', description: '水のような清らかな心で過ごせそう。' }, // Light Blue - 2%
-  { name: '大吉', color: '#FFD700', textColor: 'text-[#FFD700]', description: '最高の一年になりそう！' }, // Gold - 6%
-  { name: '中吉', color: '#C0C0C0', textColor: 'text-[#C0C0C0]', description: '安定した運気。自信を持って進もう。' }, // Silver - 40%
-  { name: '吉', color: '#CD7F32', textColor: 'text-[#CD7F32]', description: '日々の積み重ねが実を結ぶとき。' }, // Bronze - 25%
-  { name: '小吉', color: '#E34234', textColor: 'text-[#E34234]', description: '小さな幸せを見つけられる予感。' }, // Vermilion - 20%
-  { name: '末吉', color: '#808080', textColor: 'text-[#808080]', description: '焦らずゆっくり進めば道は開ける。' }, // Gray - 5%
-  { name: '凶', color: '#800080', textColor: 'text-[#800080]', description: '気を引き締めていけば大丈夫。' }, // Purple - 1%
+  { name: 'イナ吉', color: '#00A86B', textColor: 'text-[#00A86B]', description: '金運:3000円失う' }, // Jade - 1%
+  { name: 'ミイ吉', color: '#ADD8E6', textColor: 'text-[#ADD8E6]', description: '金運:3000円手に入れる' }, // Light Blue - 2%
+  { name: '大吉', color: '#FFD700', textColor: 'text-[#FFD700]', description: 'すべてうまくいく' }, // Gold - 6%
+  { name: '中吉', color: '#C0C0C0', textColor: 'text-[#C0C0C0]', description: 'だいたいうまくいく' }, // Silver - 40%
+  { name: '吉', color: '#CD7F32', textColor: 'text-[#CD7F32]', description: 'それなりにうまくいく' }, // Bronze - 25%
+  { name: '小吉', color: '#E34234', textColor: 'text-[#E34234]', description: 'まあまあうまくいく' }, // Vermilion - 20%
+  { name: '末吉', color: '#808080', textColor: 'text-[#808080]', description: 'たまにうまくいく' }, // Gray - 5%
+  { name: '凶', color: '#800080', textColor: 'text-[#800080]', description: '何事も注意が必要' }, // Purple - 1%
 ];
 
 // Probabilities (Cumulative)
@@ -106,12 +106,13 @@ export default function OmikujiModal() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-300">
       <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-background p-6 shadow-xl border border-border">
         {/* Close Button */}
         <button
           onClick={handleClose}
           className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
+          aria-label="Close"
         >
           <X size={24} />
         </button>
@@ -126,7 +127,7 @@ export default function OmikujiModal() {
             </p>
             <button
               onClick={drawOmikuji}
-              className="w-full bg-brand hover:bg-brand/90 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
             >
               おみくじに挑戦する！
             </button>
