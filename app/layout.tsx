@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
@@ -21,6 +21,26 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "INASTA",
   description: "Share your moments",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "INASTA",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#4f46e5",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false, // Prevents zooming which makes it feel more like an app
 };
 
 export default async function RootLayout({
