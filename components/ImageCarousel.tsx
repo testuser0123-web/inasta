@@ -102,10 +102,11 @@ export function ImageCarousel({ imageUrls }: ImageCarouselProps) {
               }}
           >
               {imageUrls.map((url, idx) => {
-                  const isExternal = url.startsWith('http');
+                  // Treat /api/ paths as external for CORS purposes to satisfy COEP
+                  const shouldUseStandardImg = url.startsWith('http') || url.startsWith('/api/');
                   return (
                       <div key={idx} className="w-full flex-shrink-0 relative h-[50vh] min-h-[300px]">
-                          {isExternal ? (
+                          {shouldUseStandardImg ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
                                   src={url}

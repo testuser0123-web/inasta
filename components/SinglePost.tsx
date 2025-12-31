@@ -135,6 +135,13 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
       );
   }
 
+  // Helper to determine if an avatar URL needs crossOrigin="anonymous"
+  // Treat http/https AND /api/ as external for COEP purposes
+  const shouldAvatarUseCORS = (url: string | null) => {
+      if (!url) return false;
+      return url.startsWith('http') || url.startsWith('/api/');
+  };
+
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border dark:border-gray-800 overflow-hidden w-full max-w-lg mx-auto flex flex-col">
        {post.mediaType === 'VIDEO' ? (
@@ -197,7 +204,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                                  src={post.user.avatarUrl}
                                  alt={post.user.username}
                                  className="w-full h-full object-cover"
-                                 crossOrigin={post.user.avatarUrl.startsWith('http') ? 'anonymous' : undefined}
+                                 crossOrigin={shouldAvatarUseCORS(post.user.avatarUrl) ? 'anonymous' : undefined}
                                />
                            ) : (
                                <div className="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-300">

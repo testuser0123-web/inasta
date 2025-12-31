@@ -15,7 +15,11 @@ export function ImageWithSpinner({ src, alt, className }: ImageWithSpinnerProps)
     const imgRef = useRef<HTMLImageElement>(null);
 
     const cleanSrc = src?.trim() || '';
-    const isExternal = cleanSrc.startsWith('http') || cleanSrc.startsWith('//');
+    // In PWA + COEP environments, we must use standard <img> tags with crossOrigin="anonymous"
+    // for both external resources AND our internal API proxies (which serve CORS headers).
+    // Using next/image without explicit crossOrigin configuration can cause opaque responses
+    // or missing CORS checks, leading to broken images.
+    const shouldUseStandardImg = cleanSrc.startsWith('http') || cleanSrc.startsWith('//') || cleanSrc.startsWith('/api/');
 
     useEffect(() => {
         setLoaded(false);
@@ -36,7 +40,7 @@ export function ImageWithSpinner({ src, alt, className }: ImageWithSpinnerProps)
                     </div>
                 </div>
             )}
-            {isExternal ? (
+            {shouldUseStandardImg ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                     ref={imgRef}
@@ -49,7 +53,7 @@ export function ImageWithSpinner({ src, alt, className }: ImageWithSpinnerProps)
                 />
             ) : (
                 <Image
-                    src={src} // Keep original src for Next.js image if it expects relative path
+                    src={src} // Keep original src for Next.js image if it expects relative path (static assets)
                     alt={alt}
                     fill
                     sizes="(max-width: 768px) 33vw, 25vw"
