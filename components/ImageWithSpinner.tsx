@@ -17,12 +17,20 @@ export function ImageWithSpinner({ src, alt, className }: ImageWithSpinnerProps)
     const cleanSrc = src?.trim() || '';
     // In PWA + COEP environments, we must use standard <img> tags with crossOrigin="anonymous"
     // for both external resources AND our internal API proxies (which serve CORS headers).
-    // Using next/image without explicit crossOrigin configuration can cause opaque responses
-    // or missing CORS checks, leading to broken images.
     const shouldUseStandardImg = cleanSrc.startsWith('http') || cleanSrc.startsWith('//') || cleanSrc.startsWith('/api/');
 
     useEffect(() => {
         setLoaded(false);
+
+        // Failsafe: Force loaded state after 5 seconds to prevent infinite spinner
+        const timer = setTimeout(() => {
+            setLoaded(prev => {
+                if (!prev) return true;
+                return prev;
+            });
+        }, 5000);
+
+        return () => clearTimeout(timer);
     }, [src]);
 
     useEffect(() => {
@@ -53,7 +61,7 @@ export function ImageWithSpinner({ src, alt, className }: ImageWithSpinnerProps)
                 />
             ) : (
                 <Image
-                    src={src} // Keep original src for Next.js image if it expects relative path (static assets)
+                    src={src}
                     alt={alt}
                     fill
                     sizes="(max-width: 768px) 33vw, 25vw"

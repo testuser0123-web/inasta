@@ -59,7 +59,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
         urlPattern: /\/api\/(image|post_image|contest_image|avatar|post_thumbnail|diary_image|diary_thumbnail)\/.*/i,
         handler: 'StaleWhileRevalidate',
         options: {
-          cacheName: 'api-image-proxy',
+          cacheName: 'api-image-proxy-v2', // Bumped version to invalidate old opaque caches
           expiration: {
             maxEntries: 200,
             maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
@@ -71,7 +71,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
         urlPattern: /^https:\/\/(hqfaqxxivvrjupyxxbbt\.(supabase\.co|storage\.supabase\.co)|res\.cloudinary\.com|.*\.public\.blob\.vercel-storage\.com)\/.*/i,
         handler: 'CacheFirst',
         options: {
-          cacheName: 'external-images',
+          cacheName: 'external-images-v2', // Bumped version
           expiration: {
             maxEntries: 200,
             maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
