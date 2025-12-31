@@ -8,6 +8,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   disable: process.env.NODE_ENV === "development",
   workboxOptions: {
     runtimeCaching: [
+      // PWA: Image Caching Strategy (CacheFirst & StaleWhileRevalidate)
       // Standard caching for documents, scripts, styles
       {
         urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
