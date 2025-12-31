@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Heart, Loader2, Share2, AlertTriangle, Layers, X, ChevronLeft, ChevronRight, BadgeCheck, User as UserIcon } from 'lucide-react';
+import { Heart, Loader2, Share2, AlertTriangle, Layers, X, ChevronLeft, ChevronRight, BadgeCheck, User as UserIcon, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { toggleContestLike } from '@/app/actions/contest';
+import { toggleContestLike, deleteContestPost } from '@/app/actions/contest';
 import { Spinner } from '@/components/ui/spinner';
 import { ImageWithSpinner } from '@/components/ImageWithSpinner';
 
@@ -30,6 +30,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
     const [posts, setPosts] = useState(initialPosts);
     const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const openedViaNav = useRef(false);
     const router = useRouter();
@@ -119,6 +120,24 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
         await toggleContestLike(post.id);
     };
 
+    const handleDelete = async (postId: number) => {
+        if (!confirm('本当に削除しますか？')) return;
+        setIsDeleting(true);
+        try {
+            const result = await deleteContestPost(postId);
+            if (result.success) {
+                setPosts(current => current.filter(p => p.id !== postId));
+                handleCloseModal();
+            } else {
+                alert(result.message);
+            }
+        } catch (e) {
+            alert('エラーが発生しました');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className="pb-20">
             {isTrophyView ? (
@@ -199,6 +218,16 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                                          </Link>
                                      )}
                                 </div>
+                                {currentUserId === selectedPost.userId && (
+                                    <button
+                                        onClick={() => handleDelete(selectedPost.id)}
+                                        disabled={isDeleting}
+                                        className="p-2 text-gray-500 hover:text-red-500 transition-colors"
+                                        title="削除"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                )}
                              </div>
                              {selectedPost.comment && <p className="text-gray-900 dark:text-gray-100 break-words mb-2">{selectedPost.comment}</p>}
                              <div className="text-xs text-gray-500 dark:text-gray-400">

@@ -1,0 +1,27 @@
+
+> inasta@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · optimizePackageImports
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1680ms
+○ Compiling /login ...
+ GET /login 200 in 9.3s (compile: 8.5s, proxy.ts: 24ms, render: 776ms)
+✓ Compiled in 79ms
+ GET /verify_ui 200 in 1040ms (compile: 864ms, proxy.ts: 27ms, render: 150ms)
+Mock delete post 123
+ POST /verify_ui?postId=123 200 in 36ms (compile: 6ms, proxy.ts: 9ms, render: 21ms)
+✓ Compiled in 38ms
+✓ Compiled in 272ms
+✓ Compiled in 85ms

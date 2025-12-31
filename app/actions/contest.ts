@@ -329,3 +329,32 @@ export async function getContestWinners(contestId: number) {
         _count: undefined
     }));
 }
+
+export async function deleteContestPost(postId: number) {
+  const session = await getSession();
+  if (!session) return { message: 'ログインが必要です', success: false };
+
+  const post = await db.contestPost.findUnique({
+    where: { id: postId },
+  });
+
+  if (!post) {
+    return { message: '投稿が見つかりません', success: false };
+  }
+
+  if (post.userId !== session.id) {
+    return { message: '権限がありません', success: false };
+  }
+
+  try {
+    await db.contestPost.delete({
+      where: { id: postId },
+    });
+  } catch (e) {
+    console.error(e);
+    return { message: '削除に失敗しました', success: false };
+  }
+
+  revalidatePath(`/contests/${post.contestId}`);
+  return { message: '削除しました', success: true };
+}
