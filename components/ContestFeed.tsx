@@ -40,6 +40,11 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
     // Guest check
     const isGuest = !currentUserId || currentUserId === -1;
 
+    // Sync posts when initialPosts changes (e.g. sorting)
+    useEffect(() => {
+        setPosts(initialPosts);
+    }, [initialPosts]);
+
     // Initial Sync from URL
     useEffect(() => {
         const postIdParam = searchParams.get('postId');

@@ -16,10 +16,15 @@ export default async function ContestPostsFetcher({
   const isTrophyView = isEnded && sort === 'trophy';
 
   let posts: any[] = [];
-  if (isTrophyView) {
-      posts = await getContestWinners(contestId);
-  } else {
-      posts = await fetchContestPosts({ contestId, sortBy: sort });
+  try {
+    if (isTrophyView) {
+        posts = await getContestWinners(contestId);
+    } else {
+        posts = await fetchContestPosts({ contestId, sortBy: sort });
+    }
+  } catch (error) {
+    console.error("Error fetching contest posts:", error);
+    return <div className="text-center p-8 text-gray-500">読み込みに失敗しました</div>;
   }
 
   return (
