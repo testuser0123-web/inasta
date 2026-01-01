@@ -55,25 +55,29 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
       return null;
   }
 
+  const isPostPage = pathname?.startsWith('/p/');
+
   return (
     <>
       {/* Mobile Hamburger Button */}
-      <button
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="md:hidden fixed bottom-6 left-6 z-[100] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
-      >
-        <Menu className="w-6 h-6" />
-        {unreadCount > 0 && (
-           <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
-             {unreadCount}
-           </span>
-        )}
-      </button>
+      {!isPostPage && (
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden fixed bottom-6 left-6 z-[49] p-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
+        >
+          <Menu className="w-6 h-6" />
+          {unreadCount > 0 && (
+             <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
+               {unreadCount}
+             </span>
+          )}
+        </button>
+      )}
 
       {/* Overlay for mobile */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 z-[48] md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
