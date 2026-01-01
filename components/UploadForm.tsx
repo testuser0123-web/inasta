@@ -587,6 +587,7 @@ export default function UploadForm() {
             type="checkbox"
             id="isSpoiler"
             name="isSpoiler"
+            value="true"
             checked={isSpoiler}
             onChange={(e) => setIsSpoiler(e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
