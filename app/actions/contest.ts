@@ -94,17 +94,6 @@ export async function createContest(prevState: any, formData: FormData) {
     const notificationContent = `コンテスト「${title}」が開催されました。`;
     const now = new Date();
 
-    // Note: Prisma models map to standard capitalization in the DB usually, but we should verify table names if possible.
-    // Assuming standard "User" and "Notification" tables and camelCase mapped to database columns.
-    // However, typically Prisma uses "User" and "Notification" as table names if not mapped.
-    // And columns "userId", "type", "title", "content", "isRead", "createdAt".
-    // We must handle the enum 'SYSTEM' correctly. In raw SQL, it might be a string or enum type.
-
-    // Fallback to optimized findMany + createMany for safety against raw SQL mismatches (e.g. table names, enum casting),
-    // but optimized to not load objects, just IDs.
-    // Actually, createMany is reasonably efficient if we batch it, but Node memory is the limit.
-    // For now, given the uncertainty of raw SQL schema names (quoted identifiers etc.), I will stick to Prisma but optimize filtering.
-
     const allUsers = await db.user.findMany({
         where: { NOT: { id: session.id } },
         select: { id: true }
@@ -195,49 +184,52 @@ export async function fetchContestPosts({ contestId, sortBy }: { contestId: numb
   if (sortBy === 'likes_desc') orderBy = { likes: { _count: 'desc' } };
   if (sortBy === 'likes_asc') orderBy = { likes: { _count: 'asc' } };
 
+  // Note: We deliberately throw here if an error occurs so the consumer (Server Component)
+  // can catch it and display a proper error state.
   const posts = await db.contestPost.findMany({
     where: { contestId },
     orderBy,
     include: {
-      user: {
+    user: {
         select: {
-          username: true,
-          avatarUrl: true,
-          isVerified: true,
-          isGold: true,
-          updatedAt: true,
+        username: true,
+        avatarUrl: true,
+        isVerified: true,
+        isGold: true,
+        updatedAt: true,
         },
-      },
-      images: {
-          orderBy: { order: 'asc' }
-      },
-      _count: {
+    },
+    images: {
+        orderBy: { order: 'asc' }
+    },
+    _count: {
         select: {
-          likes: true,
+        likes: true,
         },
-      },
-      likes: {
-          where: { userId: session?.id ?? -1 },
-          select: { userId: true }
-      }
+    },
+    likes: {
+        where: { userId: session?.id ?? -1 },
+        select: { userId: true }
+    }
     },
   });
 
   return posts.map(post => ({
-      ...post,
-      imageUrl: `/api/contest_image/${post.id}.png`,
-      user: {
-          ...post.user,
-          avatarUrl: post.user.avatarUrl
+    ...post,
+    // Append timestamp to force cache invalidation on client
+    imageUrl: `/api/contest_image/${post.id}.png?v=${Date.now()}`,
+    user: {
+        ...post.user,
+        avatarUrl: post.user.avatarUrl
             ? post.user.avatarUrl.startsWith('http')
-              ? post.user.avatarUrl
-              : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+            ? post.user.avatarUrl
+            : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
             : null
-      },
-      likesCount: post._count.likes,
-      hasLiked: post.likes.length > 0,
-      likes: undefined,
-      _count: undefined
+    },
+    likesCount: post._count.likes,
+    hasLiked: post.likes.length > 0,
+    likes: undefined,
+    _count: undefined
   }));
 }
 
@@ -280,6 +272,7 @@ export async function toggleContestLike(postId: number) {
 
 export async function getContestWinners(contestId: number) {
     // Top 3 by likes
+    // We throw error here to be handled by the caller.
     const posts = await db.contestPost.findMany({
         where: { contestId },
         orderBy: [
@@ -314,14 +307,15 @@ export async function getContestWinners(contestId: number) {
 
     return posts.map(post => ({
         ...post,
-        imageUrl: `/api/contest_image/${post.id}.png`,
+        // Append timestamp to force cache invalidation on client
+        imageUrl: `/api/contest_image/${post.id}.png?v=${Date.now()}`,
         user: {
             ...post.user,
             avatarUrl: post.user.avatarUrl
-              ? post.user.avatarUrl.startsWith('http')
+            ? post.user.avatarUrl.startsWith('http')
                 ? post.user.avatarUrl
                 : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
-              : null
+            : null
         },
         likesCount: post._count.likes,
         hasLiked: false,

@@ -9,8 +9,14 @@ export async function GET(
   const idStr = resolvedParams.filename.split('.')[0];
   const id = parseInt(idStr, 10);
 
+  // Common headers for all responses to support crossOrigin="anonymous"
+  const HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Cross-Origin-Resource-Policy': 'cross-origin',
+  };
+
   if (isNaN(id)) {
-    return new NextResponse('Invalid ID', { status: 400 });
+    return new NextResponse('Invalid ID', { status: 400, headers: HEADERS });
   }
 
   const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
@@ -22,37 +28,52 @@ export async function GET(
     });
 
     if (!post) {
-      return new NextResponse('Not Found', { status: 404 });
+      return new NextResponse('Not Found', { status: 404, headers: HEADERS });
     }
 
     const imageUrl = post.imageUrl;
 
     // Proxy URL
     if (imageUrl.startsWith('http')) {
-        const response = await fetch(imageUrl);
-        if (!response.ok) {
-            return new NextResponse('Error fetching image', { status: response.status });
-        }
-        const contentType = response.headers.get('content-type') || 'application/octet-stream';
-        const buffer = await response.arrayBuffer();
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-        return new NextResponse(buffer, {
-            headers: {
-                'Content-Type': contentType,
-                'Cache-Control': CACHE_CONTROL,
-                'Cross-Origin-Resource-Policy': 'cross-origin',
+        try {
+            const response = await fetch(imageUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                return new NextResponse('Error fetching image', { status: response.status, headers: HEADERS });
             }
-        });
+            const contentType = response.headers.get('content-type') || 'application/octet-stream';
+            const buffer = await response.arrayBuffer();
+
+            return new NextResponse(buffer, {
+                headers: {
+                    ...HEADERS,
+                    'Content-Type': contentType,
+                    'Cache-Control': CACHE_CONTROL,
+                }
+            });
+        } catch (fetchError: any) {
+             clearTimeout(timeoutId);
+             console.error('Fetch error in proxy:', fetchError);
+             if (fetchError.name === 'AbortError') {
+                 return new NextResponse('Gateway Timeout', { status: 504, headers: HEADERS });
+             }
+             return new NextResponse('Upstream Error', { status: 502, headers: HEADERS });
+        }
     }
 
     // Check if it's a Data URI
     if (!imageUrl.startsWith('data:')) {
-         return new NextResponse('Invalid Image Format', { status: 500 });
+         return new NextResponse('Invalid Image Format', { status: 500, headers: HEADERS });
     }
 
     const commaIndex = imageUrl.indexOf(',');
     if (commaIndex === -1) {
-        return new NextResponse('Invalid Image Data', { status: 500 });
+        return new NextResponse('Invalid Image Data', { status: 500, headers: HEADERS });
     }
 
     const meta = imageUrl.substring(5, commaIndex);
@@ -62,11 +83,11 @@ export async function GET(
 
     const response = new NextResponse(buffer, {
       headers: {
+        ...HEADERS,
         'Content-Type': mimeType,
         'Content-Length': buffer.length.toString(),
         'Cache-Control': CACHE_CONTROL,
         'CDN-Cache-Control': CACHE_CONTROL,
-        'Cross-Origin-Resource-Policy': 'cross-origin',
       },
     });
 
@@ -74,6 +95,6 @@ export async function GET(
 
   } catch (error) {
       console.error('Error serving contest image:', error);
-      return new NextResponse('Internal Server Error', { status: 500 });
+      return new NextResponse('Internal Server Error', { status: 500, headers: HEADERS });
   }
 }

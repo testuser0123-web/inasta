@@ -12,14 +12,29 @@ export default async function ContestPostsFetcher({
     isEnded: boolean
 }) {
   const session = await getSession();
-  const currentUserId = session ? session.id : -1;
+  const currentUserId = session ? session.id : undefined;
   const isTrophyView = isEnded && sort === 'trophy';
 
   let posts: any[] = [];
-  if (isTrophyView) {
-      posts = await getContestWinners(contestId);
-  } else {
-      posts = await fetchContestPosts({ contestId, sortBy: sort });
+  let error = null;
+
+  try {
+      if (isTrophyView) {
+          posts = await getContestWinners(contestId);
+      } else {
+          posts = await fetchContestPosts({ contestId, sortBy: sort });
+      }
+  } catch (e) {
+      console.error('Error fetching contest posts:', e);
+      error = '投稿の読み込みに失敗しました。';
+  }
+
+  if (error) {
+      return (
+          <div className="text-center py-12 text-red-500">
+              {error}
+          </div>
+      );
   }
 
   return (
