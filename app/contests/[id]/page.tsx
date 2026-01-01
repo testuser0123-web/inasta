@@ -80,7 +80,7 @@ export default async function ContestDetailPage({
        </div>
 
        {/* Feed */}
-       <Suspense fallback={<div className="h-64"><Spinner /></div>}>
+       <Suspense key={sort} fallback={<div className="h-64"><Spinner /></div>}>
          <ContestPostsFetcher contestId={contestId} sort={sort} isEnded={isEnded} />
        </Suspense>
     </div>
