@@ -35,20 +35,35 @@ export async function GET(
 
     // Proxy URL
     if (imageUrl.startsWith('http')) {
-        const response = await fetch(imageUrl);
-        if (!response.ok) {
-            return new NextResponse('Error fetching image', { status: response.status, headers: HEADERS });
-        }
-        const contentType = response.headers.get('content-type') || 'application/octet-stream';
-        const buffer = await response.arrayBuffer();
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-        return new NextResponse(buffer, {
-            headers: {
-                ...HEADERS,
-                'Content-Type': contentType,
-                'Cache-Control': CACHE_CONTROL,
+        try {
+            const response = await fetch(imageUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                return new NextResponse('Error fetching image', { status: response.status, headers: HEADERS });
             }
-        });
+            const contentType = response.headers.get('content-type') || 'application/octet-stream';
+            const buffer = await response.arrayBuffer();
+
+            return new NextResponse(buffer, {
+                headers: {
+                    ...HEADERS,
+                    'Content-Type': contentType,
+                    'Cache-Control': CACHE_CONTROL,
+                }
+            });
+        } catch (fetchError: any) {
+             clearTimeout(timeoutId);
+             console.error('Fetch error in proxy:', fetchError);
+             if (fetchError.name === 'AbortError') {
+                 return new NextResponse('Gateway Timeout', { status: 504, headers: HEADERS });
+             }
+             return new NextResponse('Upstream Error', { status: 502, headers: HEADERS });
+        }
     }
 
     // Check if it's a Data URI

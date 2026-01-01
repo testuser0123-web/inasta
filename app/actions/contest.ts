@@ -94,17 +94,6 @@ export async function createContest(prevState: any, formData: FormData) {
     const notificationContent = `コンテスト「${title}」が開催されました。`;
     const now = new Date();
 
-    // Note: Prisma models map to standard capitalization in the DB usually, but we should verify table names if possible.
-    // Assuming standard "User" and "Notification" tables and camelCase mapped to database columns.
-    // However, typically Prisma uses "User" and "Notification" as table names if not mapped.
-    // And columns "userId", "type", "title", "content", "isRead", "createdAt".
-    // We must handle the enum 'SYSTEM' correctly. In raw SQL, it might be a string or enum type.
-
-    // Fallback to optimized findMany + createMany for safety against raw SQL mismatches (e.g. table names, enum casting),
-    // but optimized to not load objects, just IDs.
-    // Actually, createMany is reasonably efficient if we batch it, but Node memory is the limit.
-    // For now, given the uncertainty of raw SQL schema names (quoted identifiers etc.), I will stick to Prisma but optimize filtering.
-
     const allUsers = await db.user.findMany({
         where: { NOT: { id: session.id } },
         select: { id: true }
@@ -227,7 +216,8 @@ export async function fetchContestPosts({ contestId, sortBy }: { contestId: numb
 
   return posts.map(post => ({
     ...post,
-    imageUrl: `/api/contest_image/${post.id}.png`,
+    // Append timestamp to force cache invalidation on client
+    imageUrl: `/api/contest_image/${post.id}.png?v=${Date.now()}`,
     user: {
         ...post.user,
         avatarUrl: post.user.avatarUrl
@@ -317,7 +307,8 @@ export async function getContestWinners(contestId: number) {
 
     return posts.map(post => ({
         ...post,
-        imageUrl: `/api/contest_image/${post.id}.png`,
+        // Append timestamp to force cache invalidation on client
+        imageUrl: `/api/contest_image/${post.id}.png?v=${Date.now()}`,
         user: {
             ...post.user,
             avatarUrl: post.user.avatarUrl
