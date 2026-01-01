@@ -195,49 +195,51 @@ export async function fetchContestPosts({ contestId, sortBy }: { contestId: numb
   if (sortBy === 'likes_desc') orderBy = { likes: { _count: 'desc' } };
   if (sortBy === 'likes_asc') orderBy = { likes: { _count: 'asc' } };
 
+  // Note: We deliberately throw here if an error occurs so the consumer (Server Component)
+  // can catch it and display a proper error state.
   const posts = await db.contestPost.findMany({
     where: { contestId },
     orderBy,
     include: {
-      user: {
+    user: {
         select: {
-          username: true,
-          avatarUrl: true,
-          isVerified: true,
-          isGold: true,
-          updatedAt: true,
+        username: true,
+        avatarUrl: true,
+        isVerified: true,
+        isGold: true,
+        updatedAt: true,
         },
-      },
-      images: {
-          orderBy: { order: 'asc' }
-      },
-      _count: {
+    },
+    images: {
+        orderBy: { order: 'asc' }
+    },
+    _count: {
         select: {
-          likes: true,
+        likes: true,
         },
-      },
-      likes: {
-          where: { userId: session?.id ?? -1 },
-          select: { userId: true }
-      }
+    },
+    likes: {
+        where: { userId: session?.id ?? -1 },
+        select: { userId: true }
+    }
     },
   });
 
   return posts.map(post => ({
-      ...post,
-      imageUrl: `/api/contest_image/${post.id}.png`,
-      user: {
-          ...post.user,
-          avatarUrl: post.user.avatarUrl
+    ...post,
+    imageUrl: `/api/contest_image/${post.id}.png`,
+    user: {
+        ...post.user,
+        avatarUrl: post.user.avatarUrl
             ? post.user.avatarUrl.startsWith('http')
-              ? post.user.avatarUrl
-              : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
+            ? post.user.avatarUrl
+            : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
             : null
-      },
-      likesCount: post._count.likes,
-      hasLiked: post.likes.length > 0,
-      likes: undefined,
-      _count: undefined
+    },
+    likesCount: post._count.likes,
+    hasLiked: post.likes.length > 0,
+    likes: undefined,
+    _count: undefined
   }));
 }
 
@@ -280,6 +282,7 @@ export async function toggleContestLike(postId: number) {
 
 export async function getContestWinners(contestId: number) {
     // Top 3 by likes
+    // We throw error here to be handled by the caller.
     const posts = await db.contestPost.findMany({
         where: { contestId },
         orderBy: [
@@ -318,10 +321,10 @@ export async function getContestWinners(contestId: number) {
         user: {
             ...post.user,
             avatarUrl: post.user.avatarUrl
-              ? post.user.avatarUrl.startsWith('http')
+            ? post.user.avatarUrl.startsWith('http')
                 ? post.user.avatarUrl
                 : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
-              : null
+            : null
         },
         likesCount: post._count.likes,
         hasLiked: false,
