@@ -12,7 +12,7 @@ export default async function ContestPostsFetcher({
     isEnded: boolean
 }) {
   const session = await getSession();
-  const currentUserId = session ? String(session.id) : undefined;
+  const currentUserId = session ? session.id : undefined;
   const isTrophyView = isEnded && sort === 'trophy';
 
   let posts: any[] = [];
