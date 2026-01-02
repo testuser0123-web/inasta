@@ -1,6 +1,6 @@
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist, CacheFirst, ExpirationPlugin, CacheableResponsePlugin } from "serwist";
+import { Serwist, StaleWhileRevalidate, ExpirationPlugin, CacheableResponsePlugin } from "serwist";
 
 // This declares the value of `self` to be of type `ServiceWorkerGlobalScope`
 declare global {
@@ -17,15 +17,27 @@ const serwist = new Serwist({
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: [
-    ...defaultCache,
     {
       // Supabase & Cloudinary Images
       // Matches:
       // - https://*.supabase.co/storage/v1/object/public/**
       // - https://res.cloudinary.com/**
+      // Moved to TOP to ensure precedence over defaultCache
       matcher: /^https:\/\/(.+)\.(supabase\.co|cloudinary\.com)\/.+/,
-      handler: new CacheFirst({
+      handler: new StaleWhileRevalidate({
         cacheName: "cross-origin-images",
+        // CRITICAL: Force CORS mode.
+        // Standard <img> tags make 'no-cors' requests by default (unless crossorigin attr is set).
+        // 'no-cors' requests result in 'opaque' responses (status 0).
+        // 1. Opaque responses are BLOCKED by the browser when COEP is enabled (require-corp)
+        //    because the browser cannot see the CORP header.
+        // 2. We cannot cache opaque responses safely (padding issues).
+        // Setting mode: 'cors' ensures we get a transparent (status 200) response
+        // with visible headers, satisfying COEP and allowing caching.
+        fetchOptions: {
+          mode: 'cors',
+          credentials: 'omit',
+        },
         plugins: [
           new ExpirationPlugin({
             maxEntries: 100,
@@ -33,14 +45,13 @@ const serwist = new Serwist({
             purgeOnQuotaError: true,
           }),
           new CacheableResponsePlugin({
-            // IMPORTANT: With COEP: require-corp, we MUST ONLY cache requests that return status 200.
-            // Opaque responses (status 0) are NOT CORS-safe and will be blocked by the browser
-            // when served from the service worker to a COEP-protected page.
+            // Only cache valid 200 responses.
             statuses: [200],
           }),
         ],
       }),
     },
+    ...defaultCache,
   ],
 });
 
