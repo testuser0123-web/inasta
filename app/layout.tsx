@@ -7,6 +7,7 @@ import { getSession } from "@/lib/auth";
 import LayoutShell from "@/components/LayoutShell";
 import { getUnreadNotificationCount } from "@/app/actions/notification";
 import { db as prisma } from "@/lib/db";
+import { ServiceWorkerRegister } from "./sw-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -76,6 +77,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ServiceWorkerRegister />
         <ThemeProvider
             attribute="class"
             defaultTheme="system"
