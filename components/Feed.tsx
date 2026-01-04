@@ -113,6 +113,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
           } else {
               setSelectedPostId(null);
           }
+          openedViaNav.current = false;
       };
 
       window.addEventListener('popstate', handlePopState);
