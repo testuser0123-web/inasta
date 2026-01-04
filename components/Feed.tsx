@@ -60,6 +60,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const postsRef = useRef(posts);
+  postsRef.current = posts;
 
   // Guest check: if currentUserId is -1 (or undefined/null if upstream not handled, but we expect -1 from FeedContent)
   // Actually check for valid ID.
@@ -73,7 +75,9 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     setHasMore(initialPosts.length >= 12);
   }, [feedType, searchQuery, targetUserId]);
 
-  // Initial Sync from URL (only on mount)
+  // Sync from URL on initial load and whenever posts data changes.
+  // This handles deep links and ensures the modal opens correctly
+  // even if the `posts` array is populated asynchronously after the first render.
   useEffect(() => {
     const postIdParam = searchParams.get('postId');
     if (postIdParam) {
@@ -92,7 +96,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             }
         }
     }
-  }, []); // Run only on mount
+  }, [posts]);
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -101,7 +105,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
           const postIdParam = params.get('postId');
           if (postIdParam) {
               const id = parseInt(postIdParam, 10);
-              if (!isNaN(id) && posts.some(p => p.id === id)) {
+              if (!isNaN(id) && postsRef.current.some(p => p.id === id)) {
                   setSelectedPostId(id);
               } else {
                   setSelectedPostId(null);
@@ -109,11 +113,12 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
           } else {
               setSelectedPostId(null);
           }
+          openedViaNav.current = false;
       };
 
       window.addEventListener('popstate', handlePopState);
       return () => window.removeEventListener('popstate', handlePopState);
-  }, [posts]);
+  }, []); // No dependencies, runs only on mount
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
