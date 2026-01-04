@@ -60,6 +60,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const postsRef = useRef(posts);
+  postsRef.current = posts;
 
   // Guest check: if currentUserId is -1 (or undefined/null if upstream not handled, but we expect -1 from FeedContent)
   // Actually check for valid ID.
@@ -92,7 +94,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             }
         }
     }
-  }, []); // Run only on mount
+  }, [posts]);
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -101,7 +103,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
           const postIdParam = params.get('postId');
           if (postIdParam) {
               const id = parseInt(postIdParam, 10);
-              if (!isNaN(id) && posts.some(p => p.id === id)) {
+              if (!isNaN(id) && postsRef.current.some(p => p.id === id)) {
                   setSelectedPostId(id);
               } else {
                   setSelectedPostId(null);
@@ -113,7 +115,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
       window.addEventListener('popstate', handlePopState);
       return () => window.removeEventListener('popstate', handlePopState);
-  }, [posts]);
+  }, []); // No dependencies, runs only on mount
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
