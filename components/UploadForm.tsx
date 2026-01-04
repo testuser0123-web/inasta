@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { createPost } from "@/app/actions/post";
 import { Camera, Check, X, Smartphone, Image as ImageIcon, Video, Loader2 } from "lucide-react";
 import Cropper from "react-easy-crop";
@@ -18,7 +18,8 @@ type AspectRatio = "1:1" | "original";
 type MediaType = "IMAGE" | "VIDEO";
 
 export default function UploadForm() {
-  const [state, action, isPending] = useActionState(createPost, undefined);
+  const [state, setState] = useState<{ message: string } | undefined>(undefined);
+  const [isPending, setIsPending] = useState(false);
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("IMAGE");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -317,18 +318,19 @@ export default function UploadForm() {
     }
 
     // Call the Server Action - this must be outside the try-catch
-    await action(formData);
-
-    // This part will likely not be reached if redirect() is called in the action.
-    // However, if the action returns an error message instead of redirecting,
-    // we should handle the UI state update.
-    // Note: useActionState handles the isPending state, but we have a custom isUploading.
-    // We can reset it here, assuming a successful non-redirect action would mean "done".
-    // A better pattern might involve watching `isPending` from `useActionState`.
-    // For now, let's keep it simple. If it's not pending, and we're still here, uploading is over.
-    if (!isPending) {
-        setIsUploading(false);
-        setUploadProgress("");
+    setIsPending(true);
+    try {
+        const result = await createPost(undefined, formData);
+        if (result?.message) {
+            setState(result);
+            setIsUploading(false); // Stop overlay on error
+            setUploadProgress("");
+        }
+        // If redirect happens, the component will unmount, no need to reset state here.
+    } finally {
+        setIsPending(false);
+        // Do not reset isUploading here in `finally` if a redirect is expected.
+        // It's reset on error above. If successful, the page navigates away.
     }
   };
 
