@@ -307,19 +307,29 @@ export default function UploadForm() {
       }
 
       setUploadProgress("仕上げ中...");
-      // Call the Server Action
-      await action(formData);
-
     } catch (error) {
       console.error("Upload failed", error);
       alert("送信に失敗しました。もう一度お試しください。");
       // Reset isUploading on error
       setIsUploading(false);
       setUploadProgress("");
+      return; // Stop execution if client-side upload fails
     }
-    // Do NOT reset isUploading in finally block if we might redirect
-    setIsUploading(false);
-    setUploadProgress("");
+
+    // Call the Server Action - this must be outside the try-catch
+    await action(formData);
+
+    // This part will likely not be reached if redirect() is called in the action.
+    // However, if the action returns an error message instead of redirecting,
+    // we should handle the UI state update.
+    // Note: useActionState handles the isPending state, but we have a custom isUploading.
+    // We can reset it here, assuming a successful non-redirect action would mean "done".
+    // A better pattern might involve watching `isPending` from `useActionState`.
+    // For now, let's keep it simple. If it's not pending, and we're still here, uploading is over.
+    if (!isPending) {
+        setIsUploading(false);
+        setUploadProgress("");
+    }
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

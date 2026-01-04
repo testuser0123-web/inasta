@@ -75,7 +75,9 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     setHasMore(initialPosts.length >= 12);
   }, [feedType, searchQuery, targetUserId]);
 
-  // Initial Sync from URL (only on mount)
+  // Sync from URL on initial load and whenever posts data changes.
+  // This handles deep links and ensures the modal opens correctly
+  // even if the `posts` array is populated asynchronously after the first render.
   useEffect(() => {
     const postIdParam = searchParams.get('postId');
     if (postIdParam) {
