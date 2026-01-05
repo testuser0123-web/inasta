@@ -62,7 +62,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-24 px-4 sm:px-0 pt-6">
+    <div className="max-w-4xl mx-auto pb-12 px-4 sm:px-0 pt-6">
       <div className="mb-6">
          <div className="flex items-center gap-4 mb-6">
              <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
@@ -83,6 +83,17 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                 </div>
              </div>
          </div>
+
+         {diary.thumbnailUrl && (
+            <div className="mb-8">
+               <img
+                  src={diary.thumbnailUrl}
+                  alt={diary.title}
+                  crossOrigin="anonymous"
+                  className="w-full h-auto rounded-xl border dark:border-gray-800 object-cover max-h-[600px]"
+               />
+            </div>
+         )}
 
          <div className="prose dark:prose-invert max-w-none mb-8">
              <DiaryEditor initialContent={JSON.stringify(diary.content)} readOnly={true} />
