@@ -7,6 +7,16 @@ import DiaryEditor from '@/components/DiaryEditor';
 import { toggleDiaryLike, addDiaryComment } from '@/app/actions/diary';
 import Link from 'next/link';
 
+// Helper to proxy Supabase URLs
+const getDisplayImageUrl = (url: string) => {
+  if (!url) return '';
+  if (url.includes('/storage/v1/object/public/images/')) {
+    const parts = url.split('/storage/v1/object/public/images/');
+    if (parts.length > 1) return `/api/diary_image/${parts[1]}`;
+  }
+  return url;
+};
+
 export default function DiaryDetailClient({ diary, currentUserId }: { diary: any, currentUserId?: number }) {
   // If undefined/null, treat as guest (or if specifically -1)
   const isGuest = !currentUserId || currentUserId === -1;
@@ -62,7 +72,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-24 px-4 sm:px-0 pt-6">
+    <div className="max-w-4xl mx-auto pb-12 px-4 sm:px-0 pt-6">
       <div className="mb-6">
          <div className="flex items-center gap-4 mb-6">
              <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
@@ -83,6 +93,17 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                 </div>
              </div>
          </div>
+
+         {diary.thumbnailUrl && (
+            <div className="mb-8">
+               <img
+                  src={getDisplayImageUrl(diary.thumbnailUrl)}
+                  alt={diary.title}
+                  crossOrigin="anonymous"
+                  className="w-full h-auto rounded-xl border dark:border-gray-800 object-cover max-h-[600px]"
+               />
+            </div>
+         )}
 
          <div className="prose dark:prose-invert max-w-none mb-8">
              <DiaryEditor initialContent={JSON.stringify(diary.content)} readOnly={true} />
