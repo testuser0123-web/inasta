@@ -519,8 +519,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                   ) : (
                     <>
                       {selectedPost.comments.map((comment) => (
-                          <div key={comment.id} className="flex gap-2 items-start text-sm">
-                              <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline shrink-0 text-gray-900 dark:text-gray-100">
+                          <div key={comment.id} className="text-sm">
+                              <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline mr-2 text-gray-900 dark:text-gray-100">
                                   {comment.user.username}
                               </Link>
                               <span className="text-gray-800 dark:text-gray-200 break-words">{comment.text}</span>
