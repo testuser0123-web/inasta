@@ -16,14 +16,34 @@ export async function fetchLinkMetadata(url: string) {
 
     const html = await response.text();
 
-    // More robust regex to extract og:image (order agnostic)
-    // Matches <meta ... property="og:image" ... content="..." ... > or <meta ... content="..." ... property="og:image" ... >
-    const match = html.match(/<meta\s+[^>]*?(?:property|name)=["']og:image["'][^>]*?content=["']([^"']+)["']|<meta\s+[^>]*?content=["']([^"']+)["'][^>]*?(?:property|name)=["']og:image["']/i);
+    // Extract og:image
+    const imageMatch = html.match(/<meta\s+[^>]*?(?:property|name)=["']og:image["'][^>]*?content=["']([^"']+)["']|<meta\s+[^>]*?content=["']([^"']+)["'][^>]*?(?:property|name)=["']og:image["']/i);
+    const imageUrl = imageMatch ? (imageMatch[1] || imageMatch[2]) : null;
 
-    const imageUrl = match ? (match[1] || match[2]) : null;
+    // Extract og:title
+    const titleMatch = html.match(/<meta\s+[^>]*?(?:property|name)=["']og:title["'][^>]*?content=["']([^"']+)["']|<meta\s+[^>]*?content=["']([^"']+)["'][^>]*?(?:property|name)=["']og:title["']/i);
+    // Decode HTML entities if necessary (simple unescape for common ones might be good, but let's keep it simple for now)
+    let title = titleMatch ? (titleMatch[1] || titleMatch[2]) : null;
+
+    // Fallback to <title> tag if og:title is missing
+    if (!title) {
+        const titleTagMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleTagMatch) title = titleTagMatch[1];
+    }
+
+    // Decode minimal entities
+    if (title) {
+        title = title.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    }
 
     if (!imageUrl) {
         console.log('No og:image found');
+        // Return title even if image is missing? The existing logic expects image to proceed with "skip crop".
+        // But the user complained about "Song title not displayed".
+        // If we return null here, UploadForm triggers "fetchError", showing Manual Upload.
+        // We probably want to return what we have. But existing contract was "string = image".
+        // Let's stick to requiring image for the "magic flow", but maybe we should relax it later.
+        // For now, if no image, we return null, which triggers manual upload.
         return null;
     }
 
@@ -38,8 +58,9 @@ export async function fetchLinkMetadata(url: string) {
     const buffer = Buffer.from(arrayBuffer);
     const base64 = buffer.toString('base64');
     const mimeType = imageRes.headers.get('content-type') || 'image/jpeg';
+    const imageBase64 = `data:${mimeType};base64,${base64}`;
 
-    return `data:${mimeType};base64,${base64}`;
+    return { title, image: imageBase64 };
 
   } catch (error) {
     console.error('Error fetching metadata:', error);

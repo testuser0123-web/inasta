@@ -75,16 +75,20 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
         setIsFetchingMetadata(true);
         setFetchError(false);
         try {
-          const imageBase64 = await fetchLinkMetadata(initialUrl);
-          if (imageBase64) {
+          const metadata = await fetchLinkMetadata(initialUrl);
+          if (metadata && metadata.image) {
              setMediaType("IMAGE");
-             setMediaSrc(imageBase64);
-             // Calculate aspect ratio
-             const img = new Image();
-             img.onload = () => {
-               setImageAspectRatio(img.width / img.height);
-             };
-             img.src = imageBase64;
+             // Directly set croppedImages to bypass the cropping UI for shared links
+             setCroppedImages([metadata.image]);
+
+             // Update comment with title if available and not already present
+             if (metadata.title) {
+                 setComment(prev => {
+                     // If prev contains the title already, don't duplicate
+                     if (prev.includes(metadata.title!)) return prev;
+                     return `${metadata.title} ${prev}`;
+                 });
+             }
           } else {
              setFetchError(true);
           }
