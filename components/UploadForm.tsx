@@ -12,14 +12,22 @@ import ImageTextEditor from "@/components/ImageTextEditor";
 import { useUI } from "@/components/providers/ui-provider";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { fetchLinkMetadata } from "@/app/actions/metadata";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
 type MediaType = "IMAGE" | "VIDEO";
 
-export default function UploadForm() {
+interface UploadFormProps {
+  initialComment?: string;
+  initialHashtags?: string;
+  initialUrl?: string;
+}
+
+export default function UploadForm({ initialComment = "", initialHashtags = "", initialUrl }: UploadFormProps) {
   const [state, setState] = useState<{ message: string } | undefined>(undefined);
   const [isPending, setIsPending] = useState(false);
+  const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("IMAGE");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -38,8 +46,8 @@ export default function UploadForm() {
   const { setSidebarVisible } = useUI();
 
   const [uploadProgress, setUploadProgress] = useState<string>("");
-  const [comment, setComment] = useState("");
-  const [hashtags, setHashtags] = useState("");
+  const [comment, setComment] = useState(initialComment);
+  const [hashtags, setHashtags] = useState(initialHashtags);
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
@@ -49,6 +57,34 @@ export default function UploadForm() {
   const ffmpegRef = useRef<FFmpeg | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-fetch metadata if initialUrl is provided
+  useEffect(() => {
+    if (initialUrl && !mediaSrc && !mediaFile && croppedImages.length === 0 && !isFetchingMetadata) {
+      const fetchMetadata = async () => {
+        setIsFetchingMetadata(true);
+        try {
+          const imageBase64 = await fetchLinkMetadata(initialUrl);
+          if (imageBase64) {
+             setMediaType("IMAGE");
+             setMediaSrc(imageBase64);
+             // Calculate aspect ratio
+             const img = new Image();
+             img.onload = () => {
+               setImageAspectRatio(img.width / img.height);
+             };
+             img.src = imageBase64;
+          }
+        } catch (error) {
+          console.error("Failed to fetch metadata", error);
+        } finally {
+          setIsFetchingMetadata(false);
+        }
+      };
+      fetchMetadata();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialUrl]);
 
   // Manage Sidebar visibility based on video editing state or text editing state
   useEffect(() => {
@@ -447,16 +483,16 @@ export default function UploadForm() {
 
   return (
     <>
-      {(isUploading || isPending || isConverting) && (
+      {(isUploading || isPending || isConverting || isFetchingMetadata) && (
         <div className="fixed inset-0 z-[9999] bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm">
           <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl flex flex-col items-center gap-4 shadow-xl">
             <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
             <div className="text-center">
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {isConverting ? "処理中..." : "送信中..."}
+                  {isConverting ? "処理中..." : isFetchingMetadata ? "読み込み中..." : "送信中..."}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {isConverting ? "GIFを動画に変換しています" : (uploadProgress || "✉️ᶘｲ^⇁^ﾅ川💦")}
+                {isConverting ? "GIFを動画に変換しています" : isFetchingMetadata ? "リンクから画像を読み込んでいます" : (uploadProgress || "✉️ᶘｲ^⇁^ﾅ川💦")}
               </p>
             </div>
           </div>
@@ -560,7 +596,7 @@ export default function UploadForm() {
               maxLength={173}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending || isConverting}
+              disabled={!hasMedia || isUploading || isPending || isConverting || isFetchingMetadata}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="キャプションを入力..."
             />
@@ -584,7 +620,7 @@ export default function UploadForm() {
               name="hashtags"
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending || isConverting}
+              disabled={!hasMedia || isUploading || isPending || isConverting || isFetchingMetadata}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="#travel #food #nature"
             />
@@ -615,13 +651,13 @@ export default function UploadForm() {
 
         <button
           type="submit"
-          disabled={isPending || isUploading || isConverting || !hasMedia}
+          disabled={isPending || isUploading || isConverting || !hasMedia || isFetchingMetadata}
           className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
         >
-          {isUploading || isPending || isConverting ? (
+          {isUploading || isPending || isConverting || isFetchingMetadata ? (
             <>
               <Spinner className="w-4 h-4 text-white" />
-              <span>{isUploading ? "処理中..." : isConverting ? "処理中..." : "送信中..."}</span>
+              <span>{isUploading ? "処理中..." : isConverting ? "処理中..." : isFetchingMetadata ? "読み込み中..." : "送信中..."}</span>
             </>
           ) : (
             "シェア"
