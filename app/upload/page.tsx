@@ -12,13 +12,22 @@ export default async function UploadPage(props: Props) {
 
   const title = searchParams.title as string | undefined;
   const text = searchParams.text as string | undefined;
-  const url = searchParams.url as string | undefined;
+  let url = searchParams.url as string | undefined;
+
+  // If URL is missing, try to extract it from text
+  if (!url && text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/;
+      const match = text.match(urlRegex);
+      if (match) {
+          url = match[0];
+      }
+  }
 
   // Construct initial comment
   // Logic: Join text and URL with a space
   const parts: string[] = [];
   if (text) parts.push(text);
-  if (url) parts.push(url);
+  if (url && (!text || !text.includes(url))) parts.push(url);
 
   const initialComment = parts.join(" ");
   const initialHashtags = url ? "#NowPlaying" : "";

@@ -4,7 +4,7 @@ export async function fetchLinkMetadata(url: string) {
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'bot', // Some sites might block generic requests, but 'bot' often works for metadata
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
       },
       next: { revalidate: 3600 } // Cache for 1 hour
     });
@@ -16,15 +16,16 @@ export async function fetchLinkMetadata(url: string) {
 
     const html = await response.text();
 
-    // Simple regex to extract og:image
-    const match = html.match(/<meta\s+(?:property|name)=["']og:image["']\s+content=["']([^"']+)["']/i);
+    // More robust regex to extract og:image (order agnostic)
+    // Matches <meta ... property="og:image" ... content="..." ... > or <meta ... content="..." ... property="og:image" ... >
+    const match = html.match(/<meta\s+[^>]*?(?:property|name)=["']og:image["'][^>]*?content=["']([^"']+)["']|<meta\s+[^>]*?content=["']([^"']+)["'][^>]*?(?:property|name)=["']og:image["']/i);
 
-    if (!match || !match[1]) {
+    const imageUrl = match ? (match[1] || match[2]) : null;
+
+    if (!imageUrl) {
         console.log('No og:image found');
         return null;
     }
-
-    const imageUrl = match[1]; // The captured URL
 
     // Fetch the image
     const imageRes = await fetch(imageUrl);

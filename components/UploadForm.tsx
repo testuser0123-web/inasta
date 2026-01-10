@@ -28,6 +28,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
   const [state, setState] = useState<{ message: string } | undefined>(undefined);
   const [isPending, setIsPending] = useState(false);
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("IMAGE");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -58,11 +59,21 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Sync state with props on change (e.g. soft navigation)
+  useEffect(() => {
+    setComment(initialComment);
+  }, [initialComment]);
+
+  useEffect(() => {
+    setHashtags(initialHashtags);
+  }, [initialHashtags]);
+
   // Auto-fetch metadata if initialUrl is provided
   useEffect(() => {
-    if (initialUrl && !mediaSrc && !mediaFile && croppedImages.length === 0 && !isFetchingMetadata) {
+    if (initialUrl && !mediaSrc && !mediaFile && croppedImages.length === 0 && !isFetchingMetadata && !fetchError) {
       const fetchMetadata = async () => {
         setIsFetchingMetadata(true);
+        setFetchError(false);
         try {
           const imageBase64 = await fetchLinkMetadata(initialUrl);
           if (imageBase64) {
@@ -74,9 +85,12 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
                setImageAspectRatio(img.width / img.height);
              };
              img.src = imageBase64;
+          } else {
+             setFetchError(true);
           }
         } catch (error) {
           console.error("Failed to fetch metadata", error);
+          setFetchError(true);
         } finally {
           setIsFetchingMetadata(false);
         }
@@ -483,16 +497,16 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
   return (
     <>
-      {(isUploading || isPending || isConverting || isFetchingMetadata) && (
+      {(isUploading || isPending || isConverting) && (
         <div className="fixed inset-0 z-[9999] bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm">
           <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl flex flex-col items-center gap-4 shadow-xl">
             <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
             <div className="text-center">
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {isConverting ? "処理中..." : isFetchingMetadata ? "読み込み中..." : "送信中..."}
+                  {isConverting ? "処理中..." : "送信中..."}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {isConverting ? "GIFを動画に変換しています" : isFetchingMetadata ? "リンクから画像を読み込んでいます" : (uploadProgress || "✉️ᶘｲ^⇁^ﾅ川💦")}
+                {isConverting ? "GIFを動画に変換しています" : (uploadProgress || "✉️ᶘｲ^⇁^ﾅ川💦")}
               </p>
             </div>
           </div>
@@ -542,15 +556,25 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
         {!hasMedia && (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className={`w-full bg-gray-100 dark:bg-zinc-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600 relative overflow-hidden aspect-square`}
+            className={`w-full bg-gray-100 dark:bg-zinc-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600 relative overflow-hidden aspect-square ${isFetchingMetadata ? 'opacity-50 pointer-events-none' : ''}`}
           >
-            <div className="text-gray-400 flex flex-col items-center">
-              <div className="flex gap-2 mb-2">
-                  <Camera className="w-8 h-8" />
-                  <Video className="w-8 h-8" />
-              </div>
-              <span>タップして画像または動画を選択</span>
-            </div>
+             {isFetchingMetadata ? (
+                 <div className="flex flex-col items-center gap-2 text-indigo-500">
+                     <Loader2 className="w-8 h-8 animate-spin" />
+                     <span className="text-sm font-medium">リンクから画像を読み込み中...</span>
+                 </div>
+             ) : (
+                <div className="text-gray-400 flex flex-col items-center">
+                    <div className="flex gap-2 mb-2">
+                        <Camera className="w-8 h-8" />
+                        <Video className="w-8 h-8" />
+                    </div>
+                    <span>タップして画像または動画を選択</span>
+                    {fetchError && (
+                        <span className="text-xs text-red-500 mt-2">画像の読み込みに失敗しました</span>
+                    )}
+                </div>
+             )}
             <input
               ref={fileInputRef}
               type="file"
@@ -596,7 +620,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
               maxLength={173}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending || isConverting || isFetchingMetadata}
+              disabled={isUploading || isPending || isConverting || isFetchingMetadata}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="キャプションを入力..."
             />
@@ -620,7 +644,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
               name="hashtags"
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending || isConverting || isFetchingMetadata}
+              disabled={isUploading || isPending || isConverting || isFetchingMetadata}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="#travel #food #nature"
             />
