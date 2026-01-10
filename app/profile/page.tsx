@@ -229,15 +229,7 @@ export default async function ProfilePage() {
             <ArrowLeft className="w-6 h-6" />
          </Link>
          <h1 className="text-lg font-bold">My Page</h1>
-         <form action={async () => {
-             'use server';
-             await logout();
-             redirect('/login');
-         }}>
-             <button type="submit" className="text-gray-700 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400">
-                <LogOut className="w-6 h-6" />
-             </button>
-         </form>
+         <div className="w-6 h-6" />
       </div>
       
       <ProfileClient 
