@@ -10,6 +10,7 @@ import { useUI } from '@/components/providers/ui-provider';
 export default function Sidebar({ username, unreadCount = 0, isAdmin = false, isRoleManager = false }: { username?: string, unreadCount?: number, isAdmin?: boolean, isRoleManager?: boolean }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const { isSidebarVisible } = useUI();
 
   // Guest nav items
@@ -135,12 +136,13 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
 
         <div className="p-4 border-t dark:border-gray-800">
           {username ? (
-            <form action={logout}>
-              <button className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 w-full text-left text-red-500">
-                <LogOut className="w-6 h-6" />
-                <span className="text-lg">ログアウト</span>
-              </button>
-            </form>
+            <button
+              onClick={() => setIsLogoutDialogOpen(true)}
+              className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 w-full text-left text-red-500"
+            >
+              <LogOut className="w-6 h-6" />
+              <span className="text-lg">ログアウト</span>
+            </button>
           ) : (
             <Link href="/login" className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 w-full text-left text-indigo-600">
                 <LogIn className="w-6 h-6" />
@@ -149,6 +151,37 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
           )}
         </div>
       </aside>
+
+      {/* Logout Confirmation Dialog */}
+      {isLogoutDialogOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 transition-opacity"
+            onClick={() => setIsLogoutDialogOpen(false)}
+          />
+          <div className="relative bg-white dark:bg-gray-900 rounded-xl p-6 shadow-xl w-full max-w-sm transform transition-all">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">
+              本当にログアウトしますか？
+            </h3>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setIsLogoutDialogOpen(false)}
+                className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                キャンセル
+              </button>
+              <form action={logout} className="flex-1">
+                <button
+                  type="submit"
+                  className="w-full px-4 py-2 text-white bg-red-600 rounded-lg font-bold hover:bg-red-700 transition-colors"
+                >
+                  ログアウト
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
