@@ -17,7 +17,7 @@ type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
 type MediaType = "IMAGE" | "VIDEO";
 
-export default function UploadForm() {
+export default function UploadForm({ initialComment }: { initialComment?: string }) {
   const [state, setState] = useState<{ message: string } | undefined>(undefined);
   const [isPending, setIsPending] = useState(false);
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export default function UploadForm() {
   const { setSidebarVisible } = useUI();
 
   const [uploadProgress, setUploadProgress] = useState<string>("");
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(initialComment || "");
   const [hashtags, setHashtags] = useState("");
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
@@ -151,14 +151,8 @@ export default function UploadForm() {
 
         const reader = new FileReader();
         reader.addEventListener("load", () => {
-          setMediaSrc(reader.result as string);
-
-          // Load image to get dimensions
-          const img = new Image();
-          img.onload = () => {
-            setImageAspectRatio(img.width / img.height);
-          };
-          img.src = reader.result as string;
+          // Skip crop/edit stage and add directly to list
+          setCroppedImages(prev => [...prev, reader.result as string]);
         });
         reader.readAsDataURL(file);
     }

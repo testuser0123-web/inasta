@@ -1,0 +1,19 @@
+
+> inasta@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · optimizePackageImports
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 4.7s
+✓ Compiled in 8ms
+○ Compiling /upload ...
+ GET /upload?text=Song%20by%20Artist&url=https://spotify.com/track/123 200 in 10.4s (compile: 9.4s, proxy.ts: 176ms, render: 751ms)
+✓ Compiled in 101ms
+ GET /upload?text=Song%20by%20Artist&url=https://spotify.com/track/123 200 in 498ms (compile: 231ms, proxy.ts: 9ms, render: 258ms)
+✓ Compiled in 67ms
