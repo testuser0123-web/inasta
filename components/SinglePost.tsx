@@ -8,6 +8,7 @@ import { toggleLike, deletePost } from '@/app/actions/post';
 import { addComment } from '@/app/actions/comment';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
+import { Linkify } from '@/components/Linkify';
 
 type Comment = {
   id: number;
@@ -234,7 +235,9 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
          </div>
 
          {post.comment && (
-           <p className="text-gray-900 dark:text-gray-100 break-words mb-2">{post.comment}</p>
+           <p className="text-gray-900 dark:text-gray-100 break-words mb-2">
+             <Linkify>{post.comment}</Linkify>
+           </p>
          )}
 
          <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
@@ -275,7 +278,9 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                          <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline mr-2 text-gray-900 dark:text-gray-100">
                              {comment.user.username}
                          </Link>
-                         <span className="text-gray-800 dark:text-gray-200 break-words">{comment.text}</span>
+                         <span className="text-gray-800 dark:text-gray-200 break-words">
+                            <Linkify>{comment.text}</Linkify>
+                         </span>
                      </div>
                  ))}
                  {post.comments.length === 0 && (

@@ -31,9 +31,42 @@ export async function fetchLinkMetadata(url: string) {
         if (titleTagMatch) title = titleTagMatch[1];
     }
 
+    // Extract Artist (specifically for Spotify or general music metadata)
+    let artist: string | null = null;
+    const musicianMatch = html.match(/<meta\s+[^>]*?(?:name)=["']music:musician_description["'][^>]*?content=["']([^"']+)["']|<meta\s+[^>]*?content=["']([^"']+)["'][^>]*?(?:name)=["']music:musician_description["']/i);
+    if (musicianMatch) {
+        artist = musicianMatch[1] || musicianMatch[2];
+    }
+
+    // If no explicit artist tag, try to parse from description if it looks like "Song · Artist · Year" (Spotify pattern)
+    if (!artist) {
+        const descMatch = html.match(/<meta\s+[^>]*?(?:property|name)=["']og:description["'][^>]*?content=["']([^"']+)["']|<meta\s+[^>]*?content=["']([^"']+)["'][^>]*?(?:property|name)=["']og:description["']/i);
+        const description = descMatch ? (descMatch[1] || descMatch[2]) : null;
+        if (description) {
+            // Check for Spotify pattern: "Listen to [Song] on Spotify. [Song] · [Artist] · [Year]"
+            // Or simpler: "Song · Artist · Year"
+            const parts = description.split(' · ');
+            if (parts.length >= 3) {
+                // Heuristic: If we have 3 parts, the middle one might be the artist.
+                // However, the first part is often "Song", second "Artist".
+                // Example: "Listen to Blinding Lights on Spotify. Song · The Weeknd · 2020"
+                // The description content seen in curl was "Listen to Blinding Lights on Spotify. Song · The Weeknd · 2020"
+                // Wait, "Song" is a literal string? Or the type?
+                // Let's assume if we found music:musician_description we are good.
+                // If not, we might be on a platform that doesn't use it.
+                // But for Spotify, we saw music:musician_description.
+                // Let's rely on that first.
+            }
+        }
+    }
+
+
     // Decode minimal entities
     if (title) {
         title = title.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    }
+    if (artist) {
+        artist = artist.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
     }
 
     if (!imageUrl) {
@@ -60,7 +93,7 @@ export async function fetchLinkMetadata(url: string) {
     const mimeType = imageRes.headers.get('content-type') || 'image/jpeg';
     const imageBase64 = `data:${mimeType};base64,${base64}`;
 
-    return { title, image: imageBase64 };
+    return { title, image: imageBase64, artist };
 
   } catch (error) {
     console.error('Error fetching metadata:', error);

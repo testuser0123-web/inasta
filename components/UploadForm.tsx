@@ -81,12 +81,16 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
              // Directly set croppedImages to bypass the cropping UI for shared links
              setCroppedImages([metadata.image]);
 
-             // Update comment with title if available and not already present
+             // Update comment with title (and artist) if available and not already present
              if (metadata.title) {
                  setComment(prev => {
-                     // If prev contains the title already, don't duplicate
-                     if (prev.includes(metadata.title!)) return prev;
-                     return `${metadata.title} ${prev}`;
+                     const artistAndTitle = metadata.artist
+                        ? `${metadata.artist} - ${metadata.title}`
+                        : metadata.title!;
+
+                     // If prev contains the title or "Artist - Title" already, don't duplicate
+                     if (prev.includes(metadata.title!) || (metadata.artist && prev.includes(metadata.artist))) return prev;
+                     return `${artistAndTitle} ${prev}`;
                  });
              }
           } else {
