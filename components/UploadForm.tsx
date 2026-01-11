@@ -12,14 +12,23 @@ import ImageTextEditor from "@/components/ImageTextEditor";
 import { useUI } from "@/components/providers/ui-provider";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { fetchLinkMetadata } from "@/app/actions/metadata";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
 type MediaType = "IMAGE" | "VIDEO";
 
-export default function UploadForm() {
+interface UploadFormProps {
+  initialComment?: string;
+  initialHashtags?: string;
+  initialUrl?: string;
+}
+
+export default function UploadForm({ initialComment = "", initialHashtags = "", initialUrl }: UploadFormProps) {
   const [state, setState] = useState<{ message: string } | undefined>(undefined);
   const [isPending, setIsPending] = useState(false);
+  const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("IMAGE");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -38,8 +47,8 @@ export default function UploadForm() {
   const { setSidebarVisible } = useUI();
 
   const [uploadProgress, setUploadProgress] = useState<string>("");
-  const [comment, setComment] = useState("");
-  const [hashtags, setHashtags] = useState("");
+  const [comment, setComment] = useState(initialComment);
+  const [hashtags, setHashtags] = useState(initialHashtags);
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
@@ -49,6 +58,55 @@ export default function UploadForm() {
   const ffmpegRef = useRef<FFmpeg | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync state with props on change (e.g. soft navigation)
+  useEffect(() => {
+    setComment(initialComment);
+  }, [initialComment]);
+
+  useEffect(() => {
+    setHashtags(initialHashtags);
+  }, [initialHashtags]);
+
+  // Auto-fetch metadata if initialUrl is provided
+  useEffect(() => {
+    if (initialUrl && !mediaSrc && !mediaFile && croppedImages.length === 0 && !isFetchingMetadata && !fetchError) {
+      const fetchMetadata = async () => {
+        setIsFetchingMetadata(true);
+        setFetchError(false);
+        try {
+          const metadata = await fetchLinkMetadata(initialUrl);
+          if (metadata && metadata.image) {
+             setMediaType("IMAGE");
+             // Directly set croppedImages to bypass the cropping UI for shared links
+             setCroppedImages([metadata.image]);
+
+             // Update comment with title (and artist) if available and not already present
+             if (metadata.title) {
+                 setComment(prev => {
+                     const artistAndTitle = metadata.artist
+                        ? `${metadata.artist} - ${metadata.title}`
+                        : metadata.title!;
+
+                     // If prev contains the title or "Artist - Title" already, don't duplicate
+                     if (prev.includes(metadata.title!) || (metadata.artist && prev.includes(metadata.artist))) return prev;
+                     return `${artistAndTitle} ${prev}`;
+                 });
+             }
+          } else {
+             setFetchError(true);
+          }
+        } catch (error) {
+          console.error("Failed to fetch metadata", error);
+          setFetchError(true);
+        } finally {
+          setIsFetchingMetadata(false);
+        }
+      };
+      fetchMetadata();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialUrl]);
 
   // Manage Sidebar visibility based on video editing state or text editing state
   useEffect(() => {
@@ -506,15 +564,25 @@ export default function UploadForm() {
         {!hasMedia && (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className={`w-full bg-gray-100 dark:bg-zinc-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600 relative overflow-hidden aspect-square`}
+            className={`w-full bg-gray-100 dark:bg-zinc-800 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600 relative overflow-hidden aspect-square ${isFetchingMetadata ? 'opacity-50 pointer-events-none' : ''}`}
           >
-            <div className="text-gray-400 flex flex-col items-center">
-              <div className="flex gap-2 mb-2">
-                  <Camera className="w-8 h-8" />
-                  <Video className="w-8 h-8" />
-              </div>
-              <span>タップして画像または動画を選択</span>
-            </div>
+             {isFetchingMetadata ? (
+                 <div className="flex flex-col items-center gap-2 text-indigo-500">
+                     <Loader2 className="w-8 h-8 animate-spin" />
+                     <span className="text-sm font-medium">リンクから画像を読み込み中...</span>
+                 </div>
+             ) : (
+                <div className="text-gray-400 flex flex-col items-center">
+                    <div className="flex gap-2 mb-2">
+                        <Camera className="w-8 h-8" />
+                        <Video className="w-8 h-8" />
+                    </div>
+                    <span>タップして画像または動画を選択</span>
+                    {fetchError && (
+                        <span className="text-xs text-red-500 mt-2">画像の読み込みに失敗しました</span>
+                    )}
+                </div>
+             )}
             <input
               ref={fileInputRef}
               type="file"
@@ -560,7 +628,7 @@ export default function UploadForm() {
               maxLength={173}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending || isConverting}
+              disabled={isUploading || isPending || isConverting || isFetchingMetadata}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 pr-12 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="キャプションを入力..."
             />
@@ -584,7 +652,7 @@ export default function UploadForm() {
               name="hashtags"
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
-              disabled={!hasMedia || isUploading || isPending || isConverting}
+              disabled={isUploading || isPending || isConverting || isFetchingMetadata}
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white dark:bg-zinc-800 ring-1 ring-inset ring-gray-300 dark:ring-zinc-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-zinc-900 dark:disabled:text-zinc-600"
               placeholder="#travel #food #nature"
             />
@@ -615,13 +683,13 @@ export default function UploadForm() {
 
         <button
           type="submit"
-          disabled={isPending || isUploading || isConverting || !hasMedia}
+          disabled={isPending || isUploading || isConverting || !hasMedia || isFetchingMetadata}
           className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 flex items-center gap-2"
         >
-          {isUploading || isPending || isConverting ? (
+          {isUploading || isPending || isConverting || isFetchingMetadata ? (
             <>
               <Spinner className="w-4 h-4 text-white" />
-              <span>{isUploading ? "処理中..." : isConverting ? "処理中..." : "送信中..."}</span>
+              <span>{isUploading ? "処理中..." : isConverting ? "処理中..." : isFetchingMetadata ? "読み込み中..." : "送信中..."}</span>
             </>
           ) : (
             "シェア"
