@@ -54,3 +54,37 @@ export async function addComment(prevState: any, formData: FormData) {
     return { message: 'Failed to add comment' };
   }
 }
+
+export async function deleteComment(commentId: number) {
+  const session = await getSession();
+  if (!session) {
+    return { message: 'Unauthorized' };
+  }
+
+  try {
+    const comment = await db.comment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      return { message: 'Comment not found' };
+    }
+
+    if (comment.userId !== session.id) {
+      return { message: 'Forbidden' };
+    }
+
+    await db.comment.delete({
+      where: { id: commentId },
+    });
+
+    // Revalidate paths where comments might be shown
+    revalidatePath('/');
+    revalidatePath(`/p/${comment.postId}`);
+
+    return { success: true, message: 'Comment deleted' };
+  } catch (error) {
+    console.error('Failed to delete comment:', error);
+    return { message: 'Failed to delete comment' };
+  }
+}

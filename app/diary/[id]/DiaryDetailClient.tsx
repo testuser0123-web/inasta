@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from 'react';
 import { format } from 'date-fns';
-import { Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle, Trash2 } from 'lucide-react';
 import DiaryEditor from '@/components/DiaryEditor';
-import { toggleDiaryLike, addDiaryComment } from '@/app/actions/diary';
+import { toggleDiaryLike, addDiaryComment, deleteDiaryComment } from '@/app/actions/diary';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function DiaryDetailClient({ diary, currentUserId }: { diary: any, currentUserId?: number }) {
   // If undefined/null, treat as guest (or if specifically -1)
@@ -16,6 +17,8 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [likeCount, setLikeCount] = useState<number>(diary.likes.length);
+
+  const router = useRouter();
 
   const handleLike = async () => {
      if (isGuest) {
@@ -49,16 +52,23 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
      try {
         await addDiaryComment(diary.id, commentText);
         setCommentText('');
-        // We can't easily optimistic update comment list without re-fetching or receiving the comment object
-        // Assuming parent page or something refreshes, or we just clear text.
-        // For simplicity, reload or just alert success?
-        // Ideally we should use router.refresh() but that's in parent.
-        // Since this is a client component, we can use useRouter.
+        router.refresh();
      } catch (error) {
         alert('コメントの送信に失敗しました');
      } finally {
         setIsCommentSubmitting(false);
      }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+      if (!confirm('本当にこのコメントを削除しますか？')) return;
+
+      try {
+          await deleteDiaryComment(commentId);
+          router.refresh();
+      } catch (error) {
+          alert('コメントの削除に失敗しました');
+      }
   };
 
   return (
@@ -124,7 +134,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                <p className="text-gray-500 italic">コメントはまだありません。</p>
             ) : (
                diary.comments.map((comment: any) => (
-                  <div key={comment.id} className="flex gap-3">
+                  <div key={comment.id} className="flex gap-3 group">
                      <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                          {comment.user.avatarUrl ? (
                             <img
@@ -137,10 +147,20 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                             <div className="w-full h-full bg-indigo-500" />
                          )}
                      </div>
-                     <div className="bg-white dark:bg-black p-3 rounded-lg border dark:border-gray-800 flex-1">
+                     <div className="bg-white dark:bg-black p-3 rounded-lg border dark:border-gray-800 flex-1 relative">
                         <div className="flex items-center justify-between mb-1">
                            <span className="font-bold text-sm">{comment.user.username}</span>
-                           <span className="text-xs text-gray-400">{format(new Date(comment.createdAt), 'MMM d, HH:mm')}</span>
+                           <div className="flex items-center gap-2">
+                               <span className="text-xs text-gray-400">{format(new Date(comment.createdAt), 'MMM d, HH:mm')}</span>
+                               {!isGuest && currentUserId === comment.userId && (
+                                   <button
+                                      onClick={() => handleDeleteComment(comment.id)}
+                                      className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                   >
+                                       <Trash2 className="w-4 h-4" />
+                                   </button>
+                               )}
+                           </div>
                         </div>
                         <p className="text-gray-700 dark:text-gray-300">{comment.text}</p>
                      </div>

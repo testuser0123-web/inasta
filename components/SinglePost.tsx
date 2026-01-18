@@ -5,7 +5,7 @@ import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, Ale
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleLike, deletePost } from '@/app/actions/post';
-import { addComment } from '@/app/actions/comment';
+import { addComment, deleteComment } from '@/app/actions/comment';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { Linkify } from '@/components/Linkify';
@@ -110,6 +110,17 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
       }
 
       setIsSubmittingComment(false);
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+      if (!confirm('本当にこのコメントを削除しますか？')) return;
+
+      const result = await deleteComment(commentId);
+      if (result.success) {
+          router.refresh();
+      } else {
+          alert(result.message || 'Failed to delete comment');
+      }
   };
 
   const handleSpoilerReveal = () => {
@@ -274,13 +285,24 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
              ) : (
                <>
                  {post.comments.map((comment) => (
-                     <div key={comment.id} className="text-sm">
-                         <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline mr-2 text-gray-900 dark:text-gray-100">
-                             {comment.user.username}
-                         </Link>
-                         <span className="text-gray-800 dark:text-gray-200 break-words">
-                            <Linkify>{comment.text}</Linkify>
-                         </span>
+                     <div key={comment.id} className="text-sm flex items-start justify-between group">
+                         <div>
+                            <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline mr-2 text-gray-900 dark:text-gray-100">
+                                {comment.user.username}
+                            </Link>
+                            <span className="text-gray-800 dark:text-gray-200 break-words">
+                                <Linkify>{comment.text}</Linkify>
+                            </span>
+                         </div>
+                         {currentUserId === comment.userId && (
+                            <button
+                                onClick={() => handleDeleteComment(comment.id)}
+                                className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                aria-label="Delete comment"
+                            >
+                                <Trash2 className="w-3 h-3" />
+                            </button>
+                         )}
                      </div>
                  ))}
                  {post.comments.length === 0 && (

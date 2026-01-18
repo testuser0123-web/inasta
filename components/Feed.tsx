@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
-import { addComment } from '@/app/actions/comment';
+import { addComment, deleteComment } from '@/app/actions/comment';
 import { fetchPostComments } from '@/app/actions/comment-fetch';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleBadge } from '@/components/RoleBadge';
@@ -308,6 +308,41 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       setIsSubmittingComment(false);
   };
 
+  const handleDeleteComment = async (commentId: number) => {
+    if (!confirm('本当にこのコメントを削除しますか？')) return;
+
+    // Optimistic update
+    if (selectedPost) {
+        setPosts(current => current.map(p => {
+            if (p.id === selectedPost.id) {
+                return {
+                    ...p,
+                    comments: p.comments?.filter(c => c.id !== commentId)
+                };
+            }
+            return p;
+        }));
+    }
+
+    const result = await deleteComment(commentId);
+    if (!result.success) {
+        alert(result.message || 'コメントの削除に失敗しました');
+        // Rollback would be complex here without keeping previous state,
+        // but for now we rely on revalidation or user refresh if it failed.
+        // Ideally we should refetch comments or revert the optimistic update.
+        if (selectedPost) {
+             fetchPostComments(selectedPost.id).then(comments => {
+                setPosts(current => current.map(p => {
+                    if (p.id === selectedPost.id) {
+                        return { ...p, comments };
+                    }
+                    return p;
+                }));
+             });
+        }
+    }
+  };
+
   return (
     <div className="pb-20">
       <div className="grid grid-cols-3 gap-0.5">
@@ -522,13 +557,24 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                   ) : (
                     <>
                       {selectedPost.comments.map((comment) => (
-                          <div key={comment.id} className="text-sm">
-                              <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline mr-2 text-gray-900 dark:text-gray-100">
-                                  {comment.user.username}
-                              </Link>
-                              <span className="text-gray-800 dark:text-gray-200 break-words">
-                                <Linkify>{comment.text}</Linkify>
-                              </span>
+                          <div key={comment.id} className="text-sm flex items-start justify-between group">
+                              <div>
+                                <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline mr-2 text-gray-900 dark:text-gray-100">
+                                    {comment.user.username}
+                                </Link>
+                                <span className="text-gray-800 dark:text-gray-200 break-words">
+                                    <Linkify>{comment.text}</Linkify>
+                                </span>
+                              </div>
+                              {!isGuest && currentUserId === comment.userId && (
+                                  <button
+                                      onClick={() => handleDeleteComment(comment.id)}
+                                      className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                      aria-label="Delete comment"
+                                  >
+                                      <Trash2 className="w-3 h-3" />
+                                  </button>
+                              )}
                           </div>
                       ))}
                       {selectedPost.comments.length === 0 && (
