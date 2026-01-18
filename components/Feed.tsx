@@ -566,10 +566,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                                     <Linkify>{comment.text}</Linkify>
                                 </span>
                               </div>
-                              {!isGuest && currentUserId === comment.userId && (
+                              {currentUserId === comment.userId && (
                                   <button
                                       onClick={() => handleDeleteComment(comment.id)}
-                                      className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                      className="text-gray-400 hover:text-red-500 transition-colors p-1"
                                       aria-label="Delete comment"
                                   >
                                       <Trash2 className="w-3 h-3" />

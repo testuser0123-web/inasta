@@ -21,3 +21,8 @@ https://nextjs.org/telemetry
  GET /verify-delete 200 in 222ms (compile: 30ms, proxy.ts: 10ms, render: 181ms)
  GET /verify-delete 200 in 198ms (compile: 34ms, proxy.ts: 48ms, render: 117ms)
 ✓ Compiled in 233ms
+○ Compiling /login ...
+ GET /login 200 in 8.4s (compile: 7.9s, proxy.ts: 25ms, render: 398ms)
+✓ Compiled in 74ms
+ GET /verify-delete 200 in 439ms (compile: 244ms, proxy.ts: 21ms, render: 173ms)
+✓ Compiled in 107ms

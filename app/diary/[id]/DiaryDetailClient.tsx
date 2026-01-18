@@ -155,7 +155,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                                {!isGuest && currentUserId === comment.userId && (
                                    <button
                                       onClick={() => handleDeleteComment(comment.id)}
-                                      className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      className="text-gray-400 hover:text-red-500 transition-colors"
                                    >
                                        <Trash2 className="w-4 h-4" />
                                    </button>

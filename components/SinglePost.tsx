@@ -297,7 +297,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                          {currentUserId === comment.userId && (
                             <button
                                 onClick={() => handleDeleteComment(comment.id)}
-                                className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                className="text-gray-400 hover:text-red-500 transition-colors p-1"
                                 aria-label="Delete comment"
                             >
                                 <Trash2 className="w-3 h-3" />
