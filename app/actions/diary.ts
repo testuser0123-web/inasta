@@ -405,6 +405,27 @@ export async function addDiaryComment(diaryId: number, text: string) {
   revalidatePath(`/diary/${diaryId}`);
 }
 
+export async function deleteDiaryComment(commentId: number) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
+  const comment = await db.diaryComment.findUnique({
+    where: { id: commentId },
+  });
+
+  if (!comment) throw new Error('Comment not found');
+
+  if (comment.userId !== session.id) {
+    throw new Error('Forbidden');
+  }
+
+  await db.diaryComment.delete({
+    where: { id: commentId },
+  });
+
+  revalidatePath(`/diary/${comment.diaryId}`);
+}
+
 export async function getDiariesByUser(userId: number) {
   const diaries = await db.diary.findMany({
     where: { userId, isDraft: false },
