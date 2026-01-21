@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import cloudinary from "@/lib/cloudinary";
+import { enrichUser } from "@/lib/user_logic";
 
 export async function fetchFeedPosts({
   cursorId,
@@ -119,6 +120,8 @@ export async function fetchFeedPosts({
             isVerified: true,
             isGold: true,
             roles: true,
+            subscriptionAmount: true,
+            subscriptionExpiresAt: true,
           },
         },
         // Removed comments fetch for feed optimization
@@ -144,14 +147,14 @@ export async function fetchFeedPosts({
         ...img,
         url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
       })),
-      user: {
+      user: enrichUser({
         ...post.user,
         avatarUrl: post.user.avatarUrl
           ? (post.user.avatarUrl.startsWith('http')
                ? post.user.avatarUrl
                : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
           : null,
-      },
+      }),
       likesCount: post._count.likes,
       hasLiked: post.likes.length > 0,
       likes: undefined,
@@ -211,6 +214,9 @@ export async function fetchUserPosts({
             updatedAt: true,
             isVerified: true,
             isGold: true,
+            roles: true,
+            subscriptionAmount: true,
+            subscriptionExpiresAt: true,
           },
         },
         _count: {
@@ -235,14 +241,14 @@ export async function fetchUserPosts({
         ...img,
         url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
       })),
-      user: {
+      user: enrichUser({
         ...post.user,
         avatarUrl: post.user.avatarUrl
           ? (post.user.avatarUrl.startsWith('http')
                ? post.user.avatarUrl
                : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`)
           : null,
-      },
+      }),
       likesCount: post._count.likes,
       hasLiked: post.likes.length > 0,
       likes: undefined,
@@ -302,6 +308,8 @@ export async function fetchLikedPosts({
                       isVerified: true,
                       isGold: true,
                       roles: true,
+                      subscriptionAmount: true,
+                      subscriptionExpiresAt: true,
                   }
               },
               _count: {
@@ -328,14 +336,14 @@ export async function fetchLikedPosts({
         ...img,
         url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
       })),
-      user: {
+      user: enrichUser({
         ...item.post.user,
         avatarUrl: item.post.user.avatarUrl
           ? (item.post.user.avatarUrl.startsWith('http')
                ? item.post.user.avatarUrl
                : `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}`)
           : null,
-      },
+      }),
       likesCount: item.post._count.likes,
       hasLiked: item.post.likes.length > 0,
       likes: undefined,

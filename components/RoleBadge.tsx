@@ -1,4 +1,4 @@
-import { Palette, Star, Bug, Aperture, Beer } from 'lucide-react';
+import { Palette, Star, Bug, Aperture, Beer, BookMarked } from 'lucide-react';
 import { getRole } from '@/lib/roles';
 
 export function RoleBadge({ roleId }: { roleId: string }) {
@@ -21,6 +21,9 @@ export function RoleBadge({ roleId }: { roleId: string }) {
       break;
     case 'drinker':
       Icon = Beer;
+      break;
+    case 'subscriber':
+      Icon = BookMarked;
       break;
     default:
       return null;

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { User as UserIcon, BadgeCheck } from 'lucide-react';
+import { RoleBadge } from '@/components/RoleBadge';
 
 type User = {
   id: number;
@@ -9,6 +10,7 @@ type User = {
   avatarUrl: string | null;
   isVerified?: boolean;
   isGold?: boolean;
+  roles?: string[];
 };
 
 type UserListProps = {
@@ -53,6 +55,9 @@ export default function UserList({ users }: UserListProps) {
             ) : user.isVerified ? (
               <BadgeCheck className="w-4 h-4 text-blue-500" />
             ) : null}
+            {user.roles?.map(roleId => (
+              <RoleBadge key={roleId} roleId={roleId} />
+            ))}
           </div>
         </Link>
       ))}

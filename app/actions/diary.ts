@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { supabaseAdmin, BUCKET_NAME } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { NotificationType } from '@prisma/client';
+import { enrichUser } from '@/lib/user_logic';
 
 const diarySchema = z.object({
   title: z.string().min(1, 'タイトルは必須です').max(100, 'タイトルが長すぎます'),
@@ -178,6 +179,9 @@ export async function getDiariesForRange(dateStr: string) {
           isVerified: true,
           isGold: true,
           updatedAt: true,
+          roles: true,
+          subscriptionAmount: true,
+          subscriptionExpiresAt: true,
         },
       },
       _count: {
@@ -195,13 +199,13 @@ export async function getDiariesForRange(dateStr: string) {
   return diaries.map((diary) => ({
     ...diary,
     thumbnailUrl: diary.thumbnailUrl ? `/api/diary_thumbnail/${diary.id}.jpg` : null,
-    user: {
+    user: enrichUser({
       ...diary.user,
       avatarUrl: diary.user.avatarUrl
         ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
         : null,
       updatedAt: undefined,
-    },
+    }),
   }));
 }
 
@@ -259,6 +263,9 @@ export async function getDiariesByDate(dateStr: string) {
           isVerified: true,
           isGold: true,
           updatedAt: true,
+          roles: true,
+          subscriptionAmount: true,
+          subscriptionExpiresAt: true,
         },
       },
       _count: {
@@ -276,13 +283,13 @@ export async function getDiariesByDate(dateStr: string) {
   return diaries.map((diary) => ({
     ...diary,
     thumbnailUrl: diary.thumbnailUrl ? `/api/diary_thumbnail/${diary.id}.jpg` : null,
-    user: {
+    user: enrichUser({
       ...diary.user,
       avatarUrl: diary.user.avatarUrl
         ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
         : null,
       updatedAt: undefined,
-    },
+    }),
   }));
 }
 
@@ -333,20 +340,20 @@ export async function getDiaryById(id: number) {
 
   return {
     ...diary,
-    user: {
+    user: enrichUser({
       ...diary.user,
       avatarUrl: diary.user.avatarUrl
         ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
         : null,
-    },
+    }),
     comments: diary.comments.map((comment) => ({
       ...comment,
-      user: {
+      user: enrichUser({
         ...comment.user,
         avatarUrl: comment.user.avatarUrl
           ? `/api/avatar/${comment.user.username}?v=${comment.user.updatedAt.getTime()}`
           : null,
-      },
+      }),
     })),
   };
 }
@@ -441,12 +448,12 @@ export async function getDiariesByUser(userId: number) {
   return diaries.map((diary) => ({
     ...diary,
     thumbnailUrl: diary.thumbnailUrl ? `/api/diary_thumbnail/${diary.id}.jpg` : null,
-    user: {
+    user: enrichUser({
       ...diary.user,
       avatarUrl: diary.user.avatarUrl
         ? `/api/avatar/${diary.user.username}?v=${diary.user.updatedAt.getTime()}`
         : null,
-    },
+    }),
   }));
 }
 

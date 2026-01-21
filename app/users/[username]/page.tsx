@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth';
 import ProfileClient from '@/app/profile/ProfileClient';
 import { getUserTrophies } from '@/app/actions/trophy';
 import { getDiariesByUser } from '@/app/actions/diary';
+import { enrichUser } from '@/lib/user_logic';
 
 export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
   const resolvedParams = await params;
@@ -24,6 +25,8 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       roles: true,
       bio: true,
       oshi: true,
+      subscriptionAmount: true,
+      subscriptionExpiresAt: true,
       _count: {
           select: {
               followers: true,
@@ -33,10 +36,10 @@ export default async function UserPage({ params }: { params: Promise<{ username:
     },
   });
 
-  const user = userData ? {
+  const user = userData ? enrichUser({
       ...userData,
       avatarUrl: userData.avatarUrl ? `/api/avatar/${userData.username}?v=${userData.updatedAt.getTime()}` : null
-  } : null;
+  }) : null;
 
   if (!user) {
     notFound();
@@ -112,6 +115,8 @@ export default async function UserPage({ params }: { params: Promise<{ username:
               isVerified: true,
               isGold: true,
               roles: true,
+              subscriptionAmount: true,
+              subscriptionExpiresAt: true,
           }
       },
       _count: {
@@ -136,10 +141,10 @@ export default async function UserPage({ params }: { params: Promise<{ username:
         ...img,
         url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
       })),
-      user: {
+      user: enrichUser({
           ...post.user,
           avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
-      },
+      }),
       likesCount: post._count.likes,
       hasLiked: post.likes.length > 0,
       likes: undefined,
@@ -188,6 +193,8 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                             isVerified: true,
                             isGold: true,
                             roles: true,
+                            subscriptionAmount: true,
+                            subscriptionExpiresAt: true,
                         }
                     },
                     _count: {
@@ -214,10 +221,10 @@ export default async function UserPage({ params }: { params: Promise<{ username:
             ...img,
             url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
           })),
-          user: {
+          user: enrichUser({
               ...item.post.user,
               avatarUrl: item.post.user.avatarUrl ? `/api/avatar/${item.post.user.username}?v=${item.post.user.updatedAt.getTime()}` : null
-          },
+          }),
           likesCount: item.post._count.likes,
           hasLiked: item.post.likes.length > 0,
           likes: undefined,
