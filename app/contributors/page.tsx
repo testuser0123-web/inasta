@@ -43,7 +43,14 @@ export default async function ContributorsPage() {
 
         <div className="space-y-4">
             {contributors.map(rawUser => {
-                const user = enrichUser(rawUser);
+                const user = enrichUser({
+                    ...rawUser,
+                    avatarUrl: rawUser.avatarUrl
+                        ? (rawUser.avatarUrl.startsWith('http')
+                            ? rawUser.avatarUrl
+                            : `/api/avatar/${rawUser.username}?v=${rawUser.updatedAt.getTime()}`)
+                        : null
+                });
                 return (
                     <Link key={user.id} href={`/users/${user.username}`} className="block">
                         <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -52,7 +59,7 @@ export default async function ContributorsPage() {
                                     {user.avatarUrl ? (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img
-                                            src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `/api/avatar/${user.username}?v=${user.updatedAt.getTime()}`}
+                                            src={user.avatarUrl}
                                             alt={user.username}
                                             className="w-full h-full object-cover"
                                         />
