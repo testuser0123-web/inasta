@@ -38,6 +38,9 @@ model User {
   posts                  Post[]
   notifications          Notification[]
   suggestions            Suggestion[]
+  subscriptionAmount    Int?
+  subscriptionDate      DateTime?
+  subscriptionExpiresAt DateTime?
 }
 
 model Suggestion {
