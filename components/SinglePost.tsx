@@ -158,7 +158,6 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
              playsInline
              className="w-auto h-auto max-w-full max-h-[80vh] object-contain mx-auto"
              preload="metadata"
-             crossOrigin="anonymous"
            />
          </div>
        ) : (
