@@ -427,11 +427,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
              </button>
 
             {selectedPost.mediaType === "VIDEO" ? (
-                <div className="aspect-square bg-black flex items-center justify-center">
+                <div className="w-full bg-black flex items-center justify-center">
                     {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                     <video
                         src={selectedPost.imageUrl || `/api/image/${selectedPost.id}.jpg`}
-                        className="w-full h-full object-contain"
+                        className="w-auto h-auto max-w-full max-h-[60vh] object-contain mx-auto"
                         controls
                         autoPlay
                         loop
