@@ -46,9 +46,7 @@ export default async function ContributorsPage() {
                 const user = enrichUser({
                     ...rawUser,
                     avatarUrl: rawUser.avatarUrl
-                        ? (rawUser.avatarUrl.startsWith('http')
-                            ? rawUser.avatarUrl
-                            : `/api/avatar/${rawUser.username}?v=${rawUser.updatedAt.getTime()}`)
+                        ? `/api/avatar/${rawUser.username}?v=${rawUser.updatedAt.getTime()}`
                         : null
                 });
                 return (
