@@ -2,6 +2,9 @@ import UploadForm from '@/components/UploadForm';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import React from 'react';
+import { getSession } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { canUseFrame } from '@/lib/user_logic';
 
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -9,6 +12,18 @@ type Props = {
 
 export default async function UploadPage(props: Props) {
   const searchParams = await props.searchParams;
+  const session = await getSession();
+
+  let frameEligible = false;
+  if (session) {
+    const user = await db.user.findUnique({
+      where: { id: session.id },
+      select: { subscriptionAmount: true, subscriptionExpiresAt: true },
+    });
+    if (user) {
+      frameEligible = canUseFrame(user);
+    }
+  }
 
   const title = searchParams.title as string | undefined;
   const text = searchParams.text as string | undefined;
@@ -45,6 +60,7 @@ export default async function UploadPage(props: Props) {
         initialComment={initialComment}
         initialHashtags={initialHashtags}
         initialUrl={url}
+        canUseFrame={frameEligible}
       />
     </div>
   );
