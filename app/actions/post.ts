@@ -420,7 +420,8 @@ export async function createPost(prevState: unknown, formData: FormData) {
     });
 
     let frameColor = null;
-    if (frameColorRaw && user && canUseFrame(user)) {
+    // Validate hex color format (e.g. #RRGGBB) to prevent CSS injection
+    if (frameColorRaw && user && canUseFrame(user) && /^#[0-9A-Fa-f]{6}$/.test(frameColorRaw)) {
       frameColor = frameColorRaw;
     }
 
