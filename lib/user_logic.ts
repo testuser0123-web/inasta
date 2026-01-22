@@ -13,7 +13,7 @@ export function isSubscriptionValid(expiresAt: Date | null): boolean {
 }
 
 export function canUseFrame(user: Partial<UserSubscriptionInfo>): boolean {
-  return (user.subscriptionAmount || 0) >= 500 && isSubscriptionValid(user.subscriptionExpiresAt || null);
+  return (user.subscriptionAmount || 0) >= 300 && isSubscriptionValid(user.subscriptionExpiresAt || null);
 }
 
 export function calculateIsGold(user: Partial<UserSubscriptionInfo>): boolean {
