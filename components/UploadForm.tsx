@@ -686,10 +686,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
         {canUseFrame && (
           <div className="space-y-2 pt-4 border-t border-gray-100 dark:border-zinc-800">
-            <div className="flex items-center justify-between">
-              <label htmlFor="enableFrame" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                サムネイルに枠を付ける
-              </label>
+            <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
                 id="enableFrame"
@@ -697,6 +694,9 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
                 onChange={(e) => setFrameColor(e.target.checked ? "#000000" : null)}
                 className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
               />
+              <label htmlFor="enableFrame" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                サムネイルに枠を付ける
+              </label>
             </div>
             {frameColor && (
               <div className="flex flex-col gap-2 mt-2">
