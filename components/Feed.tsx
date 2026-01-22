@@ -29,6 +29,7 @@ type Post = {
   imageUrl?: string; // Main image URL
   mediaType?: "IMAGE" | "VIDEO";
   thumbnailUrl?: string | null;
+  frameColor?: string | null;
   comment: string | null;
   isSpoiler?: boolean;
   createdAt: Date;
@@ -351,6 +352,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             key={post.id}
             onClick={() => handlePostClick(post)}
             className="aspect-square relative cursor-pointer bg-gray-100 dark:bg-gray-800 overflow-hidden"
+            style={{
+              border: post.frameColor ? `4px solid ${post.frameColor}` : undefined,
+              boxSizing: 'border-box'
+            }}
           >
             {post.isSpoiler ? (
               <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">

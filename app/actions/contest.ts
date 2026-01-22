@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { NotificationType } from '@prisma/client';
+import { enrichUser } from '@/lib/user_logic';
 
 export async function getContests(tab: 'active' | 'ended') {
   const now = new Date();
@@ -197,6 +198,9 @@ export async function fetchContestPosts({ contestId, sortBy }: { contestId: numb
         isVerified: true,
         isGold: true,
         updatedAt: true,
+        roles: true,
+        subscriptionAmount: true,
+        subscriptionExpiresAt: true,
         },
     },
     images: {
@@ -218,14 +222,14 @@ export async function fetchContestPosts({ contestId, sortBy }: { contestId: numb
     ...post,
     // Append timestamp to force cache invalidation on client
     imageUrl: `/api/contest_image/${post.id}.png?v=${Date.now()}`,
-    user: {
+    user: enrichUser({
         ...post.user,
         avatarUrl: post.user.avatarUrl
             ? post.user.avatarUrl.startsWith('http')
             ? post.user.avatarUrl
             : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
             : null
-    },
+    }),
     likesCount: post._count.likes,
     hasLiked: post.likes.length > 0,
     likes: undefined,
@@ -288,6 +292,9 @@ export async function getContestWinners(contestId: number) {
                     isVerified: true,
                     isGold: true,
                     updatedAt: true,
+                    roles: true,
+                    subscriptionAmount: true,
+                    subscriptionExpiresAt: true,
                 },
             },
             images: {
@@ -309,14 +316,14 @@ export async function getContestWinners(contestId: number) {
         ...post,
         // Append timestamp to force cache invalidation on client
         imageUrl: `/api/contest_image/${post.id}.png?v=${Date.now()}`,
-        user: {
+        user: enrichUser({
             ...post.user,
             avatarUrl: post.user.avatarUrl
             ? post.user.avatarUrl.startsWith('http')
                 ? post.user.avatarUrl
                 : `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}`
             : null
-        },
+        }),
         likesCount: post._count.likes,
         hasLiked: false,
         likes: undefined,

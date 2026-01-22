@@ -13,6 +13,7 @@ import { useUI } from "@/components/providers/ui-provider";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { fetchLinkMetadata } from "@/app/actions/metadata";
+import { HexColorPicker } from "react-colorful";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
@@ -22,10 +23,12 @@ interface UploadFormProps {
   initialComment?: string;
   initialHashtags?: string;
   initialUrl?: string;
+  canUseFrame?: boolean;
 }
 
-export default function UploadForm({ initialComment = "", initialHashtags = "", initialUrl }: UploadFormProps) {
+export default function UploadForm({ initialComment = "", initialHashtags = "", initialUrl, canUseFrame = false }: UploadFormProps) {
   const [state, setState] = useState<{ message: string } | undefined>(undefined);
+  const [frameColor, setFrameColor] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   const [fetchError, setFetchError] = useState(false);
@@ -311,6 +314,10 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
     try {
       formData.set('mediaType', mediaType);
+
+      if (frameColor) {
+        formData.set('frameColor', frameColor);
+      }
 
       if (mediaType === "IMAGE") {
           setUploadProgress("✉️ᶘｲ^⇁^ﾅ川💦");
@@ -676,6 +683,38 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
             ネタバレ注意 (画像を隠す)
           </label>
         </div>
+
+        {canUseFrame && (
+          <div className="space-y-2 pt-4 border-t border-gray-100 dark:border-zinc-800">
+            <div className="flex items-center justify-between">
+              <label htmlFor="enableFrame" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                サムネイルに枠を付ける
+              </label>
+              <input
+                type="checkbox"
+                id="enableFrame"
+                checked={!!frameColor}
+                onChange={(e) => setFrameColor(e.target.checked ? "#000000" : null)}
+                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              />
+            </div>
+            {frameColor && (
+              <div className="flex flex-col gap-2 mt-2">
+                 <HexColorPicker color={frameColor} onChange={setFrameColor} style={{ width: '100%', height: '150px' }} />
+                 <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">HEX:</span>
+                    <input
+                        type="text"
+                        value={frameColor}
+                        onChange={(e) => setFrameColor(e.target.value)}
+                        className="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+                        placeholder="#000000"
+                    />
+                 </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {state?.message && (
           <div className="text-red-500 text-sm text-center">{state.message}</div>

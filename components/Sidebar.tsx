@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell, Inbox, ShieldAlert, Mail, UserCog } from 'lucide-react';
+import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell, Inbox, ShieldAlert, Mail, UserCog, Users, CreditCard } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { logout } from '@/app/actions/logout';
@@ -18,6 +18,7 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
     { icon: Home, label: 'ホーム', href: '/' },
     { icon: Trophy, label: 'コンテスト', href: '/contests' },
     { icon: Book, label: '日記', href: '/diary' },
+    { icon: Users, label: '貢献者一覧', href: '/contributors' },
   ];
 
   // User nav items
@@ -25,6 +26,7 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
     { icon: Home, label: 'ホーム', href: '/' },
     { icon: Trophy, label: 'コンテスト', href: '/contests' },
     { icon: Book, label: '日記', href: '/diary' },
+    { icon: Users, label: '貢献者一覧', href: '/contributors' },
     { icon: Bell, label: '通知', href: '/notifications', badge: unreadCount > 0 ? unreadCount : null },
     { icon: Inbox, label: '投書箱', href: '/suggestions' },
     { icon: User, label: 'プロフィール', href: '/profile' },
@@ -35,7 +37,8 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
   if (isAdmin) {
     userNavItems.push(
       { icon: ShieldAlert, label: '管理者通知', href: '/admin/notifications', badge: null },
-      { icon: Mail, label: '管理者受信箱', href: '/admin/inbox', badge: null }
+      { icon: Mail, label: '管理者受信箱', href: '/admin/inbox', badge: null },
+      { icon: CreditCard, label: '課金情報変更', href: '/admin/subscription', badge: null }
     );
   }
 

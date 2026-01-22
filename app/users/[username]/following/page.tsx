@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import UserList from '@/components/UserList';
+import { enrichUser } from '@/lib/user_logic';
 
 export default async function FollowingPage({ params }: { params: Promise<{ username: string }> }) {
   const resolvedParams = await params;
@@ -26,13 +27,17 @@ export default async function FollowingPage({ params }: { params: Promise<{ user
           avatarUrl: true,
           updatedAt: true,
           isVerified: true,
+          isGold: true,
+          roles: true,
+          subscriptionAmount: true,
+          subscriptionExpiresAt: true,
         },
       },
     },
     orderBy: { createdAt: 'desc' },
   });
 
-  const users = following.map((f) => ({
+  const users = following.map((f) => enrichUser({
     ...f.following,
     avatarUrl: f.following.avatarUrl ? `/api/avatar/${f.following.username}?v=${f.following.updatedAt.getTime()}` : null,
   }));
