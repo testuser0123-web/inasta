@@ -22,10 +22,12 @@ interface UploadFormProps {
   initialComment?: string;
   initialHashtags?: string;
   initialUrl?: string;
+  canUseFrame?: boolean;
 }
 
-export default function UploadForm({ initialComment = "", initialHashtags = "", initialUrl }: UploadFormProps) {
+export default function UploadForm({ initialComment = "", initialHashtags = "", initialUrl, canUseFrame = false }: UploadFormProps) {
   const [state, setState] = useState<{ message: string } | undefined>(undefined);
+  const [frameColor, setFrameColor] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   const [fetchError, setFetchError] = useState(false);
@@ -311,6 +313,10 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
     try {
       formData.set('mediaType', mediaType);
+
+      if (frameColor) {
+        formData.set('frameColor', frameColor);
+      }
 
       if (mediaType === "IMAGE") {
           setUploadProgress("✉️ᶘｲ^⇁^ﾅ川💦");
@@ -676,6 +682,34 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
             ネタバレ注意 (画像を隠す)
           </label>
         </div>
+
+        {canUseFrame && (
+          <div className="space-y-2 pt-4 border-t border-gray-100 dark:border-zinc-800">
+            <div className="flex items-center justify-between">
+              <label htmlFor="enableFrame" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                サムネイルに枠を付ける
+              </label>
+              <input
+                type="checkbox"
+                id="enableFrame"
+                checked={!!frameColor}
+                onChange={(e) => setFrameColor(e.target.checked ? "#000000" : null)}
+                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              />
+            </div>
+            {frameColor && (
+              <div className="flex items-center gap-2">
+                 <input
+                    type="color"
+                    value={frameColor}
+                    onChange={(e) => setFrameColor(e.target.value)}
+                    className="h-8 w-16 p-0 border-0 rounded overflow-hidden cursor-pointer"
+                 />
+                 <span className="text-xs text-gray-500">{frameColor}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {state?.message && (
           <div className="text-red-500 text-sm text-center">{state.message}</div>

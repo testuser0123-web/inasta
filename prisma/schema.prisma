@@ -62,6 +62,7 @@ model Post {
   isSpoiler    Boolean     @default(false)
   mediaType    MediaType   @default(IMAGE)
   thumbnailUrl String?
+  frameColor   String?
   comments     Comment[]
   likes        Like[]
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
