@@ -438,6 +438,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                         playsInline
                         preload="metadata"
                         poster={selectedPost.thumbnailUrl || undefined}
+                        crossOrigin="anonymous"
                     />
                 </div>
             ) : (
