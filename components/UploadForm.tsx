@@ -13,6 +13,7 @@ import { useUI } from "@/components/providers/ui-provider";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { fetchLinkMetadata } from "@/app/actions/metadata";
+import { HexColorPicker } from "react-colorful";
 
 type Area = { x: number; y: number; width: number; height: number };
 type AspectRatio = "1:1" | "original";
@@ -698,14 +699,18 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
               />
             </div>
             {frameColor && (
-              <div className="flex items-center gap-2">
-                 <input
-                    type="color"
-                    value={frameColor}
-                    onChange={(e) => setFrameColor(e.target.value)}
-                    className="h-8 w-16 p-0 border-0 rounded overflow-hidden cursor-pointer"
-                 />
-                 <span className="text-xs text-gray-500">{frameColor}</span>
+              <div className="flex flex-col gap-2 mt-2">
+                 <HexColorPicker color={frameColor} onChange={setFrameColor} style={{ width: '100%', height: '150px' }} />
+                 <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">HEX:</span>
+                    <input
+                        type="text"
+                        value={frameColor}
+                        onChange={(e) => setFrameColor(e.target.value)}
+                        className="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+                        placeholder="#000000"
+                    />
+                 </div>
               </div>
             )}
           </div>
