@@ -32,7 +32,8 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/contests') ||
       pathname.startsWith('/users/') ||
       pathname.startsWith('/p/') ||
-      pathname.startsWith('/search');
+      pathname.startsWith('/search') ||
+      pathname.startsWith('/contributors');
 
   // Protected routes (everything else)
   // Exclude static files, images, etc.
