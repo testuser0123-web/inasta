@@ -430,7 +430,6 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 <div className="w-full bg-black flex items-center justify-center min-h-[300px]">
                     {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                     <video
-                        src={selectedPost.imageUrl || `/api/image/${selectedPost.id}.jpg`}
                         className="w-auto h-auto max-w-full max-h-[60vh] object-contain mx-auto"
                         controls
                         autoPlay
@@ -438,8 +437,9 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                         playsInline
                         preload="metadata"
                         poster={selectedPost.thumbnailUrl || undefined}
-                        crossOrigin="anonymous"
-                    />
+                    >
+                        <source src={selectedPost.imageUrl || `/api/image/${selectedPost.id}.jpg`} type="video/mp4" />
+                    </video>
                 </div>
             ) : (
                 <ImageCarousel

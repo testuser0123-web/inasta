@@ -152,14 +152,14 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
        {post.mediaType === 'VIDEO' ? (
          <div className="w-full relative bg-black flex items-center justify-center min-h-[300px]">
            <video
-             src={post.imageUrl || `/api/image/${post.id}.jpg`}
              poster={post.thumbnailUrl || undefined}
              controls
              playsInline
              className="w-auto h-auto max-w-full max-h-[80vh] object-contain mx-auto"
              preload="metadata"
-             crossOrigin="anonymous"
-           />
+           >
+             <source src={post.imageUrl || `/api/image/${post.id}.jpg`} type="video/mp4" />
+           </video>
          </div>
        ) : (
          <ImageCarousel
