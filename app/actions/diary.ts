@@ -402,7 +402,7 @@ export async function addDiaryComment(diaryId: number, text: string) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
 
-  await db.diaryComment.create({
+  const newComment = await db.diaryComment.create({
     data: {
       text,
       userId: session.id,
@@ -422,7 +422,7 @@ export async function addDiaryComment(diaryId: number, text: string) {
         type: NotificationType.SYSTEM,
         title: '新しいコメント',
         content: `${session.username}さんからコメントが付きました。ここからチェック`,
-        metadata: { diaryId: diaryId },
+        metadata: { diaryId: diaryId, commentId: newComment.id },
       },
     });
   }
@@ -447,6 +447,24 @@ export async function deleteDiaryComment(commentId: number) {
   await db.diaryComment.delete({
     where: { id: commentId },
   });
+
+  const notifications = await db.notification.findMany({
+    where: {
+      type: NotificationType.SYSTEM,
+      metadata: {
+        path: ['commentId'],
+        equals: commentId
+      }
+    }
+  });
+
+  if (notifications.length > 0) {
+    await db.notification.deleteMany({
+      where: {
+        id: { in: notifications.map(n => n.id) }
+      }
+    });
+  }
 
   revalidatePath(`/diary/${comment.diaryId}`);
 }
