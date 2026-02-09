@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { NotificationType } from '@prisma/client';
 
 const commentSchema = z.object({
   postId: z.number(),
@@ -47,6 +48,24 @@ export async function addComment(prevState: any, formData: FormData) {
       }
     });
 
+    // Notify post author if commenter is not the author
+    const post = await db.post.findUnique({
+      where: { id: postId },
+      select: { userId: true }
+    });
+
+    if (post && post.userId !== session.id) {
+      await db.notification.create({
+        data: {
+          userId: post.userId,
+          type: NotificationType.SYSTEM,
+          title: '新しいコメント',
+          content: `${session.username}さんからコメントが付きました。ここからチェック`,
+          metadata: { postId: postId, commentId: newComment.id }
+        }
+      });
+    }
+
     revalidatePath('/');
     return { success: true, message: 'Comment added', comment: newComment };
   } catch (error) {
@@ -77,6 +96,29 @@ export async function deleteComment(commentId: number) {
     await db.comment.delete({
       where: { id: commentId },
     });
+
+    // Find and delete the associated notification
+    const notifications = await db.notification.findMany({
+      where: {
+        type: NotificationType.SYSTEM,
+        // We can't query JSON fields directly with simple equality in all Prisma versions/adapters easily,
+        // but for now, let's try path based filtering if supported or fetch candidate notifications.
+        // Since we don't have a direct relation, we'll fetch notifications for the post owner and filter in memory or use raw query if needed.
+        // However, Prisma supports JSON filtering. Let's try to match the structure.
+        metadata: {
+          path: ['commentId'],
+          equals: commentId
+        }
+      }
+    });
+
+    if (notifications.length > 0) {
+      await db.notification.deleteMany({
+        where: {
+          id: { in: notifications.map(n => n.id) }
+        }
+      });
+    }
 
     // Revalidate paths where comments might be shown
     revalidatePath('/');

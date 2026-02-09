@@ -402,13 +402,31 @@ export async function addDiaryComment(diaryId: number, text: string) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
 
-  await db.diaryComment.create({
+  const newComment = await db.diaryComment.create({
     data: {
       text,
       userId: session.id,
       diaryId,
     },
   });
+
+  const diary = await db.diary.findUnique({
+    where: { id: diaryId },
+    select: { userId: true },
+  });
+
+  if (diary && diary.userId !== session.id) {
+    await db.notification.create({
+      data: {
+        userId: diary.userId,
+        type: NotificationType.SYSTEM,
+        title: '新しいコメント',
+        content: `${session.username}さんからコメントが付きました。ここからチェック`,
+        metadata: { diaryId: diaryId, commentId: newComment.id },
+      },
+    });
+  }
+
   revalidatePath(`/diary/${diaryId}`);
 }
 
@@ -429,6 +447,24 @@ export async function deleteDiaryComment(commentId: number) {
   await db.diaryComment.delete({
     where: { id: commentId },
   });
+
+  const notifications = await db.notification.findMany({
+    where: {
+      type: NotificationType.SYSTEM,
+      metadata: {
+        path: ['commentId'],
+        equals: commentId
+      }
+    }
+  });
+
+  if (notifications.length > 0) {
+    await db.notification.deleteMany({
+      where: {
+        id: { in: notifications.map(n => n.id) }
+      }
+    });
+  }
 
   revalidatePath(`/diary/${comment.diaryId}`);
 }
