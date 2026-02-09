@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { NotificationType } from '@prisma/client';
 
 const commentSchema = z.object({
   postId: z.number(),
@@ -46,6 +47,24 @@ export async function addComment(prevState: any, formData: FormData) {
         }
       }
     });
+
+    // Notify post author if commenter is not the author
+    const post = await db.post.findUnique({
+      where: { id: postId },
+      select: { userId: true }
+    });
+
+    if (post && post.userId !== session.id) {
+      await db.notification.create({
+        data: {
+          userId: post.userId,
+          type: NotificationType.SYSTEM,
+          title: '新しいコメント',
+          content: `${session.username}さんからコメントが付きました。ここからチェック`,
+          metadata: { postId: postId }
+        }
+      });
+    }
 
     revalidatePath('/');
     return { success: true, message: 'Comment added', comment: newComment };

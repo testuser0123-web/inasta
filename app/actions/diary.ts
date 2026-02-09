@@ -409,6 +409,24 @@ export async function addDiaryComment(diaryId: number, text: string) {
       diaryId,
     },
   });
+
+  const diary = await db.diary.findUnique({
+    where: { id: diaryId },
+    select: { userId: true },
+  });
+
+  if (diary && diary.userId !== session.id) {
+    await db.notification.create({
+      data: {
+        userId: diary.userId,
+        type: NotificationType.SYSTEM,
+        title: '新しいコメント',
+        content: `${session.username}さんからコメントが付きました。ここからチェック`,
+        metadata: { diaryId: diaryId },
+      },
+    });
+  }
+
   revalidatePath(`/diary/${diaryId}`);
 }
 
