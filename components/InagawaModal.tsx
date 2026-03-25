@@ -8,7 +8,7 @@ import type { Session } from '@/lib/auth';
 export default function InagawaModal({ session }: { session: Session | null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<'intro' | 'loading' | 'result'>('intro');
-  const [result, setResult] = useState<{ timeString: string, amount: number, message: string, isRepdigit: boolean } | null>(null);
+  const [result, setResult] = useState<{ timeString: string, amount: number, message: string, isRepdigit: boolean, gaveAllowance?: boolean } | null>(null);
 
   // Prevent strict mode double execution on mount
   const hasCheckedRef = useRef(false);
@@ -32,11 +32,11 @@ export default function InagawaModal({ session }: { session: Session | null }) {
     checkStatus();
   }, [session]);
 
-  const handleGiveAllowance = async () => {
+  const handleGiveAllowance = async (give: boolean) => {
     setStep('loading');
 
     try {
-      const res = await giveAllowance();
+      const res = await giveAllowance(give);
       if (res.error) {
         setIsOpen(false);
         return;
@@ -46,7 +46,8 @@ export default function InagawaModal({ session }: { session: Session | null }) {
         timeString: res.timeString!,
         amount: res.amount!,
         message: res.message!,
-        isRepdigit: res.isRepdigit!
+        isRepdigit: res.isRepdigit!,
+        gaveAllowance: res.gaveAllowance!
       });
       setStep('result');
     } catch (err) {
@@ -83,17 +84,24 @@ export default function InagawaModal({ session }: { session: Session | null }) {
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <h2 className="text-2xl font-bold text-foreground">ᶘｲ^⇁^ﾅ川</h2>
             <div className="text-6xl animate-bounce">💸</div>
-            <p className="text-muted-foreground">
-              今日初めてのログインですね。<br/>
-              おこづかいをあげますか？
+            <p className="text-lg font-medium text-foreground">
+              「飼い主さん、おこづかいください！」
             </p>
-            <button
-              onClick={handleGiveAllowance}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-            >
-              <Coins className="w-5 h-5" />
-              おこづかいをあげる
-            </button>
+            <div className="w-full space-y-3">
+              <button
+                onClick={() => handleGiveAllowance(true)}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Coins className="w-5 h-5" />
+                おこづかいをあげる
+              </button>
+              <button
+                onClick={() => handleGiveAllowance(false)}
+                className="w-full bg-muted hover:bg-muted/80 text-muted-foreground font-bold py-3 px-6 rounded-full shadow-sm transition-transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              >
+                あげない
+              </button>
+            </div>
           </div>
         )}
 
@@ -111,8 +119,8 @@ export default function InagawaModal({ session }: { session: Session | null }) {
                  {result.timeString}
              </div>
 
-             <div className={`text-4xl font-black drop-shadow-sm ${result.amount > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                 {result.amount > 0 ? `${result.amount}円GET!` : `${Math.abs(result.amount)}円没収`}
+             <div className={`text-4xl font-black drop-shadow-sm ${!result.gaveAllowance ? 'text-muted-foreground' : result.amount > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                 {!result.gaveAllowance ? '±0円' : result.amount > 0 ? `${result.amount}円GET!` : `${Math.abs(result.amount)}円没収`}
              </div>
 
              <div className="text-lg text-foreground font-medium p-4 bg-muted/50 rounded-lg w-full">

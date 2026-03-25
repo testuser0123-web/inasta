@@ -30,17 +30,20 @@ export async function getInagawaStatus() {
   // Check if they have already received it today (JST)
   let hasReceivedToday = false;
   if (inagawa.lastLoginDate) {
+    const jstFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    });
+
     const lastLogin = new Date(inagawa.lastLoginDate);
-    const lastLoginJST = new Date(lastLogin.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-
     const now = new Date();
-    const nowJST = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
 
-    if (
-      lastLoginJST.getFullYear() === nowJST.getFullYear() &&
-      lastLoginJST.getMonth() === nowJST.getMonth() &&
-      lastLoginJST.getDate() === nowJST.getDate()
-    ) {
+    const lastLoginJSTStr = jstFormatter.format(lastLogin);
+    const nowJSTStr = jstFormatter.format(now);
+
+    if (lastLoginJSTStr === nowJSTStr) {
       hasReceivedToday = true;
     }
   }
@@ -51,7 +54,7 @@ export async function getInagawaStatus() {
   };
 }
 
-export async function giveAllowance() {
+export async function giveAllowance(give: boolean = true) {
   const session = await getSession();
   if (!session?.id) {
     return { error: 'Not logged in' };
@@ -68,15 +71,19 @@ export async function giveAllowance() {
 
   // Get current JST time
   const now = new Date();
-  const jstString = now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo', hour12: false });
-  const jstDate = new Date(jstString);
-  const ms = now.getMilliseconds();
+  const jstFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+  const parts = jstFormatter.formatToParts(now);
+  const hours = parts.find(p => p.type === 'hour')?.value || '00';
+  const minutes = parts.find(p => p.type === 'minute')?.value || '00';
+  const seconds = parts.find(p => p.type === 'second')?.value || '00';
 
-  // We use the actual milliseconds to determine the repdigit logic, format string appropriately
-  // JST formatting for hh:mm:ss.xx
-  const hours = String(jstDate.getHours()).padStart(2, '0');
-  const minutes = String(jstDate.getMinutes()).padStart(2, '0');
-  const seconds = String(jstDate.getSeconds()).padStart(2, '0');
+  const ms = now.getMilliseconds();
 
   // Format milliseconds to 2 digits (e.g. 05, 12, 99)
   // getMilliseconds returns 0-999. To get 2 digits similar to stopwatch, we divide by 10
@@ -87,7 +94,7 @@ export async function giveAllowance() {
 
   const isRepdigit = centisecondsStr[0] === centisecondsStr[1];
 
-  let amount = isRepdigit ? INAGAWA_REPDIGIT_PENALTY : INAGAWA_BASE_ALLOWANCE;
+  let amount = give ? (isRepdigit ? INAGAWA_REPDIGIT_PENALTY : INAGAWA_BASE_ALLOWANCE) : 0;
 
   const positiveMessages = [
     'ᶘｲ^⇁^ﾅ川「おこづかいやるよ」',
@@ -103,9 +110,21 @@ export async function giveAllowance() {
     'ᶘｲ^⇁^ﾅ川「甘えるな」'
   ];
 
-  const message = isRepdigit
-    ? negativeMessages[Math.floor(Math.random() * negativeMessages.length)]
-    : positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+  const neutralMessages = [
+    'ᶘｲ^⇁^ﾅ川「ケチめ」',
+    'ᶘｲ^⇁^ﾅ川「ちぇっ」',
+    'ᶘｲ^⇁^ﾅ川「まあいいだろう」',
+    'ᶘｲ^⇁^ﾅ川「明日も来いよ」'
+  ];
+
+  let message = '';
+  if (!give) {
+    message = neutralMessages[Math.floor(Math.random() * neutralMessages.length)];
+  } else if (isRepdigit) {
+    message = negativeMessages[Math.floor(Math.random() * negativeMessages.length)];
+  } else {
+    message = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+  }
 
   // Run update transaction
   await prisma.$transaction([
@@ -120,7 +139,7 @@ export async function giveAllowance() {
       data: {
         userId,
         amount,
-        message: `${timeString} ${amount > 0 ? `${amount}円GET!` : `${Math.abs(amount)}円没収`}`,
+        message: `${timeString} ${!give ? '±0円' : amount > 0 ? `${amount}円GET!` : `${Math.abs(amount)}円没収`}`,
       },
     })
   ]);
@@ -131,7 +150,8 @@ export async function giveAllowance() {
     timeString,
     amount,
     message,
-    isRepdigit
+    isRepdigit: give ? isRepdigit : false,
+    gaveAllowance: give
   };
 }
 
