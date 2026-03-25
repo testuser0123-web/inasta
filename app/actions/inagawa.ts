@@ -5,8 +5,10 @@ import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
 // Configuration
-const INAGAWA_BASE_ALLOWANCE = 100;
-const INAGAWA_REPDIGIT_PENALTY = -3000;
+const INAGAWA_BASE_ALLOWANCE = 170;
+const INAGAWA_REPDIGIT_PENALTY = -1000;
+const INAGAWA_MINUS_31_PENALTY = -3000;
+const INAGAWA_BONUS_17_ALLOWANCE = 1700;
 
 export async function getInagawaStatus() {
   const session = await getSession();
@@ -94,25 +96,49 @@ export async function giveAllowance(give: boolean = true) {
 
   const isRepdigit = centisecondsStr[0] === centisecondsStr[1];
 
-  let amount = give ? (isRepdigit ? INAGAWA_REPDIGIT_PENALTY : INAGAWA_BASE_ALLOWANCE) : 0;
+  let amount = 0;
+  if (give) {
+    if (centisecondsStr === '31') {
+      amount = INAGAWA_MINUS_31_PENALTY;
+    } else if (centisecondsStr === '17') {
+      amount = INAGAWA_BONUS_17_ALLOWANCE;
+    } else if (isRepdigit) {
+      amount = INAGAWA_REPDIGIT_PENALTY;
+    } else {
+      amount = INAGAWA_BASE_ALLOWANCE;
+    }
+  }
 
   const positiveMessages = [
-    'ᶘｲ^⇁^ﾅ川「おこづかいやるよ」',
-    'ᶘｲ^⇁^ﾅ川「ほらよ」',
-    'ᶘｲ^⇁^ﾅ川「今日もおつかれ」',
-    'ᶘｲ^⇁^ﾅ川「まいどあり」'
+    '(⌐■_■.)「ほらよ」',
+    '(⌐■_■.)「やるよ」',
+    'ᶘｲ^⇁^ﾅ川わーい！',
+    'ᶘｲ^⇁^ﾅ川ありがとうございます！'
   ];
 
   const negativeMessages = [
-    'ᶘｲ^⇁^ﾅ川「ぞろ目だぞ没収だ」',
-    'ᶘｲ^⇁^ﾅ川「残念だったな」',
-    'ᶘｲ^⇁^ﾅ川「お前の金は俺の金」',
-    'ᶘｲ^⇁^ﾅ川「甘えるな」'
+    '(⌐■_■.)「ぞろ目だぞ没収だ」',
+    '(⌐■_■.)「罰金だ、反省しろ」'
+  ];
+
+  const minus31Messages = [
+    'ᶘｲ^⇁^ﾅ川ふぅ....',
+    'jΣﾐｲ˶º ᴗº˶ﾘ♡'
+  ];
+
+  const bonus17Messages = [
+    '(⌐■_■.)「特別だぞ」',
+    '(⌐■_■.)「ボーナスだ」',
+    'ᶘｲ^⇁^ﾅ川ボーナスです！'
   ];
 
   let message = '';
   if (!give) {
     message = 'ᶘｲ;⇁;ﾅ川「イナー」';
+  } else if (centisecondsStr === '31') {
+    message = minus31Messages[Math.floor(Math.random() * minus31Messages.length)];
+  } else if (centisecondsStr === '17') {
+    message = bonus17Messages[Math.floor(Math.random() * bonus17Messages.length)];
   } else if (isRepdigit) {
     message = negativeMessages[Math.floor(Math.random() * negativeMessages.length)];
   } else {
