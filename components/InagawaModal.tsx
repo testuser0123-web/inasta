@@ -33,26 +33,40 @@ export default function InagawaModal({ session }: { session: Session | null }) {
   }, [session]);
 
   const handleGiveAllowance = async (give: boolean) => {
-    setStep('loading');
+    if (give) {
+      setStep('loading');
+    } else {
+      // For "Don't give", bypass the loading screen and jump straight to the result.
+      setResult({
+        timeString: '',
+        amount: 0,
+        message: 'ᶘｲ;⇁;ﾅ川「イナー」',
+        isRepdigit: false,
+        gaveAllowance: false
+      });
+      setStep('result');
+    }
 
     try {
       const res = await giveAllowance(give);
       if (res.error) {
-        setIsOpen(false);
+        if (give) setIsOpen(false);
         return;
       }
 
-      setResult({
-        timeString: res.timeString!,
-        amount: res.amount!,
-        message: res.message!,
-        isRepdigit: res.isRepdigit!,
-        gaveAllowance: res.gaveAllowance!
-      });
-      setStep('result');
+      if (give) {
+        setResult({
+          timeString: res.timeString!,
+          amount: res.amount!,
+          message: res.message!,
+          isRepdigit: res.isRepdigit!,
+          gaveAllowance: res.gaveAllowance!
+        });
+        setStep('result');
+      }
     } catch (err) {
       console.error('Failed to give allowance:', err);
-      setIsOpen(false);
+      if (give) setIsOpen(false);
     }
   };
 
