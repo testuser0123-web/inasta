@@ -115,13 +115,19 @@ export default function InagawaModal({ session }: { session: Session | null }) {
 
         {step === 'result' && result && (
           <div className="flex flex-col items-center text-center space-y-6 py-4 animate-in zoom-in duration-500">
-             <div className="text-3xl font-mono font-bold tracking-wider bg-muted px-4 py-2 rounded-lg border">
-                 {result.timeString}
-             </div>
+             {result.gaveAllowance ? (
+               <>
+                 <div className="text-3xl font-mono font-bold tracking-wider bg-muted px-4 py-2 rounded-lg border">
+                     {result.timeString}
+                 </div>
 
-             <div className={`text-4xl font-black drop-shadow-sm ${!result.gaveAllowance ? 'text-muted-foreground' : result.amount > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                 {!result.gaveAllowance ? '±0円' : result.amount > 0 ? `${result.amount}円GET!` : `${Math.abs(result.amount)}円没収`}
-             </div>
+                 <div className={`text-4xl font-black drop-shadow-sm ${result.amount > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                     {result.amount > 0 ? `${result.amount}円GET!` : `${Math.abs(result.amount)}円没収`}
+                 </div>
+               </>
+             ) : (
+                <div className="text-6xl mb-4">😿</div>
+             )}
 
              <div className="text-lg text-foreground font-medium p-4 bg-muted/50 rounded-lg w-full">
                  {result.message}

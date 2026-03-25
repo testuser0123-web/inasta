@@ -110,16 +110,9 @@ export async function giveAllowance(give: boolean = true) {
     'ᶘｲ^⇁^ﾅ川「甘えるな」'
   ];
 
-  const neutralMessages = [
-    'ᶘｲ^⇁^ﾅ川「ケチめ」',
-    'ᶘｲ^⇁^ﾅ川「ちぇっ」',
-    'ᶘｲ^⇁^ﾅ川「まあいいだろう」',
-    'ᶘｲ^⇁^ﾅ川「明日も来いよ」'
-  ];
-
   let message = '';
   if (!give) {
-    message = neutralMessages[Math.floor(Math.random() * neutralMessages.length)];
+    message = 'ᶘｲ;⇁;ﾅ川「イナー」';
   } else if (isRepdigit) {
     message = negativeMessages[Math.floor(Math.random() * negativeMessages.length)];
   } else {
