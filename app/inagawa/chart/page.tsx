@@ -31,7 +31,7 @@ export default async function InagawaChartPage() {
   });
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 pb-24 md:pb-6 space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center gap-4">
         <Link href="/inagawa" className="p-2 bg-muted hover:bg-muted/80 rounded-full transition-colors">
           <ArrowLeft size={24} className="text-foreground" />
