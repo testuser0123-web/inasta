@@ -21,11 +21,10 @@ export default async function InagawaPage() {
 
   const balance = userInagawa?.balance || 0;
 
-  // Fetch history
+  // Fetch history (fetch all for chart calculations)
   const history = await prisma.inagawaHistory.findMany({
     where: { userId: session.id },
     orderBy: { timestamp: 'desc' },
-    take: 50,
   });
 
   // Fetch leaderboard
@@ -120,15 +119,27 @@ export default async function InagawaPage() {
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* History */}
-        <InagawaCollapsible title={<>📊 収益履歴</>}>
+        <InagawaCollapsible
+          title={<>📊 おこづかい履歴</>}
+          rightAction={
+            history.length > 0 ? (
+              <Link
+                href="/inagawa/chart"
+                className="text-xs bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1.5 rounded-full font-bold transition-colors"
+              >
+                グラフで見る
+              </Link>
+            ) : null
+          }
+        >
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             {history.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
                 まだ履歴がありません。
               </div>
             ) : (
-              <ul className="divide-y divide-border">
-                {history.map((record) => (
+              <ul className="divide-y divide-border max-h-[600px] overflow-y-auto">
+                {history.slice(0, 50).map((record) => (
                   <li key={record.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                     <div className="flex flex-col">
                       <span className="text-sm text-muted-foreground">
@@ -147,7 +158,7 @@ export default async function InagawaPage() {
         </InagawaCollapsible>
 
         {/* Leaderboard */}
-        <InagawaCollapsible title={<>🏆 全体の収益ランキング</>}>
+        <InagawaCollapsible title={<>🏆 所持金ランキング</>}>
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             <div className="bg-muted/30 p-4 border-b border-border flex justify-between items-center">
                <span className="text-sm font-medium text-muted-foreground">全個体の総資産</span>
@@ -192,7 +203,7 @@ export default async function InagawaPage() {
                 {currentUserRank && currentUser && userInagawa && (
                   <>
                     <li className="p-1 bg-muted flex justify-center">
-                      <span className="text-muted-foreground text-xs font-bold tracking-widest">...</span>
+                      <span className="text-muted-foreground text-xs font-bold tracking-widest">︙</span>
                     </li>
                     <li className="p-4 flex items-center justify-between bg-indigo-50/50 dark:bg-indigo-950/20">
                       <div className="flex items-center gap-3">
