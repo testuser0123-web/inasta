@@ -2,6 +2,7 @@ import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { db as prisma } from '@/lib/db';
 import Link from 'next/link';
+import InagawaCollapsible from '@/components/InagawaCollapsible';
 
 export const metadata = {
   title: 'おこづかい - INASTA',
@@ -113,10 +114,7 @@ export default async function InagawaPage() {
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* History */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            📊 収益履歴
-          </h2>
+        <InagawaCollapsible title={<>📊 収益履歴</>}>
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             {history.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
@@ -140,13 +138,10 @@ export default async function InagawaPage() {
               </ul>
             )}
           </div>
-        </div>
+        </InagawaCollapsible>
 
         {/* Leaderboard */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            🏆 全体の収益ランキング
-          </h2>
+        <InagawaCollapsible title={<>🏆 全体の収益ランキング</>}>
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             {leaderboard.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
@@ -217,7 +212,7 @@ export default async function InagawaPage() {
               </ul>
             )}
           </div>
-        </div>
+        </InagawaCollapsible>
       </div>
     </div>
   );
