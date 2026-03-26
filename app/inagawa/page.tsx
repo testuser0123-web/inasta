@@ -65,6 +65,12 @@ export default async function InagawaPage() {
     select: { username: true, avatarUrl: true }
   });
 
+  // Calculate total balance across all Inagawa records
+  const totalBalanceResult = await prisma.inagawa.aggregate({
+    _sum: { balance: true }
+  });
+  const totalBalance = totalBalanceResult._sum.balance || 0;
+
   // Calculate if today's allowance was given and what it was
   const jstFormatter = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Asia/Tokyo',
@@ -143,6 +149,12 @@ export default async function InagawaPage() {
         {/* Leaderboard */}
         <InagawaCollapsible title={<>🏆 全体の収益ランキング</>}>
           <div className="bg-card rounded-xl border border-border overflow-hidden">
+            <div className="bg-muted/30 p-4 border-b border-border flex justify-between items-center">
+               <span className="text-sm font-medium text-muted-foreground">全個体の総資産</span>
+               <span className={`text-xl font-black ${totalBalance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                 {totalBalance.toLocaleString()}円
+               </span>
+            </div>
             {leaderboard.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
                 まだデータがありません。
