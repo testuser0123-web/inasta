@@ -40,7 +40,28 @@ export default async function InagawaPage() {
     orderBy: {
       balance: 'desc',
     },
-    take: 50,
+    take: 10,
+  });
+
+  // Check if current user is in top 10
+  const isCurrentUserInTop10 = leaderboard.some(item => item.userId === session.id);
+
+  // If not in top 10, find their rank
+  let currentUserRank: number | null = null;
+  if (!isCurrentUserInTop10 && userInagawa) {
+    const higherRankingCount = await prisma.inagawa.count({
+      where: {
+        balance: {
+          gt: userInagawa.balance
+        }
+      }
+    });
+    currentUserRank = higherRankingCount + 1;
+  }
+
+  const currentUser = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { username: true, avatarUrl: true }
   });
 
   return (
@@ -71,7 +92,7 @@ export default async function InagawaPage() {
                   <li key={record.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                     <div className="flex flex-col">
                       <span className="text-sm text-muted-foreground">
-                        {new Date(record.timestamp).toLocaleString('ja-JP')}
+                        {new Date(record.timestamp).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
                       </span>
                       <span className="font-medium text-foreground">{record.message}</span>
                     </div>
@@ -98,7 +119,7 @@ export default async function InagawaPage() {
             ) : (
               <ul className="divide-y divide-border">
                 {leaderboard.map((item, index) => (
-                  <li key={item.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                  <li key={item.id} className={`p-4 flex items-center justify-between hover:bg-muted/50 transition-colors ${item.userId === session.id ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : ''}`}>
                     <div className="flex items-center gap-3">
                       <div className="font-bold text-muted-foreground w-6 text-center">
                         {index + 1}
@@ -124,6 +145,39 @@ export default async function InagawaPage() {
                     </div>
                   </li>
                 ))}
+
+                {currentUserRank && currentUser && userInagawa && (
+                  <>
+                    <li className="p-1 bg-muted flex justify-center">
+                      <span className="text-muted-foreground text-xs font-bold tracking-widest">...</span>
+                    </li>
+                    <li className="p-4 flex items-center justify-between bg-indigo-50/50 dark:bg-indigo-950/20 border-t border-border">
+                      <div className="flex items-center gap-3">
+                        <div className="font-bold text-indigo-500 w-6 text-center">
+                          {currentUserRank}
+                        </div>
+                        <Link href={`/profile/${currentUser.username}`} className="flex items-center gap-2 hover:opacity-80">
+                           {currentUser.avatarUrl ? (
+                             // eslint-disable-next-line @next/next/no-img-element
+                             <img
+                               src={currentUser.avatarUrl.startsWith('http') ? `/api/avatar/${currentUser.username}` : currentUser.avatarUrl}
+                               alt={currentUser.username}
+                               className="w-8 h-8 rounded-full object-cover bg-muted"
+                             />
+                           ) : (
+                             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                               {currentUser.username[0].toUpperCase()}
+                             </div>
+                           )}
+                           <span className="font-medium text-foreground">{currentUser.username} (あなた)</span>
+                        </Link>
+                      </div>
+                      <div className={`font-bold ${userInagawa.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {userInagawa.balance}円
+                      </div>
+                    </li>
+                  </>
+                )}
               </ul>
             )}
           </div>
