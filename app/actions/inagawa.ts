@@ -56,7 +56,7 @@ export async function getInagawaStatus() {
   };
 }
 
-export async function giveAllowance(give: boolean = true) {
+export async function giveAllowance(give: boolean = true, overrideCentiseconds?: string) {
   const session = await getSession();
   if (!session?.id) {
     return { error: 'Not logged in' };
@@ -90,7 +90,12 @@ export async function giveAllowance(give: boolean = true) {
   // Format milliseconds to 2 digits (e.g. 05, 12, 99)
   // getMilliseconds returns 0-999. To get 2 digits similar to stopwatch, we divide by 10
   const centiseconds = Math.floor(ms / 10);
-  const centisecondsStr = String(centiseconds).padStart(2, '0');
+  let centisecondsStr = String(centiseconds).padStart(2, '0');
+
+  // Dev mode override
+  if (process.env.NODE_ENV === 'development' && overrideCentiseconds && overrideCentiseconds.length === 2) {
+    centisecondsStr = overrideCentiseconds;
+  }
 
   const timeString = `${hours}:${minutes}:${seconds}.${centisecondsStr}`;
 

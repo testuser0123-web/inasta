@@ -9,6 +9,7 @@ export default function InagawaModal({ session }: { session: Session | null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<'intro' | 'loading' | 'result'>('intro');
   const [result, setResult] = useState<{ timeString: string, amount: number, message: string, isRepdigit: boolean, gaveAllowance?: boolean } | null>(null);
+  const [devOverride, setDevOverride] = useState('');
 
   // Prevent strict mode double execution on mount
   const hasCheckedRef = useRef(false);
@@ -48,7 +49,7 @@ export default function InagawaModal({ session }: { session: Session | null }) {
     }
 
     try {
-      const res = await giveAllowance(give);
+      const res = await giveAllowance(give, devOverride);
       if (res.error) {
         if (give) setIsOpen(false);
         return;
@@ -116,6 +117,18 @@ export default function InagawaModal({ session }: { session: Session | null }) {
                 あげない
               </button>
             </div>
+            {process.env.NODE_ENV === 'development' && (
+              <div className="w-full pt-4 border-t mt-4">
+                <p className="text-xs text-muted-foreground mb-2">[DEV] コンマの値を強制指定</p>
+                <input
+                  type="text"
+                  value={devOverride}
+                  onChange={(e) => setDevOverride(e.target.value.slice(0, 2))}
+                  placeholder="例: 11, 17, 31"
+                  className="w-full text-center px-3 py-1 text-sm border rounded bg-background"
+                />
+              </div>
+            )}
           </div>
         )}
 
