@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell, Inbox, ShieldAlert, Mail, UserCog, Users, CreditCard } from 'lucide-react';
+import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell, Inbox, ShieldAlert, Mail, UserCog, Users, CreditCard, Coins } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { logout } from '@/app/actions/logout';
@@ -27,6 +27,7 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
     { icon: Trophy, label: 'コンテスト', href: '/contests' },
     { icon: Book, label: '日記', href: '/diary' },
     { icon: Users, label: '貢献者一覧', href: '/contributors' },
+    { icon: Coins, label: 'おこづかい', href: '/inagawa' },
     { icon: Bell, label: '通知', href: '/notifications', badge: unreadCount > 0 ? unreadCount : null },
     { icon: Inbox, label: '投書箱', href: '/suggestions' },
     { icon: User, label: 'プロフィール', href: '/profile' },

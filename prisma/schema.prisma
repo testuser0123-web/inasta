@@ -41,6 +41,29 @@ model User {
   subscriptionAmount    Int?
   subscriptionDate      DateTime?
   subscriptionExpiresAt DateTime?
+  inagawa                Inagawa?
+  inagawaHistory         InagawaHistory[]
+}
+
+model Inagawa {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  balance       Int      @default(0)
+  lastLoginDate DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model InagawaHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  amount    Int
+  timestamp DateTime @default(now())
+  message   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Suggestion {
