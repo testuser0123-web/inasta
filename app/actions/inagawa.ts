@@ -64,6 +64,14 @@ export async function getInagawaStatus() {
   };
 }
 
+// Box-Muller transform to generate normally distributed random numbers
+function randomNormal(mean: number, stdDev: number): number {
+  let u = 1 - Math.random(); // Converting [0,1) to (0,1]
+  let v = Math.random();
+  let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  return z * stdDev + mean;
+}
+
 export async function giveAllowance(give: boolean = true, overrideCentiseconds?: string) {
   const session = await getSession();
   if (!session?.id) {
@@ -118,7 +126,9 @@ export async function giveAllowance(give: boolean = true, overrideCentiseconds?:
     } else if (isRepdigit) {
       amount = INAGAWA_REPDIGIT_PENALTY;
     } else {
-      amount = INAGAWA_BASE_ALLOWANCE;
+      let rawAmount = Math.round(randomNormal(INAGAWA_BASE_ALLOWANCE, 3.3));
+      // Clip between 160 and 180
+      amount = Math.max(160, Math.min(180, rawAmount));
     }
   }
 
