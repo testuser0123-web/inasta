@@ -64,14 +64,50 @@ export default async function InagawaPage() {
     select: { username: true, avatarUrl: true }
   });
 
+  // Calculate if today's allowance was given and what it was
+  const jstFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  });
+
+  const nowJSTStr = jstFormatter.format(new Date());
+
+  const todayRecord = history.find(record => {
+    return jstFormatter.format(new Date(record.timestamp)) === nowJSTStr;
+  });
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col items-center justify-center p-8 bg-card rounded-2xl border border-border shadow-sm text-center space-y-4">
-        <h1 className="text-3xl font-bold text-foreground">あなたのᶘｲ^⇁^ﾅ川</h1>
-        <div className="text-6xl">💸</div>
-        <p className="text-lg text-muted-foreground">現在の所持金</p>
-        <div className={`text-5xl font-black ${balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-          {balance}円
+      <div className="grid md:grid-cols-2 gap-8">
+        <div className="flex flex-col items-center justify-center p-8 bg-card rounded-2xl border border-border shadow-sm text-center space-y-4 h-full">
+          <h1 className="text-3xl font-bold text-foreground">あなたのᶘｲ^⇁^ﾅ川</h1>
+          <div className="text-6xl">💸</div>
+          <p className="text-lg text-muted-foreground">現在の所持金</p>
+          <div className={`text-5xl font-black ${balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            {balance}円
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center p-8 bg-card rounded-2xl border border-border shadow-sm text-center space-y-4 h-full">
+          <h2 className="text-2xl font-bold text-foreground">今日のおこづかい</h2>
+          <div className="text-6xl">📅</div>
+          {todayRecord ? (
+            <>
+              <p className="text-lg text-muted-foreground">{todayRecord.amount >= 0 ? '獲得' : '没収'}</p>
+              <div className={`text-4xl font-black ${todayRecord.amount > 0 ? 'text-green-500' : todayRecord.amount === 0 ? 'text-muted-foreground' : 'text-red-500'}`}>
+                {todayRecord.amount > 0 ? `+${todayRecord.amount}` : todayRecord.amount}円
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-lg text-muted-foreground">未受取</p>
+              <div className="text-4xl font-black text-muted-foreground">
+                ---
+              </div>
+            </>
+          )}
         </div>
       </div>
 

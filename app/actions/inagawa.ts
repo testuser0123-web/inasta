@@ -24,8 +24,16 @@ export async function getInagawaStatus() {
   });
 
   if (!inagawa) {
+    const historyAgg = await prisma.inagawaHistory.aggregate({
+      where: { userId },
+      _sum: { amount: true }
+    });
+
     inagawa = await prisma.inagawa.create({
-      data: { userId, balance: 0 },
+      data: {
+        userId,
+        balance: historyAgg._sum.amount || 0
+      },
     });
   }
 
