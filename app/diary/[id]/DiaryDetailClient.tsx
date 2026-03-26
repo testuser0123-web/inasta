@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef } from 'react';
 import { format } from 'date-fns';
-import { Heart, MessageCircle, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, CornerDownRight, X } from 'lucide-react';
 import DiaryEditor from '@/components/DiaryEditor';
 import { toggleDiaryLike, addDiaryComment, deleteDiaryComment } from '@/app/actions/diary';
 import Link from 'next/link';
@@ -17,6 +17,8 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [likeCount, setLikeCount] = useState<number>(diary.likes.length);
+  const [replyingTo, setReplyingTo] = useState<{ commentId: number; username: string } | null>(null);
+  const commentInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
 
@@ -50,8 +52,9 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
 
      setIsCommentSubmitting(true);
      try {
-        await addDiaryComment(diary.id, commentText);
+        await addDiaryComment(diary.id, commentText, replyingTo?.commentId);
         setCommentText('');
+        setReplyingTo(null);
         router.refresh();
      } catch (error) {
         alert('コメントの送信に失敗しました');
@@ -69,6 +72,17 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
       } catch (error) {
           alert('コメントの削除に失敗しました');
       }
+  };
+
+  const handleReplyClick = (commentId: number, username: string) => {
+      setReplyingTo({ commentId, username });
+      const replyPrefix = `@${username} `;
+      setCommentText(replyPrefix);
+      setTimeout(() => {
+          if (commentInputRef.current) {
+              commentInputRef.current.focus();
+          }
+      }, 0);
   };
 
   return (
@@ -152,6 +166,15 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                            <span className="font-bold text-sm">{comment.user.username}</span>
                            <div className="flex items-center gap-2">
                                <span className="text-xs text-gray-400">{format(new Date(comment.createdAt), 'MMM d, HH:mm')}</span>
+                               {!isGuest && currentUserId !== comment.userId && (
+                                   <button
+                                       onClick={() => handleReplyClick(comment.id, comment.user.username)}
+                                       className="transition-opacity text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                       title="返信する"
+                                   >
+                                       <CornerDownRight className="w-4 h-4" />
+                                   </button>
+                               )}
                                {!isGuest && currentUserId === comment.userId && (
                                    <button
                                       onClick={() => handleDeleteComment(comment.id)}
@@ -162,7 +185,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                                )}
                            </div>
                         </div>
-                        <p className="text-gray-700 dark:text-gray-300">{comment.text}</p>
+                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{comment.text}</p>
                      </div>
                   </div>
                ))
@@ -170,22 +193,36 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
          </div>
 
          {!isGuest ? (
-            <form onSubmit={handleCommentSubmit} className="flex gap-3">
-               <input
-                  type="text"
-                  value={commentText}
+            <div className="flex flex-col gap-2">
+               {replyingTo && (
+                  <div className="flex justify-between items-center text-xs text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 p-2 rounded-md">
+                      <span>@{replyingTo.username} に返信中...</span>
+                      <button type="button" onClick={() => {
+                          setReplyingTo(null);
+                          setCommentText('');
+                      }} className="text-gray-500 hover:text-gray-700">
+                          <X className="w-3 h-3" />
+                      </button>
+                  </div>
+               )}
+               <form onSubmit={handleCommentSubmit} className="flex gap-3">
+                   <input
+                      ref={commentInputRef}
+                      type="text"
+                      value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="コメントを書く..."
                   className="flex-1 text-sm px-2 py-2 rounded-lg border dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-indigo-500 outline-none"
                />
                <button
                   type="submit"
-                  disabled={isCommentSubmitting || !commentText.trim()}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-50"
-               >
-                  送信
-               </button>
-            </form>
+                      disabled={isCommentSubmitting || !commentText.trim()}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-50 flex-shrink-0"
+                   >
+                      送信
+                   </button>
+               </form>
+            </div>
          ) : (
             <div className="text-center p-4">
                 <p className="text-gray-500 text-sm">
