@@ -194,7 +194,7 @@ export default async function InagawaPage() {
                     <li className="p-1 bg-muted flex justify-center">
                       <span className="text-muted-foreground text-xs font-bold tracking-widest">...</span>
                     </li>
-                    <li className="p-4 flex items-center justify-between bg-indigo-50/50 dark:bg-indigo-950/20 border-t border-border">
+                    <li className="p-4 flex items-center justify-between bg-indigo-50/50 dark:bg-indigo-950/20">
                       <div className="flex items-center gap-3">
                         <div className="font-bold text-indigo-500 w-6 text-center">
                           {currentUserRank}
