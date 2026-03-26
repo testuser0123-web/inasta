@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, Layers, AlertTriangle, Play } from 'lucide-react';
+import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, Layers, AlertTriangle, Play, CornerDownRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -57,6 +57,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<{ commentId: number; username: string } | null>(null);
+  const commentInputRef = useRef<HTMLInputElement>(null);
 
   const openedViaNav = useRef(false);
   const router = useRouter();
@@ -272,6 +274,9 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       const formData = new FormData();
       formData.append('postId', selectedPost.id.toString());
       formData.append('text', commentText);
+      if (replyingTo) {
+          formData.append('replyToCommentId', replyingTo.commentId.toString());
+      }
 
       const result = await addComment(null, formData);
 
@@ -307,6 +312,18 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
 
       setIsSubmittingComment(false);
+      setReplyingTo(null);
+  };
+
+  const handleReplyClick = (commentId: number, username: string) => {
+      setReplyingTo({ commentId, username });
+      const replyPrefix = `@${username} `;
+      setCommentText(replyPrefix);
+      setTimeout(() => {
+          if (commentInputRef.current) {
+              commentInputRef.current.focus();
+          }
+      }, 0);
   };
 
   const handleDeleteComment = async (commentId: number) => {
@@ -571,15 +588,26 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                                     <Linkify>{comment.text}</Linkify>
                                 </span>
                               </div>
-                              {currentUserId === comment.userId && (
-                                  <button
-                                      onClick={() => handleDeleteComment(comment.id)}
+                                      <div className="flex items-center space-x-2">
+                                          {comment.userId !== currentUserId && (
+                                              <button
+                                                  onClick={() => handleReplyClick(comment.id, comment.user.username)}
+                                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                  title="返信する"
+                                              >
+                                                  <CornerDownRight className="w-4 h-4" />
+                                              </button>
+                                          )}
+                                          {comment.userId === currentUserId && (
+                                              <button
+                                                  onClick={() => handleDeleteComment(comment.id)}
                                       className="text-gray-400 hover:text-red-500 transition-colors p-1"
                                       aria-label="Delete comment"
                                   >
                                       <Trash2 className="w-3 h-3" />
-                                  </button>
-                              )}
+                                              </button>
+                                          )}
+                                      </div>
                           </div>
                       ))}
                       {selectedPost.comments.length === 0 && (
@@ -592,9 +620,21 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
             {/* Add Comment Form */}
             {!isGuest && (
-            <div className="p-3 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-800 shrink-0">
+              <div className="p-4 border-t dark:border-gray-800 flex flex-col">
+                {replyingTo && (
+                    <div className="flex justify-between items-center text-xs text-indigo-500 mb-2">
+                        <span>@{replyingTo.username} に返信中...</span>
+                        <button type="button" onClick={() => {
+                            setReplyingTo(null);
+                            setCommentText('');
+                        }} className="text-gray-500 hover:text-gray-700">
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
+                )}
                 <form onSubmit={handleAddComment} className="flex gap-2">
                     <input
+                    ref={commentInputRef}
                         type="text"
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}

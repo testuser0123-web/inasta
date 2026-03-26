@@ -398,7 +398,7 @@ export async function toggleDiaryLike(diaryId: number) {
   revalidatePath(`/diary/${diaryId}`);
 }
 
-export async function addDiaryComment(diaryId: number, text: string) {
+export async function addDiaryComment(diaryId: number, text: string, replyToCommentId?: number) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
 
@@ -410,18 +410,37 @@ export async function addDiaryComment(diaryId: number, text: string) {
     },
   });
 
-  const diary = await db.diary.findUnique({
-    where: { id: diaryId },
-    select: { userId: true },
-  });
+  let targetUserIdToNotify: number | null = null;
+  let notificationTitle = '新しいコメント';
+  let notificationContent = `${session.username}さんからあなたの日記にコメントが付きました。ここからチェック`;
 
-  if (diary && diary.userId !== session.id) {
+  if (replyToCommentId) {
+    const targetComment = await db.diaryComment.findUnique({
+      where: { id: replyToCommentId },
+      select: { userId: true }
+    });
+    if (targetComment) {
+      targetUserIdToNotify = targetComment.userId;
+      notificationTitle = '新しい返信';
+      notificationContent = `${session.username}さんからあなたのコメントに返信がつきました。ここからチェック`;
+    }
+  } else {
+    const diary = await db.diary.findUnique({
+      where: { id: diaryId },
+      select: { userId: true },
+    });
+    if (diary) {
+      targetUserIdToNotify = diary.userId;
+    }
+  }
+
+  if (targetUserIdToNotify && targetUserIdToNotify !== session.id) {
     await db.notification.create({
       data: {
-        userId: diary.userId,
+        userId: targetUserIdToNotify,
         type: NotificationType.SYSTEM,
-        title: '新しいコメント',
-        content: `${session.username}さんからコメントが付きました。ここからチェック`,
+        title: notificationTitle,
+        content: notificationContent,
         metadata: { diaryId: diaryId, commentId: newComment.id },
       },
     });

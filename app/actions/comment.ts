@@ -19,6 +19,8 @@ export async function addComment(prevState: any, formData: FormData) {
 
   const postId = Number(formData.get('postId'));
   const text = formData.get('text') as string;
+  const replyToCommentIdStr = formData.get('replyToCommentId');
+  const replyToCommentId = replyToCommentIdStr ? Number(replyToCommentIdStr) : undefined;
 
   const validatedFields = commentSchema.safeParse({
     postId,
@@ -48,19 +50,37 @@ export async function addComment(prevState: any, formData: FormData) {
       }
     });
 
-    // Notify post author if commenter is not the author
-    const post = await db.post.findUnique({
-      where: { id: postId },
-      select: { userId: true }
-    });
+    let targetUserIdToNotify: number | null = null;
+    let notificationTitle = '新しいコメント';
+    let notificationContent = `${session.username}さんからあなたの投稿にコメントが付きました。ここからチェック`;
 
-    if (post && post.userId !== session.id) {
+    if (replyToCommentId) {
+      const targetComment = await db.comment.findUnique({
+        where: { id: replyToCommentId },
+        select: { userId: true }
+      });
+      if (targetComment) {
+        targetUserIdToNotify = targetComment.userId;
+        notificationTitle = '新しい返信';
+        notificationContent = `${session.username}さんからあなたのコメントに返信がつきました。ここからチェック`;
+      }
+    } else {
+      const post = await db.post.findUnique({
+        where: { id: postId },
+        select: { userId: true }
+      });
+      if (post) {
+        targetUserIdToNotify = post.userId;
+      }
+    }
+
+    if (targetUserIdToNotify && targetUserIdToNotify !== session.id) {
       await db.notification.create({
         data: {
-          userId: post.userId,
+          userId: targetUserIdToNotify,
           type: NotificationType.SYSTEM,
-          title: '新しいコメント',
-          content: `${session.username}さんからコメントが付きました。ここからチェック`,
+          title: notificationTitle,
+          content: notificationContent,
           metadata: { postId: postId, commentId: newComment.id }
         }
       });
