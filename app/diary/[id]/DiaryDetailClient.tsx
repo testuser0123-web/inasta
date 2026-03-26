@@ -169,7 +169,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                                {!isGuest && currentUserId !== comment.userId && (
                                    <button
                                        onClick={() => handleReplyClick(comment.id, comment.user.username)}
-                                       className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                       className="transition-opacity text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                                        title="返信する"
                                    >
                                        <CornerDownRight className="w-4 h-4" />

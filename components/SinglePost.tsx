@@ -315,7 +315,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                              {comment.userId !== currentUserId && (
                                  <button
                                      onClick={() => handleReplyClick(comment.id, comment.user.username)}
-                                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                     className="transition-opacity p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                      title="返信する"
                                  >
                                      <CornerDownRight className="w-4 h-4" />
