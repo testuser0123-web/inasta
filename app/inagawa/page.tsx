@@ -223,7 +223,7 @@ export default async function InagawaPage() {
                       <div className="font-bold text-muted-foreground w-6 text-center">
                         {index + 1}
                       </div>
-                      <Link href={`/profile/${item.user.username}`} className="flex items-center gap-2 hover:opacity-80">
+                      <Link href={item.userId === session.id ? '/profile' : `/users/${item.user.username}`} className="flex items-center gap-2 hover:opacity-80">
                          {item.user.avatarUrl ? (
                            // eslint-disable-next-line @next/next/no-img-element
                            <img
@@ -255,7 +255,7 @@ export default async function InagawaPage() {
                         <div className="font-bold text-indigo-500 w-6 text-center">
                           {currentUserRank}
                         </div>
-                        <Link href={`/profile/${currentUser.username}`} className="flex items-center gap-2 hover:opacity-80">
+                        <Link href="/profile" className="flex items-center gap-2 hover:opacity-80">
                            {currentUser.avatarUrl ? (
                              // eslint-disable-next-line @next/next/no-img-element
                              <img
@@ -289,7 +289,7 @@ export default async function InagawaPage() {
                           <div className="font-bold text-muted-foreground w-6 text-center">
                             {totalUsersCount - bottomBoard.length + index + 1}
                           </div>
-                          <Link href={`/profile/${item.user.username}`} className="flex items-center gap-2 hover:opacity-80">
+                          <Link href={item.userId === session.id ? '/profile' : `/users/${item.user.username}`} className="flex items-center gap-2 hover:opacity-80">
                              {item.user.avatarUrl ? (
                                // eslint-disable-next-line @next/next/no-img-element
                                <img
