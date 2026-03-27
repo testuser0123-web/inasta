@@ -27,36 +27,81 @@ export default async function InagawaPage() {
     orderBy: { timestamp: 'desc' },
   });
 
-  // Fetch leaderboard
-  const leaderboard = await prisma.inagawa.findMany({
-    include: {
-      user: {
-        select: {
-          username: true,
-          avatarUrl: true,
-        }
-      }
-    },
-    orderBy: {
-      balance: 'desc',
-    },
-    take: 10,
-  });
+  // Fetch total count to determine layout
+  const totalUsersCount = await prisma.inagawa.count();
 
-  // Check if current user is in top 10
-  const isCurrentUserInTop10 = leaderboard.some(item => item.userId === session.id);
-
-  // If not in top 10, find their rank
+  let leaderboard: any[] = [];
+  let bottomBoard: any[] = [];
+  let isCurrentUserInTop10 = false;
+  let isCurrentUserInBottom5 = false;
   let currentUserRank: number | null = null;
-  if (!isCurrentUserInTop10 && userInagawa) {
-    const higherRankingCount = await prisma.inagawa.count({
-      where: {
-        balance: {
-          gt: userInagawa.balance
+
+  if (totalUsersCount <= 15) {
+    // If 15 or fewer users, just fetch everyone and sort descending
+    leaderboard = await prisma.inagawa.findMany({
+      include: {
+        user: {
+          select: {
+            username: true,
+            avatarUrl: true,
+          }
         }
-      }
+      },
+      orderBy: {
+        balance: 'desc',
+      },
     });
-    currentUserRank = higherRankingCount + 1;
+    isCurrentUserInTop10 = true; // Prevents separate current user rendering
+    isCurrentUserInBottom5 = true;
+  } else {
+    // Fetch top 10
+    leaderboard = await prisma.inagawa.findMany({
+      include: {
+        user: {
+          select: {
+            username: true,
+            avatarUrl: true,
+          }
+        }
+      },
+      orderBy: {
+        balance: 'desc',
+      },
+      take: 10,
+    });
+
+    // Fetch worst 5
+    const bottom5 = await prisma.inagawa.findMany({
+      include: {
+        user: {
+          select: {
+            username: true,
+            avatarUrl: true,
+          }
+        }
+      },
+      orderBy: {
+        balance: 'asc',
+      },
+      take: 5,
+    });
+    // Reverse so it displays descending (best of the worst to absolute worst)
+    bottomBoard = bottom5.reverse();
+
+    isCurrentUserInTop10 = leaderboard.some((item: any) => item.userId === session.id);
+    isCurrentUserInBottom5 = bottomBoard.some((item: any) => item.userId === session.id);
+
+    // If not in top 10 and not in bottom 5, find their rank
+    if (!isCurrentUserInTop10 && !isCurrentUserInBottom5 && userInagawa) {
+      const higherRankingCount = await prisma.inagawa.count({
+        where: {
+          balance: {
+            gt: userInagawa.balance
+          }
+        }
+      });
+      currentUserRank = higherRankingCount + 1;
+    }
   }
 
   const currentUser = await prisma.user.findUnique({
@@ -230,6 +275,41 @@ export default async function InagawaPage() {
                         {userInagawa.balance}円
                       </div>
                     </li>
+                  </>
+                )}
+
+                {bottomBoard.length > 0 && (
+                  <>
+                    <li className="p-1 bg-muted flex justify-center">
+                      <span className="text-muted-foreground text-xs font-bold tracking-widest">︙</span>
+                    </li>
+                    {bottomBoard.map((item, index) => (
+                      <li key={item.id} className={`p-4 flex items-center justify-between hover:bg-muted/50 transition-colors ${item.userId === session.id ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : ''}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="font-bold text-muted-foreground w-6 text-center">
+                            {totalUsersCount - bottomBoard.length + index + 1}
+                          </div>
+                          <Link href={`/profile/${item.user.username}`} className="flex items-center gap-2 hover:opacity-80">
+                             {item.user.avatarUrl ? (
+                               // eslint-disable-next-line @next/next/no-img-element
+                               <img
+                                 src={item.user.avatarUrl.startsWith('http') ? `/api/avatar/${item.user.username}` : item.user.avatarUrl}
+                                 alt={item.user.username}
+                                 className="w-8 h-8 rounded-full object-cover bg-muted"
+                               />
+                             ) : (
+                               <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                                 {item.user.username[0].toUpperCase()}
+                               </div>
+                             )}
+                             <span className="font-medium text-foreground">{item.user.username} {item.userId === session.id ? '(あなた)' : ''}</span>
+                          </Link>
+                        </div>
+                        <div className={`font-bold ${item.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {item.balance}円
+                        </div>
+                      </li>
+                    ))}
                   </>
                 )}
               </ul>
