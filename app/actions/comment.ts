@@ -8,7 +8,25 @@ import { NotificationType } from '@prisma/client';
 
 const commentSchema = z.object({
   postId: z.number(),
-  text: z.string().min(1).max(31, 'Comment must be 31 characters or less'),
+  text: z.string().superRefine((val, ctx) => {
+    const replyPrefixRegex = /^@[^\s]+\s/;
+    const match = val.match(replyPrefixRegex);
+    const actualText = match ? val.slice(match[0].length) : val;
+
+    if (actualText.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Comment must not be empty',
+      });
+    }
+
+    if (actualText.length > 31) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Comment must be 31 characters or less',
+      });
+    }
+  }),
 });
 
 export async function addComment(prevState: any, formData: FormData) {

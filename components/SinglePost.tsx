@@ -54,6 +54,19 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const [replyingTo, setReplyingTo] = useState<{ commentId: number; username: string } | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
+  const getCommentTextDetails = (text: string) => {
+    const replyPrefixRegex = /^@[^\s]+\s/;
+    const match = text.match(replyPrefixRegex);
+    if (match) {
+      const prefix = match[0];
+      const actualText = text.slice(prefix.length);
+      return { prefix, actualText, actualLength: actualText.length, maxLengthWithPrefix: prefix.length + 31 };
+    }
+    return { prefix: '', actualText: text, actualLength: text.length, maxLengthWithPrefix: 31 };
+  };
+
+  const { actualText, actualLength, maxLengthWithPrefix } = getCommentTextDetails(commentText);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -94,7 +107,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
 
   const handleAddComment = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!commentText.trim()) return;
+      if (!actualText.trim()) return;
 
       setIsSubmittingComment(true);
 
@@ -361,20 +374,20 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                    value={commentText}
                    onChange={(e) => setCommentText(e.target.value)}
                    placeholder="Add a comment..."
-                   maxLength={31}
+                   maxLength={maxLengthWithPrefix}
                    className="flex-1 rounded-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2"
                />
                <button
                    type="submit"
-                   disabled={!commentText.trim() || isSubmittingComment}
+                   disabled={!actualText.trim() || isSubmittingComment}
                    className="p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                >
                    {isSubmittingComment ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                </button>
            </form>
            <div className="text-right">
-               <span className={`text-[10px] ${commentText.length >= 31 ? 'text-red-500' : 'text-gray-400'}`}>
-                   {commentText.length}/31
+               <span className={`text-[10px] ${actualLength >= 31 ? 'text-red-500' : 'text-gray-400'}`}>
+                   {actualLength}/31
                </span>
            </div>
        </div>

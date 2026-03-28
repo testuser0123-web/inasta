@@ -20,6 +20,19 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
   const [replyingTo, setReplyingTo] = useState<{ commentId: number; username: string } | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
+  const getCommentTextDetails = (text: string) => {
+    const replyPrefixRegex = /^@[^\s]+\s/;
+    const match = text.match(replyPrefixRegex);
+    if (match) {
+      const prefix = match[0];
+      const actualText = text.slice(prefix.length);
+      return { prefix, actualText, actualLength: actualText.length };
+    }
+    return { prefix: '', actualText: text, actualLength: text.length };
+  };
+
+  const { actualText } = getCommentTextDetails(commentText);
+
   const router = useRouter();
 
   const handleLike = async () => {
@@ -48,7 +61,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
         return;
      }
 
-     if (!commentText.trim()) return;
+     if (!actualText.trim()) return;
 
      setIsCommentSubmitting(true);
      try {
@@ -216,7 +229,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                />
                <button
                   type="submit"
-                      disabled={isCommentSubmitting || !commentText.trim()}
+                      disabled={isCommentSubmitting || !actualText.trim()}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-50 flex-shrink-0"
                    >
                       送信
