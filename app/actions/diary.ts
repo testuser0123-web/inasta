@@ -402,6 +402,14 @@ export async function addDiaryComment(diaryId: number, text: string, replyToComm
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
 
+  const replyPrefixRegex = /^@[^\s]+\s/;
+  const match = text.match(replyPrefixRegex);
+  const actualText = match ? text.slice(match[0].length) : text;
+
+  if (actualText.trim().length === 0) {
+    throw new Error('Comment must not be empty');
+  }
+
   const newComment = await db.diaryComment.create({
     data: {
       text,
