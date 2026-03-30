@@ -5,6 +5,7 @@ import FeedContent from "@/components/FeedContent";
 import { Suspense } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import Snowfall from "@/components/Snowfall";
+import Sakurafall from "@/components/Sakurafall";
 import { db } from "@/lib/db";
 import QuickNav from "@/components/QuickNav";
 
@@ -44,6 +45,7 @@ export default async function Home({
   return (
     <main className="min-h-screen bg-white dark:bg-black">
       {process.env.SNOWFALL === 'true' && <Snowfall />}
+      {process.env.SAKURAFALL === 'true' && <Sakurafall />}
       <div className="sticky top-0 z-40 bg-white dark:bg-black border-b dark:border-gray-800 shadow-sm">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="w-6" /> {/* Spacer */}
