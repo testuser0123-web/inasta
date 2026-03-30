@@ -13,6 +13,7 @@ interface Snowflake {
 
 export default function Snowfall() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameId = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -21,8 +22,8 @@ export default function Snowfall() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationFrameId: number;
     let snowflakes: Snowflake[] = [];
+    let lastTime = 0;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -56,10 +57,10 @@ export default function Snowfall() {
       });
     };
 
-    const update = () => {
+    const update = (deltaTimeScale: number) => {
       snowflakes.forEach((flake) => {
-        flake.y += flake.speed;
-        flake.x += flake.wind;
+        flake.y += flake.speed * deltaTimeScale;
+        flake.x += flake.wind * deltaTimeScale;
 
         // Reset if off screen
         if (flake.y > canvas.height) {
@@ -74,22 +75,33 @@ export default function Snowfall() {
       });
     };
 
-    const loop = () => {
+    const loop = (timestamp: number) => {
+      if (!lastTime) lastTime = timestamp;
+      const deltaTime = timestamp - lastTime;
+      lastTime = timestamp;
+
+      // Calculate scale factor relative to 60 FPS (approx 16.66ms per frame)
+      // Cap deltaTime at 50ms to prevent massive jumps if tab is inactive
+      const clampedDeltaTime = Math.min(deltaTime, 50);
+      const deltaTimeScale = clampedDeltaTime / 16.66;
+
       draw();
-      update();
-      animationFrameId = requestAnimationFrame(loop);
+      update(deltaTimeScale);
+      animationFrameId.current = requestAnimationFrame(loop);
     };
 
     // Initialize
     resizeCanvas();
     createSnowflakes();
-    loop();
+    animationFrameId.current = requestAnimationFrame(loop);
 
     window.addEventListener("resize", resizeCanvas);
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId.current !== null) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
     };
   }, []);
 

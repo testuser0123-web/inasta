@@ -18,6 +18,7 @@ interface Petal {
 
 export default function Sakurafall() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameId = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -26,9 +27,9 @@ export default function Sakurafall() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationFrameId: number;
     let petals: Petal[] = [];
     let time = 0;
+    let lastTime = 0;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -89,12 +90,12 @@ export default function Sakurafall() {
       });
     };
 
-    const update = () => {
-      time++;
+    const update = (deltaTimeScale: number) => {
+      time += 1 * deltaTimeScale;
       petals.forEach((petal) => {
-        petal.y += petal.speed;
-        petal.x += petal.wind;
-        petal.rotation += petal.rotationSpeed;
+        petal.y += petal.speed * deltaTimeScale;
+        petal.x += petal.wind * deltaTimeScale;
+        petal.rotation += petal.rotationSpeed * deltaTimeScale;
 
         // Reset if off screen
         if (petal.y > canvas.height + 20) {
@@ -109,22 +110,33 @@ export default function Sakurafall() {
       });
     };
 
-    const loop = () => {
+    const loop = (timestamp: number) => {
+      if (!lastTime) lastTime = timestamp;
+      const deltaTime = timestamp - lastTime;
+      lastTime = timestamp;
+
+      // Calculate scale factor relative to 60 FPS (approx 16.66ms per frame)
+      // Cap deltaTime at 50ms to prevent massive jumps if tab is inactive
+      const clampedDeltaTime = Math.min(deltaTime, 50);
+      const deltaTimeScale = clampedDeltaTime / 16.66;
+
       draw();
-      update();
-      animationFrameId = requestAnimationFrame(loop);
+      update(deltaTimeScale);
+      animationFrameId.current = requestAnimationFrame(loop);
     };
 
     // Initialize
     resizeCanvas();
     createPetals();
-    loop();
+    animationFrameId.current = requestAnimationFrame(loop);
 
     window.addEventListener("resize", resizeCanvas);
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId.current !== null) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
     };
   }, []);
 
