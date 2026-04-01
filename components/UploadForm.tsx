@@ -550,17 +550,18 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
         )}
 
         {trimmedVideo && (
-            <div className="relative aspect-video bg-black rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700 group">
+            <div className="relative max-h-[60vh] bg-black rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700 group flex items-center justify-center">
                 {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                 <video
                   src={URL.createObjectURL(trimmedVideo)}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full max-h-[60vh] object-contain"
                   controls
+                  playsInline
                 />
                 <button
                   type="button"
                   onClick={removeVideo}
-                  className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                  className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors z-10"
                 >
                   <X className="w-5 h-5" />
                 </button>

@@ -152,7 +152,8 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
             <video
               ref={videoRef}
               src={videoUrl || ""}
-              className="max-h-full max-w-full"
+              className="max-h-full max-w-full object-contain"
+              playsInline
               onLoadedMetadata={handleLoadedMetadata}
               onTimeUpdate={handleTimeUpdate}
               onEnded={() => setIsPlaying(false)}
