@@ -139,8 +139,8 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
   };
 
   return (
-    <div className="flex flex-col h-full bg-black text-white p-4 gap-4">
-      <div className="relative flex-1 flex items-center justify-center bg-zinc-900 rounded-lg overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-black text-white p-4 gap-4">
+      <div className="relative flex-1 flex items-center justify-center bg-zinc-900 rounded-lg overflow-hidden min-h-0">
         {!loaded ? (
           <div className="flex flex-col items-center gap-2">
             <Spinner className="w-8 h-8 text-white" />
