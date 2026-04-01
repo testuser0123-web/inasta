@@ -67,6 +67,14 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
     const dur = e.currentTarget.duration;
     setDuration(dur);
     setEndTime(dur);
+    // iOS Safari may require a tiny seek to render the first frame
+    if (e.currentTarget.currentTime === 0) {
+      e.currentTarget.currentTime = 0.001;
+    }
+  };
+
+  const handleError = () => {
+    alert("お使いのブラウザはこの動画形式のプレビューに対応していない可能性があります。そのままトリミングを実行できる場合がありますが、別のブラウザや端末もお試しください。");
   };
 
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
@@ -155,9 +163,11 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
               src={videoUrl || ""}
               className="max-h-full max-w-full object-contain"
               playsInline
+              preload="metadata"
               onLoadedMetadata={handleLoadedMetadata}
               onTimeUpdate={handleTimeUpdate}
               onEnded={() => setIsPlaying(false)}
+              onError={handleError}
             />
             {processing && (
                 <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-10">
