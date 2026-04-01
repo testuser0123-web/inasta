@@ -114,6 +114,7 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
         "-to", endTime.toString(),
         "-c:v", "libx264", // Re-encode to ensure keyframes are handled correctly
         "-preset", "ultrafast", // Optimize for speed in browser
+        "-pix_fmt", "yuv420p", // Ensure 8-bit 4:2:0 format for mobile hardware decoders
         "-c:a", "aac",
         outputName
       ]);
