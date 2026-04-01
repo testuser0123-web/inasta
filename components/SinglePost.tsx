@@ -180,14 +180,14 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border dark:border-gray-800 overflow-hidden w-full max-w-lg mx-auto flex flex-col">
        {post.mediaType === 'VIDEO' ? (
-         <div className="w-full relative bg-black aspect-video flex items-center justify-center">
+         <div className="w-full relative bg-black max-h-[80vh] flex items-center justify-center">
            <video
+             key={post.id}
              src={post.imageUrl || `/api/image/${post.id}.jpg`}
              poster={post.thumbnailUrl || undefined}
              controls
              playsInline
-             className="w-full h-full object-contain"
-             preload="metadata"
+             className="w-full h-full max-h-[80vh] object-contain"
              crossOrigin="anonymous"
            />
          </div>
