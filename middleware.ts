@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Update session expiry if exists
-  await updateSession(request);
+  const sessionRes = await updateSession(request);
 
   const session = request.cookies.get('session');
   const { pathname } = request.nextUrl;
@@ -20,9 +20,13 @@ export async function middleware(request: NextRequest) {
   // Public routes
   if (pathname === '/login' || pathname === '/signup') {
     if (session) {
-      return NextResponse.redirect(new URL('/', request.url));
+      const res = NextResponse.redirect(new URL('/', request.url));
+      if (sessionRes) {
+          res.cookies.set('session', sessionRes.cookies.get('session')?.value || '', sessionRes.cookies.get('session'));
+      }
+      return res;
     }
-    return NextResponse.next();
+    return sessionRes || NextResponse.next();
   }
 
   // Guest Allowed Routes
@@ -43,10 +47,13 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith('/_next') &&
     !pathname.includes('.') // naive static file check
   ) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const res = NextResponse.redirect(new URL('/login', request.url));
+    // Usually session won't exist here, but if it was just about to expire and we tried to refresh it,
+    // though getSession returning null means it's likely already gone or invalid.
+    return res;
   }
 
-  return NextResponse.next();
+  return sessionRes || NextResponse.next();
 }
 
 export const config = {
