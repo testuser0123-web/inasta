@@ -68,9 +68,15 @@ export async function updateSession(request: NextRequest) {
   // Only refresh if session expires in less than 3 days (to save CPU)
   // Current logic sets 1 week.
   const now = new Date();
-  const expiresAt = new Date(parsed.expires);
+  const expiresAt = parsed.expires
+    ? new Date(parsed.expires as string | number | Date)
+    : (parsed.exp ? new Date((parsed.exp as number) * 1000) : null);
 
-  // If expires is missing or close to expiry (within 3 days), refresh it
+  if (!expiresAt) {
+      return;
+  }
+
+  // If expires is close to expiry (within 3 days), refresh it
   const threeDays = 3 * 24 * 60 * 60 * 1000;
   if (expiresAt.getTime() - now.getTime() > threeDays) {
       return; // No need to update
