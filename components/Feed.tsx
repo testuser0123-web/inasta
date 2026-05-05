@@ -107,6 +107,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             }
         }
     }
+    openedViaNav.current = false;
     setSelectedPostId(null);
   }, [searchParams, posts]);
 
@@ -144,15 +145,15 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
     }
 
-    // Update state immediately
-    setSelectedPostId(post.id);
-
-    // Update URL without triggering navigation
+    // Ask the App Router to update the URL first. The URL sync effect above
+    // opens the modal once useSearchParams reflects the new postId.
+    // Opening local state before that can be cleared by the effect while it
+    // still sees the old URL, causing a visible disappear/reappear flicker.
     const params = new URLSearchParams(searchParams.toString());
     params.set('postId', post.id.toString());
     const newUrl = `${pathname}?${params.toString()}`;
-    router.push(newUrl, { scroll: false });
     openedViaNav.current = true;
+    router.push(newUrl, { scroll: false });
   };
 
   const handleCloseModal = () => {

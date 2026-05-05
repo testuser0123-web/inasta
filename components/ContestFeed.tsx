@@ -53,21 +53,22 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                 }
             }
         }
+        openedViaNav.current = false;
         setSelectedPostId(null);
     }, [searchParams, posts]);
 
     const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
     const handlePostClick = (postId: number) => {
-        // Update state
-        setSelectedPostId(postId);
-
-        // Update URL via Next.js Router
+        // Ask the App Router to update the URL first. The URL sync effect above
+        // opens the modal once useSearchParams reflects the new postId.
+        // Opening local state before that can be cleared by the effect while it
+        // still sees the old URL, causing a visible disappear/reappear flicker.
         const params = new URLSearchParams(searchParams.toString());
         params.set('postId', postId.toString());
         const newUrl = `${pathname}?${params.toString()}`;
-        router.push(newUrl, { scroll: false });
         openedViaNav.current = true;
+        router.push(newUrl, { scroll: false });
     };
 
     const handleCloseModal = () => {
