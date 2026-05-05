@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Heart, Loader2, Share2, AlertTriangle, Layers, X, ChevronLeft, ChevronRight, BadgeCheck, User as UserIcon, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { toggleContestLike, deleteContestPost } from '@/app/actions/contest';
 import { Spinner } from '@/components/ui/spinner';
 import { ImageWithSpinner } from '@/components/ImageWithSpinner';
@@ -33,74 +33,101 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
     const [isDeleting, setIsDeleting] = useState(false);
 
     const openedViaNav = useRef(false);
-    const router = useRouter();
+    const pendingOpenPostId = useRef<number | null>(null);
+    const pendingClose = useRef(false);
     const searchParams = useSearchParams();
     const pathname = usePathname();
+    const postsRef = useRef(posts);
+    postsRef.current = posts;
 
     // Guest check
     const isGuest = !currentUserId || currentUserId === -1;
 
-    // Initial Sync from URL
+    // Sync from URL and handle App Router-driven URL updates. Read window.location
+    // inside the effect so stale useSearchParams snapshots cannot close a just-opened modal.
     useEffect(() => {
-        const postIdParam = searchParams.get('postId');
+        const params = new URLSearchParams(window.location.search || searchParams.toString());
+        const postIdParam = params.get('postId');
         if (postIdParam) {
             const id = parseInt(postIdParam, 10);
             if (!isNaN(id)) {
+                // Ignore stale URL snapshots while a close navigation is still settling.
+                if (pendingClose.current || (pendingOpenPostId.current !== null && pendingOpenPostId.current !== id)) {
+                    return;
+                }
+
                 const postExists = posts.some(p => p.id === id);
                 if (postExists) {
+                    pendingOpenPostId.current = null;
+                    pendingClose.current = false;
                     setSelectedPostId(id);
-                    openedViaNav.current = false;
                     return;
                 }
             }
         }
-    }, []); // Run only on mount
 
-    // Handle browser back/forward buttons
+        pendingOpenPostId.current = null;
+        pendingClose.current = false;
+        openedViaNav.current = false;
+        setSelectedPostId(null);
+    }, [searchParams, posts]);
+
+    // Browser/device back-forward navigation happens outside React event handlers.
+    // Keep the modal state aligned with the real URL so a hardware back action
+    // consumes the modal history entry instead of navigating away from the site.
     useEffect(() => {
         const handlePopState = () => {
+            pendingOpenPostId.current = null;
+            pendingClose.current = false;
+
             const params = new URLSearchParams(window.location.search);
             const postIdParam = params.get('postId');
             if (postIdParam) {
                 const id = parseInt(postIdParam, 10);
-                if (!isNaN(id) && posts.some(p => p.id === id)) {
+                if (!isNaN(id) && postsRef.current.some(p => p.id === id)) {
                     setSelectedPostId(id);
-                } else {
-                    setSelectedPostId(null);
+                    return;
                 }
-            } else {
-                setSelectedPostId(null);
             }
+
+            openedViaNav.current = false;
+            setSelectedPostId(null);
         };
 
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
-    }, [posts]);
+    }, []);
 
     const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
     const handlePostClick = (postId: number) => {
-        // Update state
-        setSelectedPostId(postId);
+        // Reserve the modal history entry synchronously before showing the modal.
+        // This makes hardware/browser back immediately close the modal instead of
+        // consuming the previous page entry while App Router navigation is settling.
+        pendingClose.current = false;
+        pendingOpenPostId.current = postId;
 
-        // Update URL via History API
-        const params = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(window.location.search || searchParams.toString());
         params.set('postId', postId.toString());
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        const newUrl = `${pathname}?${params.toString()}`;
         window.history.pushState({ postId }, '', newUrl);
         openedViaNav.current = true;
+        setSelectedPostId(postId);
     };
 
     const handleCloseModal = () => {
+        pendingClose.current = true;
+        pendingOpenPostId.current = null;
+        setSelectedPostId(null);
+
         if (openedViaNav.current) {
-            window.history.back();
             openedViaNav.current = false;
+            window.history.back();
         } else {
-            const params = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams(window.location.search || searchParams.toString());
             params.delete('postId');
-            const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+            const newUrl = `${pathname}${params.toString() ? '?' + params.toString() : ''}`;
             window.history.replaceState(null, '', newUrl);
-            setSelectedPostId(null);
         }
     };
 

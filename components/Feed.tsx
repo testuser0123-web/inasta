@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, Layers, AlertTriangle, Play, CornerDownRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment, deleteComment } from '@/app/actions/comment';
 import { fetchPostComments } from '@/app/actions/comment-fetch';
@@ -74,7 +74,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const { actualText, actualLength, maxLengthWithPrefix } = getCommentTextDetails(commentText);
 
   const openedViaNav = useRef(false);
-  const router = useRouter();
+  const pendingOpenPostId = useRef<number | null>(null);
+  const pendingClose = useRef(false);
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const postsRef = useRef(posts);
@@ -92,50 +93,62 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     setHasMore(initialPosts.length >= 12);
   }, [feedType, searchQuery, targetUserId]);
 
-  // Sync from URL on initial load and whenever posts data changes.
-  // This handles deep links and ensures the modal opens correctly
-  // even if the `posts` array is populated asynchronously after the first render.
+  // Sync from URL on initial load and whenever posts data changes or searchParams change.
+  // This handles deep links and App Router-driven URL updates. Read window.location
+  // inside the effect so stale useSearchParams snapshots cannot close a just-opened modal.
   useEffect(() => {
-    const postIdParam = searchParams.get('postId');
+    const params = new URLSearchParams(window.location.search || searchParams.toString());
+    const postIdParam = params.get('postId');
     if (postIdParam) {
         const id = parseInt(postIdParam, 10);
         if (!isNaN(id)) {
+            // Ignore stale URL snapshots while a close navigation is still settling.
+            if (pendingClose.current || (pendingOpenPostId.current !== null && pendingOpenPostId.current !== id)) {
+                return;
+            }
+
             // Only open if the post exists in the current feed list
             const postExists = posts.some(p => p.id === id);
             if (postExists) {
+                pendingOpenPostId.current = null;
+                pendingClose.current = false;
                 setSelectedPostId(id);
-                // Mark as opened via nav so back button works correctly if user refreshes then closes
-                // Actually, if loaded from URL, popping back might leave the site or go to previous page.
-                // We should let handleCloseModal assume it's NOT via nav (so it replaces state),
-                // unless we manually push state here. But we don't want to push state on load.
-                openedViaNav.current = false;
                 return;
             }
         }
     }
-  }, [posts]);
 
-  // Handle browser back/forward buttons
+    pendingOpenPostId.current = null;
+    pendingClose.current = false;
+    openedViaNav.current = false;
+    setSelectedPostId(null);
+  }, [searchParams, posts]);
+
+  // Browser/device back-forward navigation happens outside React event handlers.
+  // Keep the modal state aligned with the real URL so a hardware back action
+  // consumes the modal history entry instead of navigating away from the site.
   useEffect(() => {
       const handlePopState = () => {
+          pendingOpenPostId.current = null;
+          pendingClose.current = false;
+
           const params = new URLSearchParams(window.location.search);
           const postIdParam = params.get('postId');
           if (postIdParam) {
               const id = parseInt(postIdParam, 10);
               if (!isNaN(id) && postsRef.current.some(p => p.id === id)) {
                   setSelectedPostId(id);
-              } else {
-                  setSelectedPostId(null);
+                  return;
               }
-          } else {
-              setSelectedPostId(null);
           }
+
           openedViaNav.current = false;
+          setSelectedPostId(null);
       };
 
       window.addEventListener('popstate', handlePopState);
       return () => window.removeEventListener('popstate', handlePopState);
-  }, []); // No dependencies, runs only on mount
+  }, []);
 
   const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
@@ -171,28 +184,34 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
     }
 
-    // Update state immediately
-    setSelectedPostId(post.id);
+    // Reserve the modal history entry synchronously before showing the modal.
+    // This makes hardware/browser back immediately close the modal instead of
+    // consuming the previous page entry while App Router navigation is settling.
+    pendingClose.current = false;
+    pendingOpenPostId.current = post.id;
 
-    // Update URL without triggering navigation
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search || searchParams.toString());
     params.set('postId', post.id.toString());
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    const newUrl = `${pathname}?${params.toString()}`;
     window.history.pushState({ postId: post.id }, '', newUrl);
     openedViaNav.current = true;
+    setSelectedPostId(post.id);
   };
 
   const handleCloseModal = () => {
+      pendingClose.current = true;
+      pendingOpenPostId.current = null;
+      setSelectedPostId(null);
+
       if (openedViaNav.current) {
-          window.history.back();
           openedViaNav.current = false;
+          window.history.back();
       } else {
           // If opened via deep link (refresh), replace state to remove query param
-          const params = new URLSearchParams(window.location.search);
+          const params = new URLSearchParams(window.location.search || searchParams.toString());
           params.delete('postId');
-          const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+          const newUrl = `${pathname}${params.toString() ? '?' + params.toString() : ''}`;
           window.history.replaceState(null, '', newUrl);
-          setSelectedPostId(null);
       }
   };
 
