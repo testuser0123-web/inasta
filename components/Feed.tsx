@@ -74,6 +74,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const { actualText, actualLength, maxLengthWithPrefix } = getCommentTextDetails(commentText);
 
   const openedViaNav = useRef(false);
+  const pendingOpenPostId = useRef<number | null>(null);
+  const pendingClose = useRef(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -99,14 +101,27 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     if (postIdParam) {
         const id = parseInt(postIdParam, 10);
         if (!isNaN(id)) {
+            // Ignore stale URL snapshots while a click/close navigation is still settling.
+            if (pendingClose.current || (pendingOpenPostId.current !== null && pendingOpenPostId.current !== id)) {
+                return;
+            }
+
             // Only open if the post exists in the current feed list
             const postExists = posts.some(p => p.id === id);
             if (postExists) {
+                pendingOpenPostId.current = null;
+                pendingClose.current = false;
                 setSelectedPostId(id);
                 return;
             }
         }
     }
+
+    if (pendingOpenPostId.current !== null) {
+        return;
+    }
+
+    pendingClose.current = false;
     openedViaNav.current = false;
     setSelectedPostId(null);
   }, [searchParams, posts]);
@@ -145,10 +160,12 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
     }
 
-    // Ask the App Router to update the URL first. The URL sync effect above
-    // opens the modal once useSearchParams reflects the new postId.
-    // Opening local state before that can be cleared by the effect while it
-    // still sees the old URL, causing a visible disappear/reappear flicker.
+    // Open locally for immediate feedback, but guard the URL-sync effect from
+    // stale useSearchParams snapshots until the App Router publishes postId.
+    pendingClose.current = false;
+    pendingOpenPostId.current = post.id;
+    setSelectedPostId(post.id);
+
     const params = new URLSearchParams(searchParams.toString());
     params.set('postId', post.id.toString());
     const newUrl = `${pathname}?${params.toString()}`;
@@ -157,16 +174,19 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   };
 
   const handleCloseModal = () => {
+      pendingClose.current = true;
+      pendingOpenPostId.current = null;
+      setSelectedPostId(null);
+
       if (openedViaNav.current) {
-          router.back();
           openedViaNav.current = false;
+          router.back();
       } else {
           // If opened via deep link (refresh), replace state to remove query param
           const params = new URLSearchParams(searchParams.toString());
           params.delete('postId');
           const newUrl = `${pathname}${params.toString() ? '?' + params.toString() : ''}`;
           router.replace(newUrl, { scroll: false });
-          setSelectedPostId(null);
       }
   };
 
