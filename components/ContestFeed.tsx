@@ -40,7 +40,7 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
     // Guest check
     const isGuest = !currentUserId || currentUserId === -1;
 
-    // Initial Sync from URL
+    // Sync from URL and handle back/forward buttons
     useEffect(() => {
         const postIdParam = searchParams.get('postId');
         if (postIdParam) {
@@ -49,33 +49,12 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
                 const postExists = posts.some(p => p.id === id);
                 if (postExists) {
                     setSelectedPostId(id);
-                    openedViaNav.current = false;
                     return;
                 }
             }
         }
-    }, []); // Run only on mount
-
-    // Handle browser back/forward buttons
-    useEffect(() => {
-        const handlePopState = () => {
-            const params = new URLSearchParams(window.location.search);
-            const postIdParam = params.get('postId');
-            if (postIdParam) {
-                const id = parseInt(postIdParam, 10);
-                if (!isNaN(id) && posts.some(p => p.id === id)) {
-                    setSelectedPostId(id);
-                } else {
-                    setSelectedPostId(null);
-                }
-            } else {
-                setSelectedPostId(null);
-            }
-        };
-
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, [posts]);
+        setSelectedPostId(null);
+    }, [searchParams, posts]);
 
     const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
 
@@ -83,23 +62,23 @@ export default function ContestFeed({ initialPosts, contestId, isTrophyView = fa
         // Update state
         setSelectedPostId(postId);
 
-        // Update URL via History API
-        const params = new URLSearchParams(window.location.search);
+        // Update URL via Next.js Router
+        const params = new URLSearchParams(searchParams.toString());
         params.set('postId', postId.toString());
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
-        window.history.pushState({ postId }, '', newUrl);
+        const newUrl = `${pathname}?${params.toString()}`;
+        router.push(newUrl, { scroll: false });
         openedViaNav.current = true;
     };
 
     const handleCloseModal = () => {
         if (openedViaNav.current) {
-            window.history.back();
+            router.back();
             openedViaNav.current = false;
         } else {
-            const params = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams(searchParams.toString());
             params.delete('postId');
-            const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
-            window.history.replaceState(null, '', newUrl);
+            const newUrl = `${pathname}${params.toString() ? '?' + params.toString() : ''}`;
+            router.replace(newUrl, { scroll: false });
             setSelectedPostId(null);
         }
     };

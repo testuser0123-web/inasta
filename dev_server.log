@@ -1,0 +1,36 @@
+
+> inasta@0.1.0 dev
+> next dev --port 3001
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.0.2:3001
+- Experiments (use with caution):
+  · optimizePackageImports
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1580ms
+○ Compiling /login ...
+ GET /login 200 in 6.2s (compile: 5.5s, proxy.ts: 4ms, render: 665ms)
+ GET /login 200 in 88ms (compile: 14ms, proxy.ts: 5ms, render: 69ms)
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."frameColor", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
+}
+ GET / 200 in 2.2s (compile: 1783ms, proxy.ts: 6ms, render: 458ms)
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
+}
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."frameColor", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+ GET / 200 in 198ms (compile: 12ms, proxy.ts: 6ms, render: 180ms)
+✓ Compiled in 71ms
+✓ Compiled in 64ms
+prisma:query SELECT "public"."Post"."id", "public"."Post"."imageUrl", "public"."Post"."mediaType"::text, "public"."Post"."thumbnailUrl", "public"."Post"."frameColor", "public"."Post"."comment", "public"."Post"."isSpoiler", "public"."Post"."createdAt", "public"."Post"."userId", COALESCE("aggr_selection_0_Like"."_aggr_count_likes", 0) AS "_aggr_count_likes" FROM "public"."Post" LEFT JOIN (SELECT "public"."Like"."postId", COUNT(*) AS "_aggr_count_likes" FROM "public"."Like" WHERE 1=1 GROUP BY "public"."Like"."postId") AS "aggr_selection_0_Like" ON ("public"."Post"."id" = "aggr_selection_0_Like"."postId") WHERE 1=1 ORDER BY "public"."Post"."createdAt" DESC LIMIT $1 OFFSET $2
+Failed to fetch feed posts: Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: jules, db: jules, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at ignore-listed frames {
+  clientVersion: '5.22.0'
+}
+ GET / 200 in 249ms (compile: 11ms, proxy.ts: 64ms, render: 174ms)
