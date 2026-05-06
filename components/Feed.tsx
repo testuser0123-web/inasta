@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment, deleteComment } from '@/app/actions/comment';
-import { fetchPostComments } from '@/app/actions/comment-fetch';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
@@ -23,6 +22,20 @@ type Comment = {
       avatarUrl: string | null;
   };
 };
+
+async function fetchPostComments(postId: number, signal?: AbortSignal): Promise<Comment[]> {
+  const response = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}`, {
+    method: 'GET',
+    cache: 'no-store',
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch comments: ${response.status}`);
+  }
+
+  return response.json();
+}
 
 type Post = {
   id: number;
@@ -156,21 +169,42 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     if (!selectedPostId) return;
 
     const post = posts.find((p) => p.id === selectedPostId);
-    if (post && post.comments === undefined) {
-      fetchPostComments(post.id)
-        .then((comments) => {
-          setPosts((current) =>
-            current.map((p) => (p.id === post.id ? { ...p, comments } : p))
-          );
-        })
-        .catch((error) => {
-          console.error('Failed to load comments', error);
-          // In case of error, set empty comments to stop the spinner
-          setPosts((current) =>
-            current.map((p) => (p.id === post.id ? { ...p, comments: [] } : p))
-          );
-        });
-    }
+    if (!post || post.comments !== undefined) return;
+
+    let isActive = true;
+    let didTimeout = false;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      didTimeout = true;
+      controller.abort();
+    }, 10000);
+
+    fetchPostComments(post.id, controller.signal)
+      .then((comments) => {
+        if (!isActive) return;
+        setPosts((current) =>
+          current.map((p) => (p.id === post.id ? { ...p, comments } : p))
+        );
+      })
+      .catch((error) => {
+        if (!isActive) return;
+        console.error('Failed to load comments', error);
+        // In case of error or timeout, set empty comments to stop the spinner.
+        setPosts((current) =>
+          current.map((p) => (p.id === post.id ? { ...p, comments: [] } : p))
+        );
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+      });
+
+    return () => {
+      isActive = false;
+      if (!didTimeout) {
+        controller.abort();
+      }
+      window.clearTimeout(timeoutId);
+    };
   }, [selectedPostId, posts]);
 
   const handlePostClick = async (post: Post) => {
