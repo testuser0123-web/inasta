@@ -3,11 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, Layers, AlertTriangle, Play, CornerDownRight } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment, deleteComment } from '@/app/actions/comment';
-import { Spinner } from '@/components/ui/spinner';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { ImageWithSpinner } from '@/components/ImageWithSpinner';
@@ -23,8 +21,10 @@ type Comment = {
   };
 };
 
+const COMMENT_FETCH_TIMEOUT_MS = 10000;
+
 async function fetchPostComments(postId: number, signal?: AbortSignal): Promise<Comment[]> {
-  const response = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}`, {
+  const response = await fetch(`/api/comments?postId=${postId}`, {
     method: 'GET',
     cache: 'no-store',
     signal,
@@ -177,7 +177,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     const timeoutId = window.setTimeout(() => {
       didTimeout = true;
       controller.abort();
-    }, 10000);
+    }, COMMENT_FETCH_TIMEOUT_MS);
 
     fetchPostComments(post.id, controller.signal)
       .then((comments) => {
@@ -415,14 +415,27 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
         // but for now we rely on revalidation or user refresh if it failed.
         // Ideally we should refetch comments or revert the optimistic update.
         if (selectedPost) {
-             fetchPostComments(selectedPost.id).then(comments => {
-                setPosts(current => current.map(p => {
-                    if (p.id === selectedPost.id) {
-                        return { ...p, comments };
-                    }
-                    return p;
-                }));
-             });
+             const rollbackPostId = selectedPost.id;
+             const controller = new AbortController();
+             const timeoutId = window.setTimeout(() => {
+                controller.abort();
+             }, COMMENT_FETCH_TIMEOUT_MS);
+
+             fetchPostComments(rollbackPostId, controller.signal)
+                .then(comments => {
+                    setPosts(current => current.map(p => {
+                        if (p.id === rollbackPostId) {
+                            return { ...p, comments };
+                        }
+                        return p;
+                    }));
+                })
+                .catch(error => {
+                    console.error('Failed to reload comments after delete rollback', error);
+                })
+                .finally(() => {
+                    window.clearTimeout(timeoutId);
+                });
         }
     }
   };
@@ -511,7 +524,6 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
             {selectedPost.mediaType === "VIDEO" ? (
                 <div className="aspect-square bg-black flex items-center justify-center">
-                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                     <video
                         src={selectedPost.imageUrl || `/api/image/${selectedPost.id}.jpg`}
                         className="w-full h-full object-contain"
