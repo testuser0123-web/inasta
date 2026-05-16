@@ -523,10 +523,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
              </button>
 
             {selectedPost.mediaType === "VIDEO" ? (
-                <div className="aspect-square bg-black flex items-center justify-center">
+                <div className="w-full h-[min(100vw,24rem)] max-h-[min(60vh,24rem)] shrink-0 bg-black flex items-center justify-center overflow-hidden">
                     <video
                         src={selectedPost.imageUrl || `/api/image/${selectedPost.id}.jpg`}
-                        className="w-full h-full object-contain"
+                        className="max-w-full max-h-full object-contain"
                         controls
                         autoPlay
                         loop
@@ -543,7 +543,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 />
             )}
 
-            <div className="p-4 overflow-y-auto flex-1 dark:text-gray-100">
+            <div className="p-4 overflow-y-auto flex-1 min-h-0 dark:text-gray-100">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                     <button
@@ -698,7 +698,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
             {/* Add Comment Form */}
             {!isGuest && (
-              <div className="p-4 border-t dark:border-gray-800 flex flex-col">
+              <div className="p-4 border-t dark:border-gray-800 shrink-0 flex flex-col">
                 {replyingTo && (
                     <div className="flex justify-between items-center text-xs text-indigo-500 mb-2">
                         <span>@{replyingTo.username} に返信中...</span>
