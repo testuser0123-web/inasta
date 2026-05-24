@@ -241,6 +241,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   }
 
   return (
+    <>
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border dark:border-gray-800 overflow-hidden w-full max-w-lg mx-auto flex flex-col">
        {post.mediaType === 'VIDEO' ? (
          <div className="w-full relative bg-black aspect-video flex items-center justify-center">
@@ -369,7 +370,12 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            })}
          </div>
 
-         <div className="flex flex-wrap items-center gap-1 mb-2" data-emoji-picker="unicode-emoji-grid">
+
+
+
+         {/* Comments Section */}
+         <div className="space-y-3 border-t dark:border-gray-800 pt-3">
+           <div className="flex flex-wrap items-center gap-1 pb-3 border-b border-gray-100 dark:border-gray-800" data-emoji-picker="unicode-emoji-grid">
            {(post.reactions || []).map((reaction) => (
              <button
                key={reaction.reactionKey}
@@ -392,33 +398,6 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
              <Plus className="w-4 h-4" />
            </button>
          </div>
-         {showReactionPicker && !isGuest && (
-           <div data-emoji-picker-panel className="mb-3 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
-             {EMOJI_REACTION_CATEGORIES.map((category) => (
-               <div key={category.label} className="mb-2 last:mb-0">
-                 <div className="sticky top-0 bg-white/95 px-1 py-1 text-[11px] font-semibold text-gray-500 backdrop-blur dark:bg-gray-900/95 dark:text-gray-400">
-                   {category.label}
-                 </div>
-                 <div className="grid grid-cols-8 gap-1 sm:grid-cols-10">
-                   {category.emojis.map((emoji) => (
-                     <button
-                       key={emoji}
-                       type="button"
-                       onClick={() => handleReaction(emoji)}
-                       className="rounded-lg p-1.5 text-xl hover:bg-gray-100 dark:hover:bg-gray-800"
-                       title={`${emoji} を追加`}
-                     >
-                       {emoji}
-                     </button>
-                   ))}
-                 </div>
-               </div>
-             ))}
-           </div>
-         )}
-
-         {/* Comments Section */}
-         <div className="space-y-3 border-t dark:border-gray-800 pt-3">
              {post.comments === undefined ? (
                  <div className="flex justify-center p-4">
                      <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
@@ -503,5 +482,49 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            </div>
        </div>
     </div>
+
+    {showReactionPicker && !isGuest && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="絵文字リアクションを選択">
+        <div data-emoji-picker-panel className="flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
+          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">リアクションを選択</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">絵文字1つだけ追加できます</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowReactionPicker(false)}
+              className="rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+              aria-label="絵文字一覧を閉じる"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="overflow-y-auto p-3">
+            {EMOJI_REACTION_CATEGORIES.map((category) => (
+              <section key={category.label} className="mb-4 last:mb-0">
+                <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  {category.label}
+                </h3>
+                <div className="grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12">
+                  {category.emojis.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => handleReaction(emoji)}
+                      className="rounded-lg p-2 text-2xl hover:bg-gray-100 dark:hover:bg-gray-800"
+                      title={`${emoji} を追加`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
