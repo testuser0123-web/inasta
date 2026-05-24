@@ -30,6 +30,7 @@ assert.match(customEmojiActions, /data:image|base64/, 'server action should expl
 assert.match(customEmojiActions, /width\s*!==\s*128|height\s*!==\s*128/, 'server action should require normalized 128x128 emoji images');
 assert.match(customEmojiActions, /normalizeCustomEmojiName/, 'server action should validate custom emoji names');
 assert.match(customEmojiActions, /db\.customEmoji\.delete/, 'deleting a custom emoji should remove it from the database so the name can be reused');
+assert.match(customEmojiActions, /db\.customEmoji\.deleteMany\(\{[\s\S]*where:\s*\{\s*name,[\s\S]*isActive:\s*false/, 'creating a custom emoji should purge old soft-deleted rows with the same name before checking uniqueness');
 assert.match(postActions, /customEmoji:\s*{\s*select:\s*{[\s\S]*name:\s*true[\s\S]*imageUrl:\s*true/, 'post queries should include custom emoji metadata for reaction chips');
 assert.match(postActions, /customEmojiId/, 'toggleReaction should persist the custom emoji relation');
 assert.match(feed, /fetchCustomEmojis/, 'Feed picker should load shared custom emoji');

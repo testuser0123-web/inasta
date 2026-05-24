@@ -78,6 +78,10 @@ export async function createCustomEmoji(input: {
   }
 
   try {
+    await db.customEmoji.deleteMany({
+      where: { name, isActive: false },
+    });
+
     const customEmoji = await db.customEmoji.create({
       data: {
         name,
@@ -185,6 +189,10 @@ export async function updateCustomEmoji(input: {
   }
 
   try {
+    await db.customEmoji.deleteMany({
+      where: { name, isActive: false },
+    });
+
     const customEmoji = await db.customEmoji.update({
       where: { id: input.id },
       data,
