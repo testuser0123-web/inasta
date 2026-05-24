@@ -4,8 +4,16 @@ import Link from 'next/link';
 import { Home, Search, PlusSquare, User, LogOut, Menu, Trophy, Book, LogIn, Bell, Inbox, ShieldAlert, Mail, UserCog, Users, CreditCard, Coins } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import type { ComponentType } from 'react';
 import { logout } from '@/app/actions/logout';
 import { useUI } from '@/components/providers/ui-provider';
+
+type NavItem = {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  href: string;
+  badge?: number | null;
+};
 
 export default function Sidebar({ username, unreadCount = 0, isAdmin = false, isRoleManager = false }: { username?: string, unreadCount?: number, isAdmin?: boolean, isRoleManager?: boolean }) {
   const pathname = usePathname();
@@ -14,7 +22,7 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
   const { isSidebarVisible } = useUI();
 
   // Guest nav items
-  const guestNavItems = [
+  const guestNavItems: NavItem[] = [
     { icon: Home, label: 'ホーム', href: '/' },
     { icon: Trophy, label: 'コンテスト', href: '/contests' },
     { icon: Book, label: '日記', href: '/diary' },
@@ -22,11 +30,12 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
   ];
 
   // User nav items
-  const baseUserNavItems = [
+  const baseUserNavItems: NavItem[] = [
     { icon: Home, label: 'ホーム', href: '/' },
     { icon: Trophy, label: 'コンテスト', href: '/contests' },
     { icon: Book, label: '日記', href: '/diary' },
     { icon: Users, label: '貢献者一覧', href: '/contributors' },
+    { icon: PlusSquare, label: 'カスタム絵文字', href: '/custom-emojis' },
     { icon: Coins, label: 'おこづかい', href: '/inagawa' },
     { icon: Bell, label: '通知', href: '/notifications', badge: unreadCount > 0 ? unreadCount : null },
     { icon: Inbox, label: '投書箱', href: '/suggestions' },
@@ -52,7 +61,7 @@ export default function Sidebar({ username, unreadCount = 0, isAdmin = false, is
   const navItems = username ? userNavItems : guestNavItems;
 
   // Helper to safely access badge prop since it only exists on some items
-  const getBadge = (item: any) => item.badge;
+  const getBadge = (item: NavItem) => item.badge;
 
   // Hide mobile menu button and prevent interaction when sidebar is hidden (e.g. video editor)
   if (!isSidebarVisible) {

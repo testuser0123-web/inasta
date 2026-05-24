@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X, Plus, Menu } from 'lucide-react';
+import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toggleLike, toggleReaction, deletePost } from '@/app/actions/post';
@@ -10,8 +10,7 @@ import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { Linkify } from '@/components/Linkify';
 import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type CustomEmojiSummary, type PostReactionSummary } from '@/lib/reactions';
-import { fetchCustomEmojis, createCustomEmoji } from '@/app/actions/custom-emoji';
-import { uploadCustomEmojiImage } from '@/lib/client-upload';
+import { fetchCustomEmojis } from '@/app/actions/custom-emoji';
 
 function toReactionKey(emoji: string) {
   return normalizeReactionKey(emoji);
@@ -21,8 +20,8 @@ function reactionKeyToEmoji(reactionKey: string) {
   return reactionKey.startsWith('unicode:') ? reactionKey.slice('unicode:'.length) : reactionKey;
 }
 
-function handleCustomEmojiImageError(event: React.SyntheticEvent<HTMLImageElement>) {
-  event.currentTarget.style.display = 'none';
+function getCustomEmojiImageSrc(customEmoji: CustomEmojiSummary) {
+  return customEmoji.imageUrl ? `/api/custom_emoji/${customEmoji.id}.webp` : customEmoji.imageUrl;
 }
 
 function toggleReactionSummary(
@@ -94,10 +93,6 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const [replyingTo, setReplyingTo] = useState<{ commentId: number; username: string } | null>(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [customEmojis, setCustomEmojis] = useState<CustomEmojiSummary[]>([]);
-  const [customEmojiName, setCustomEmojiName] = useState('');
-  const [customEmojiFile, setCustomEmojiFile] = useState<File | null>(null);
-  const [showCustomEmojiUploadForm, setShowCustomEmojiUploadForm] = useState(false);
-  const [isCreatingCustomEmoji, setIsCreatingCustomEmoji] = useState(false);
   const [customEmojiError, setCustomEmojiError] = useState<string | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
@@ -162,43 +157,6 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
     await toggleReaction(post.id, reactionKey);
   };
 
-
-
-  const handleCreateCustomEmoji = async () => {
-    if (!customEmojiFile) {
-      setCustomEmojiError('画像ファイルを選択してください。');
-      return;
-    }
-
-    setIsCreatingCustomEmoji(true);
-    setCustomEmojiError(null);
-    try {
-      const uploaded = await uploadCustomEmojiImage(customEmojiFile);
-      const result = await createCustomEmoji({
-        name: customEmojiName,
-        imageUrl: uploaded.publicUrl,
-        storagePath: uploaded.storagePath,
-        mimeType: uploaded.mimeType,
-        width: uploaded.width,
-        height: uploaded.height,
-      });
-
-      if (!result.success || !result.customEmoji) {
-        setCustomEmojiError(result.message ?? 'カスタム絵文字を作成できませんでした。');
-        return;
-      }
-
-      setCustomEmojis((current) => [result.customEmoji, ...current.filter((emoji) => emoji.id !== result.customEmoji.id)]);
-      setCustomEmojiName('');
-      setCustomEmojiFile(null);
-      setShowCustomEmojiUploadForm(false);
-      await handleReaction(`custom:${result.customEmoji.id}`, result.customEmoji);
-    } catch (error) {
-      setCustomEmojiError(error instanceof Error ? error.message : 'カスタム絵文字を作成できませんでした。');
-    } finally {
-      setIsCreatingCustomEmoji(false);
-    }
-  };
 
   const handleLike = async () => {
     // Optimistic update
@@ -449,7 +407,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                title="リアクションを切り替え"
              >
                {reaction.customEmoji ? (
-                 <img src={reaction.customEmoji.imageUrl} alt={`:${reaction.customEmoji.name}:`} width={20} height={20} className="mr-1 inline-block h-5 w-5 rounded-sm object-contain align-middle" onError={handleCustomEmojiImageError} />
+                 <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={20} height={20} className="mr-1 inline-block h-5 w-5 rounded-sm object-contain align-middle" />
                ) : (
                  <span className="mr-1">{reaction.emoji}</span>
                )}
@@ -581,54 +539,12 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                       className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                       title={`:${customEmoji.name}: を追加`}
                     >
-                      <img src={customEmoji.imageUrl} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" onError={handleCustomEmojiImageError} />
+                      <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" />
                     </button>
                   ))}
                 </div>
               )}
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs text-gray-500 dark:text-gray-400">カスタム絵文字を選択できます。</p>
-                <button
-                  type="button"
-                  onClick={() => setShowCustomEmojiUploadForm((current) => !current)}
-                  className="rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                  aria-label="カスタム絵文字を追加"
-                  aria-expanded={showCustomEmojiUploadForm}
-                >
-                  <Menu className="h-4 w-4" />
-                </button>
-              </div>
-              {showCustomEmojiUploadForm && (
-                <div className="mt-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-950">
-                  <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                    <input
-                      type="text"
-                      value={customEmojiName}
-                      onChange={(event) => setCustomEmojiName(event.target.value)}
-                      placeholder="emoji_name"
-                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-950"
-                      maxLength={32}
-                    />
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp,image/gif"
-                      onChange={(event) => setCustomEmojiFile(event.target.files?.[0] ?? null)}
-                      className="text-sm text-gray-600 dark:text-gray-300"
-                    />
-                  </div>
-                  <div className="mt-2 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleCreateCustomEmoji}
-                      disabled={isCreatingCustomEmoji}
-                      className="shrink-0 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
-                    >
-                      {isCreatingCustomEmoji ? '作成中...' : '作成して使う'}
-                    </button>
-                  </div>
-                </div>
-              )}
-              {customEmojiError && <p className="mt-2 text-xs text-red-500">{customEmojiError}</p>}
+                {customEmojiError && <p className="mt-2 text-xs text-red-500">{customEmojiError}</p>}
             </section>
             {EMOJI_REACTION_CATEGORIES.map((category) => (
               <section key={category.label} className="mb-4 last:mb-0">
