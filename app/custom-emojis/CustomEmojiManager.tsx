@@ -167,15 +167,20 @@ export default function CustomEmojiManager({ currentUserId }: { currentUserId: n
               return (
                 <div key={emoji.id} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 dark:border-gray-800">
                   <img src={customEmojiImageSrc(emoji)} alt={`:${emoji.name}:`} width={48} height={48} className="h-12 w-12 rounded-md object-contain" />
-                  <input
-                    type="text"
-                    value={editingNames[emoji.id] ?? emoji.name}
-                    onChange={(event) => setEditingNames((current) => ({ ...current, [emoji.id]: event.target.value }))}
-                    maxLength={32}
-                    disabled={!canEdit}
-                    aria-label={`:${emoji.name}: の名前`}
-                    className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:disabled:bg-gray-800"
-                  />
+                  <div className="min-w-0 flex-1">
+                    <input
+                      type="text"
+                      value={editingNames[emoji.id] ?? emoji.name}
+                      onChange={(event) => setEditingNames((current) => ({ ...current, [emoji.id]: event.target.value }))}
+                      maxLength={32}
+                      disabled={!canEdit}
+                      aria-label={`:${emoji.name}: の名前`}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:disabled:bg-gray-800"
+                    />
+                    {emoji.creator?.username && (
+                      <p className="mt-1 text-xs lowercase text-gray-400 dark:text-gray-500">作成者: {emoji.creator?.username.toLowerCase()}</p>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleUpdate(emoji)}

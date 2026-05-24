@@ -11,6 +11,7 @@ export type CustomEmojiSummary = {
   name: string;
   imageUrl: string;
   creatorId?: number;
+  creator?: { username: string };
   width?: number;
   height?: number;
 };

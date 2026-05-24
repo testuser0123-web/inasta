@@ -23,6 +23,7 @@ assert.match(reactionsLib, /customEmoji\?:/, 'reaction summaries should carry cu
 assert.match(customEmojiActions, /export async function createCustomEmoji/, 'users should be able to create custom emoji');
 assert.match(customEmojiActions, /export async function fetchCustomEmojis/, 'clients should be able to fetch shared custom emoji');
 assert.match(customEmojiActions, /creatorId:\s*true/, 'custom emoji list should include creatorId so only the owner can edit');
+assert.match(customEmojiActions, /creator:\s*{\s*select:\s*{\s*username:\s*true/, 'custom emoji list should include the creator username for the management list');
 assert.match(customEmojiActions, /unstable_cache|revalidateTag/, 'custom emoji list should use Next cache and invalidate after creation');
 assert.match(customEmojiActions, /image\/(png|jpeg|jpg|gif|webp)/, 'custom emoji creation should restrict image MIME types');
 assert.match(customEmojiActions, /data:image|base64/, 'server action should explicitly reject inline/base64 image storage');
@@ -48,6 +49,8 @@ assert.match(customEmojiManager, /uploadCustomEmojiImage[\s\S]*createCustomEmoji
 assert.match(customEmojiManager, /updateCustomEmoji[\s\S]*deleteCustomEmoji/, 'custom emoji manager should support editing and deleting existing emoji');
 assert.match(customEmojiManager, /canEditEmoji\(emoji\)/, 'custom emoji manager should only enable editing controls for the owner');
 assert.match(customEmojiManager, /hasEmojiChanged\(emoji\)/, 'custom emoji save button should activate only after changes');
+assert.match(customEmojiManager, /emoji\.creator\?\.username\.toLowerCase\(\)/, 'custom emoji manager should show the creator username in lowercase');
+assert.match(customEmojiManager, /text-xs[\s\S]*作成者/, 'custom emoji creator should be rendered as small text');
 assert.match(customEmojiManager, /htmlFor="custom-emoji-file"[\s\S]*ファイルを選択/, 'custom emoji file input should be presented as a proper button');
 assert.match(customEmojiRoute, /db\.customEmoji\.findUnique[\s\S]*fetch\(customEmoji\.imageUrl\)/, 'custom emoji images should be served through a same-origin proxy route');
 assert.match(reactionsLib, /絵文字名は2〜32文字で、半角英小文字・数字・アンダースコアのみ使用できます。/, 'custom emoji validation message should be Japanese');
