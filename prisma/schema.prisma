@@ -43,6 +43,7 @@ model User {
   subscriptionExpiresAt DateTime?
   inagawa                Inagawa?
   inagawaHistory         InagawaHistory[]
+  postReactions          PostReaction[]
 }
 
 model Inagawa {
@@ -91,6 +92,7 @@ model Post {
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   images       PostImage[]
   hashtags     Hashtag[]   @relation("HashtagToPost")
+  reactions    PostReaction[]
 
   @@index([userId])
 }
@@ -119,6 +121,20 @@ model Like {
 
   @@unique([userId, postId])
   @@index([postId])
+}
+
+model PostReaction {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  userId      Int
+  postId      Int
+  reactionKey String
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId, reactionKey])
+  @@index([postId, reactionKey])
+  @@index([userId])
 }
 
 model Comment {

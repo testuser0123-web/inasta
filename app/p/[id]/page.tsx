@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Metadata } from 'next';
 import { getBaseUrl } from '@/lib/url';
+import { buildPostReactionSummaries } from '@/lib/reactions';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
@@ -79,6 +80,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
               roles: true
           }
       },
+      reactions: {
+          select: { reactionKey: true, userId: true }
+      },
       _count: {
           select: { likes: true }
       },
@@ -114,6 +118,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       ...postData,
       likesCount: postData._count.likes,
       hasLiked: postData.likes.length > 0,
+      reactions: buildPostReactionSummaries(postData.reactions, session?.id ?? -1),
       likes: undefined,
       _count: undefined,
       imageUrl: (postData.imageUrl && postData.imageUrl.startsWith('http'))

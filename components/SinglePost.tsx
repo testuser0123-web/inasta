@@ -1,14 +1,49 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X } from 'lucide-react';
+import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { toggleLike, deletePost } from '@/app/actions/post';
+import { toggleLike, toggleReaction, deletePost } from '@/app/actions/post';
 import { addComment, deleteComment } from '@/app/actions/comment';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { Linkify } from '@/components/Linkify';
+import type { PostReactionSummary } from '@/lib/reactions';
+
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😭', '🎉', '🔥'];
+const ALL_EMOJI_PICKER_URL = 'native-emoji-prompt';
+
+function toReactionKey(emoji: string) {
+  return emoji.trim().startsWith('unicode:') ? emoji.trim() : `unicode:${emoji.trim()}`;
+}
+
+function reactionKeyToEmoji(reactionKey: string) {
+  return reactionKey.startsWith('unicode:') ? reactionKey.slice('unicode:'.length) : reactionKey;
+}
+
+function toggleReactionSummary(
+  reactions: PostReactionSummary[] | undefined,
+  reactionKey: string
+): PostReactionSummary[] {
+  const current = reactions ? [...reactions] : [];
+  const index = current.findIndex((reaction) => reaction.reactionKey === reactionKey);
+
+  if (index >= 0) {
+    const existing = current[index];
+    if (existing.hasReacted) {
+      const nextCount = existing.count - 1;
+      if (nextCount <= 0) current.splice(index, 1);
+      else current[index] = { ...existing, count: nextCount, hasReacted: false };
+    } else {
+      current[index] = { ...existing, count: existing.count + 1, hasReacted: true };
+    }
+  } else {
+    current.push({ reactionKey, emoji: reactionKeyToEmoji(reactionKey), count: 1, hasReacted: true });
+  }
+
+  return current.sort((a, b) => b.count - a.count || a.reactionKey.localeCompare(b.reactionKey));
+}
 
 type Comment = {
   id: number;
@@ -39,6 +74,7 @@ type Post = {
       roles?: string[];
   };
   comments?: Comment[];
+  reactions?: PostReactionSummary[];
   hashtags?: { name: string }[];
   images?: { id: number; order: number; url?: string }[];
 };
@@ -72,6 +108,26 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   useEffect(() => {
     setPost(initialPost);
   }, [initialPost]);
+
+  const isGuest = currentUserId === -1 || !currentUserId;
+
+  const handleReaction = async (emojiOrReactionKey?: string) => {
+    if (isGuest) {
+      alert("リアクション機能を使用するにはログインが必要です。");
+      return;
+    }
+
+    const emoji = emojiOrReactionKey ?? window.prompt('追加する絵文字を入力してください。Discordのように任意のUnicode絵文字を使えます。');
+    if (!emoji?.trim()) return;
+
+    const reactionKey = toReactionKey(emoji);
+    setPost((current) => ({
+      ...current,
+      reactions: toggleReactionSummary(current.reactions, reactionKey),
+    }));
+
+    await toggleReaction(post.id, reactionKey);
+  };
 
   const handleLike = async () => {
     // Optimistic update
@@ -292,6 +348,41 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            })}
          </div>
 
+
+         <div className="flex flex-wrap items-center gap-1 mb-3" data-emoji-picker={ALL_EMOJI_PICKER_URL}>
+           {[...(post.reactions || []), ...QUICK_REACTIONS.filter((emoji) => !(post.reactions || []).some((reaction) => reaction.reactionKey === toReactionKey(emoji))).slice(0, Math.max(0, 4 - (post.reactions || []).length))].map((reaction) =>
+             typeof reaction === 'string' ? (
+               <button
+                 key={reaction}
+                 type="button"
+                 onClick={() => handleReaction(reaction)}
+                 className={`px-2 py-1 rounded-full border text-sm bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                 title="リアクションを追加"
+               >
+                 {reaction}
+               </button>
+             ) : (
+               <button
+                 key={reaction.reactionKey}
+                 type="button"
+                 onClick={() => handleReaction(reaction.reactionKey)}
+                 className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                 title="リアクションを切り替え"
+               >
+                 <span className="mr-1">{reaction.emoji}</span>
+                 <span className="text-xs font-semibold">{reaction.count}</span>
+               </button>
+             )
+           )}
+           <button
+             type="button"
+             onClick={() => handleReaction()}
+             className={`px-2 py-1 rounded-full border text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
+             title="すべての絵文字から追加"
+           >
+             <Plus className="w-4 h-4" />
+           </button>
+         </div>
          {post.hashtags && post.hashtags.length > 0 && (
            <div className="flex flex-wrap gap-1 mb-4">
              {post.hashtags.map((tag) => (

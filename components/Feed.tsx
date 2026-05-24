@@ -4,12 +4,16 @@ import { useState, useEffect, useRef } from 'react';
 import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, Layers, AlertTriangle, Play, CornerDownRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
-import { toggleLike, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
+import { toggleLike, toggleReaction, deletePost, fetchFeedPosts, fetchUserPosts, fetchLikedPosts } from '@/app/actions/post';
 import { addComment, deleteComment } from '@/app/actions/comment';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { ImageWithSpinner } from '@/components/ImageWithSpinner';
 import { Linkify } from '@/components/Linkify';
+import type { PostReactionSummary } from '@/lib/reactions';
+
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😭', '🎉', '🔥'];
+const ALL_EMOJI_PICKER_URL = 'native-emoji-prompt';
 
 type Comment = {
   id: number;
@@ -37,6 +41,45 @@ async function fetchPostComments(postId: number, signal?: AbortSignal): Promise<
   return response.json();
 }
 
+function toReactionKey(emoji: string) {
+  return emoji.trim().startsWith('unicode:') ? emoji.trim() : `unicode:${emoji.trim()}`;
+}
+
+function reactionKeyToEmoji(reactionKey: string) {
+  return reactionKey.startsWith('unicode:') ? reactionKey.slice('unicode:'.length) : reactionKey;
+}
+
+function toggleReactionSummary(
+  reactions: PostReactionSummary[] | undefined,
+  reactionKey: string
+): PostReactionSummary[] {
+  const current = reactions ? [...reactions] : [];
+  const index = current.findIndex((reaction) => reaction.reactionKey === reactionKey);
+
+  if (index >= 0) {
+    const existing = current[index];
+    if (existing.hasReacted) {
+      const nextCount = existing.count - 1;
+      if (nextCount <= 0) {
+        current.splice(index, 1);
+      } else {
+        current[index] = { ...existing, count: nextCount, hasReacted: false };
+      }
+    } else {
+      current[index] = { ...existing, count: existing.count + 1, hasReacted: true };
+    }
+  } else {
+    current.push({
+      reactionKey,
+      emoji: reactionKeyToEmoji(reactionKey),
+      count: 1,
+      hasReacted: true,
+    });
+  }
+
+  return current.sort((a, b) => b.count - a.count || a.reactionKey.localeCompare(b.reactionKey));
+}
+
 type Post = {
   id: number;
   imageUrl?: string; // Main image URL
@@ -57,6 +100,7 @@ type Post = {
       roles?: string[];
   };
   comments?: Comment[];
+  reactions?: PostReactionSummary[];
   hashtags?: { name: string }[];
   images?: { id: number; order: number; url?: string }[];
 };
@@ -247,6 +291,27 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
           const newUrl = `${pathname}${params.toString() ? '?' + params.toString() : ''}`;
           window.history.replaceState(null, '', newUrl);
       }
+  };
+
+  const handleReaction = async (post: Post, emojiOrReactionKey?: string) => {
+    if (isGuest) {
+      alert("リアクション機能を使用するにはログインが必要です。");
+      return;
+    }
+
+    const emoji = emojiOrReactionKey ?? window.prompt('追加する絵文字を入力してください。Discordのように任意のUnicode絵文字を使えます。');
+    if (!emoji?.trim()) return;
+
+    const reactionKey = toReactionKey(emoji);
+    setPosts((current) =>
+      current.map((p) =>
+        p.id === post.id
+          ? { ...p, reactions: toggleReactionSummary(p.reactions, reactionKey) }
+          : p
+      )
+    );
+
+    await toggleReaction(post.id, reactionKey);
   };
 
   const handleLike = async (post: Post) => {
@@ -634,6 +699,41 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 })}
               </div>
 
+
+              <div className="flex flex-wrap items-center gap-1 mb-3" data-emoji-picker={ALL_EMOJI_PICKER_URL}>
+                {[...(selectedPost.reactions || []), ...QUICK_REACTIONS.filter((emoji) => !(selectedPost.reactions || []).some((reaction) => reaction.reactionKey === toReactionKey(emoji))).slice(0, Math.max(0, 4 - (selectedPost.reactions || []).length))].map((reaction) =>
+                  typeof reaction === 'string' ? (
+                    <button
+                      key={reaction}
+                      type="button"
+                      onClick={() => handleReaction(selectedPost, reaction)}
+                      className={`px-2 py-1 rounded-full border text-sm bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      title="リアクションを追加"
+                    >
+                      {reaction}
+                    </button>
+                  ) : (
+                    <button
+                      key={reaction.reactionKey}
+                      type="button"
+                      onClick={() => handleReaction(selectedPost, reaction.reactionKey)}
+                      className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                      title="リアクションを切り替え"
+                    >
+                      <span className="mr-1">{reaction.emoji}</span>
+                      <span className="text-xs font-semibold">{reaction.count}</span>
+                    </button>
+                  )
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleReaction(selectedPost)}
+                  className={`px-2 py-1 rounded-full border text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title="すべての絵文字から追加"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
               {selectedPost.hashtags && selectedPost.hashtags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-4">
                   {selectedPost.hashtags.map((tag) => (
