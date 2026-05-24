@@ -10,7 +10,9 @@ import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { ImageWithSpinner } from '@/components/ImageWithSpinner';
 import { Linkify } from '@/components/Linkify';
-import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type PostReactionSummary } from '@/lib/reactions';
+import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type CustomEmojiSummary, type PostReactionSummary } from '@/lib/reactions';
+import { fetchCustomEmojis, createCustomEmoji } from '@/app/actions/custom-emoji';
+import { uploadCustomEmojiImage } from '@/lib/client-upload';
 
 type Comment = {
   id: number;
@@ -48,7 +50,8 @@ function reactionKeyToEmoji(reactionKey: string) {
 
 function toggleReactionSummary(
   reactions: PostReactionSummary[] | undefined,
-  reactionKey: string
+  reactionKey: string,
+  customEmoji?: CustomEmojiSummary
 ): PostReactionSummary[] {
   const current = reactions ? [...reactions] : [];
   const index = current.findIndex((reaction) => reaction.reactionKey === reactionKey);
@@ -68,9 +71,10 @@ function toggleReactionSummary(
   } else {
     current.push({
       reactionKey,
-      emoji: reactionKeyToEmoji(reactionKey),
+      emoji: customEmoji ? `:${customEmoji.name}:` : reactionKeyToEmoji(reactionKey),
       count: 1,
       hasReacted: true,
+      customEmoji,
     });
   }
 
@@ -113,6 +117,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ commentId: number; username: string } | null>(null);
   const [showReactionPickerForPostId, setShowReactionPickerForPostId] = useState<number | null>(null);
+  const [customEmojis, setCustomEmojis] = useState<CustomEmojiSummary[]>([]);
+  const [customEmojiName, setCustomEmojiName] = useState('');
+  const [customEmojiFile, setCustomEmojiFile] = useState<File | null>(null);
+  const [isCreatingCustomEmoji, setIsCreatingCustomEmoji] = useState(false);
+  const [customEmojiError, setCustomEmojiError] = useState<string | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   const getCommentTextDetails = (text: string) => {
@@ -209,6 +218,19 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const reactionPickerPost = showReactionPickerForPostId ? posts.find((p) => p.id === showReactionPickerForPostId) : null;
 
   useEffect(() => {
+    if (!showReactionPickerForPostId || isGuest) return;
+    let cancelled = false;
+    fetchCustomEmojis()
+      .then((emojis) => {
+        if (!cancelled) setCustomEmojis(emojis);
+      })
+      .catch(() => {
+        if (!cancelled) setCustomEmojiError('カスタム絵文字を読み込めませんでした。');
+      });
+    return () => { cancelled = true; };
+  }, [showReactionPickerForPostId, isGuest]);
+
+  useEffect(() => {
     if (!selectedPostId) return;
 
     const post = posts.find((p) => p.id === selectedPostId);
@@ -292,7 +314,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
   };
 
-  const handleReaction = async (post: Post, emojiOrReactionKey?: string) => {
+  const handleReaction = async (post: Post, emojiOrReactionKey?: string, customEmoji?: CustomEmojiSummary) => {
     if (isGuest) {
       alert("リアクション機能を使用するにはログインが必要です。");
       return;
@@ -314,12 +336,49 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     setPosts((current) =>
       current.map((p) =>
         p.id === post.id
-          ? { ...p, reactions: toggleReactionSummary(p.reactions, reactionKey) }
+          ? { ...p, reactions: toggleReactionSummary(p.reactions, reactionKey, customEmoji) }
           : p
       )
     );
 
     await toggleReaction(post.id, reactionKey);
+  };
+
+
+
+  const handleCreateCustomEmoji = async (post: Post) => {
+    if (!customEmojiFile) {
+      setCustomEmojiError('画像ファイルを選択してください。');
+      return;
+    }
+
+    setIsCreatingCustomEmoji(true);
+    setCustomEmojiError(null);
+    try {
+      const uploaded = await uploadCustomEmojiImage(customEmojiFile);
+      const result = await createCustomEmoji({
+        name: customEmojiName,
+        imageUrl: uploaded.publicUrl,
+        storagePath: uploaded.storagePath,
+        mimeType: uploaded.mimeType,
+        width: uploaded.width,
+        height: uploaded.height,
+      });
+
+      if (!result.success || !result.customEmoji) {
+        setCustomEmojiError(result.message ?? 'カスタム絵文字を作成できませんでした。');
+        return;
+      }
+
+      setCustomEmojis((current) => [result.customEmoji, ...current.filter((emoji) => emoji.id !== result.customEmoji.id)]);
+      setCustomEmojiName('');
+      setCustomEmojiFile(null);
+      await handleReaction(post, `custom:${result.customEmoji.id}`, result.customEmoji);
+    } catch (error) {
+      setCustomEmojiError(error instanceof Error ? error.message : 'カスタム絵文字を作成できませんでした。');
+    } finally {
+      setIsCreatingCustomEmoji(false);
+    }
   };
 
   const handleLike = async (post: Post) => {
@@ -735,7 +794,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                     className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
                     title="リアクションを切り替え"
                   >
-                    <span className="mr-1">{reaction.emoji}</span>
+                    {reaction.customEmoji ? (
+                      <img src={reaction.customEmoji.imageUrl} alt={`:${reaction.customEmoji.name}:`} width={20} height={20} className="mr-1 inline-block h-5 w-5 rounded-sm object-contain align-middle" />
+                    ) : (
+                      <span className="mr-1">{reaction.emoji}</span>
+                    )}
                     <span className="text-xs font-semibold">{reaction.count}</span>
                   </button>
                 ))}
@@ -863,6 +926,52 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               </button>
             </div>
             <div className="overflow-y-auto p-3">
+              <section className="mb-5 rounded-xl border border-dashed border-gray-300 p-3 dark:border-gray-700">
+                <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Custom Emojis</h3>
+                {customEmojis.length > 0 && (
+                  <div className="mb-3 grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12">
+                    {customEmojis.map((customEmoji) => (
+                      <button
+                        key={customEmoji.id}
+                        type="button"
+                        onClick={() => handleReaction(reactionPickerPost, `custom:${customEmoji.id}`, customEmoji)}
+                        className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        title={`:${customEmoji.name}: を追加`}
+                      >
+                        <img src={customEmoji.imageUrl} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                  <input
+                    type="text"
+                    value={customEmojiName}
+                    onChange={(event) => setCustomEmojiName(event.target.value)}
+                    placeholder="emoji_name"
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-950"
+                    maxLength={32}
+                  />
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    onChange={(event) => setCustomEmojiFile(event.target.files?.[0] ?? null)}
+                    className="text-sm text-gray-600 dark:text-gray-300"
+                  />
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">画像はオブジェクトストレージに保存し、128x128の正方形WebPへ余白付きで正規化します。</p>
+                  <button
+                    type="button"
+                    onClick={() => handleCreateCustomEmoji(reactionPickerPost)}
+                    disabled={isCreatingCustomEmoji}
+                    className="shrink-0 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    {isCreatingCustomEmoji ? '作成中...' : '作成して使う'}
+                  </button>
+                </div>
+                {customEmojiError && <p className="mt-2 text-xs text-red-500">{customEmojiError}</p>}
+              </section>
               {EMOJI_REACTION_CATEGORIES.map((category) => (
                 <section key={category.label} className="mb-4 last:mb-0">
                   <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
