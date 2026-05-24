@@ -9,7 +9,8 @@ import { addComment, deleteComment } from '@/app/actions/comment';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { Linkify } from '@/components/Linkify';
-import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type PostReactionSummary } from '@/lib/reactions';
+import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type CustomEmojiSummary, type PostReactionSummary } from '@/lib/reactions';
+import { fetchCustomEmojis } from '@/app/actions/custom-emoji';
 
 function toReactionKey(emoji: string) {
   return normalizeReactionKey(emoji);
@@ -19,9 +20,14 @@ function reactionKeyToEmoji(reactionKey: string) {
   return reactionKey.startsWith('unicode:') ? reactionKey.slice('unicode:'.length) : reactionKey;
 }
 
+function getCustomEmojiImageSrc(customEmoji: CustomEmojiSummary) {
+  return customEmoji.imageUrl ? `/api/custom_emoji/${customEmoji.id}.webp` : customEmoji.imageUrl;
+}
+
 function toggleReactionSummary(
   reactions: PostReactionSummary[] | undefined,
-  reactionKey: string
+  reactionKey: string,
+  customEmoji?: CustomEmojiSummary
 ): PostReactionSummary[] {
   const current = reactions ? [...reactions] : [];
   const index = current.findIndex((reaction) => reaction.reactionKey === reactionKey);
@@ -36,7 +42,7 @@ function toggleReactionSummary(
       current[index] = { ...existing, count: existing.count + 1, hasReacted: true };
     }
   } else {
-    current.push({ reactionKey, emoji: reactionKeyToEmoji(reactionKey), count: 1, hasReacted: true });
+    current.push({ reactionKey, emoji: customEmoji ? `:${customEmoji.name}:` : reactionKeyToEmoji(reactionKey), count: 1, hasReacted: true, customEmoji });
   }
 
   return current.sort((a, b) => b.count - a.count || a.reactionKey.localeCompare(b.reactionKey));
@@ -86,6 +92,8 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const [isPlaying, setIsPlaying] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ commentId: number; username: string } | null>(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [customEmojis, setCustomEmojis] = useState<CustomEmojiSummary[]>([]);
+  const [customEmojiError, setCustomEmojiError] = useState<string | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   const getCommentTextDetails = (text: string) => {
@@ -109,7 +117,20 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
 
   const isGuest = currentUserId === -1 || !currentUserId;
 
-  const handleReaction = async (emojiOrReactionKey?: string) => {
+  useEffect(() => {
+    if (!showReactionPicker || isGuest) return;
+    let cancelled = false;
+    fetchCustomEmojis()
+      .then((emojis) => {
+        if (!cancelled) setCustomEmojis(emojis);
+      })
+      .catch(() => {
+        if (!cancelled) setCustomEmojiError('カスタム絵文字を読み込めませんでした。');
+      });
+    return () => { cancelled = true; };
+  }, [showReactionPicker, isGuest]);
+
+  const handleReaction = async (emojiOrReactionKey?: string, customEmoji?: CustomEmojiSummary) => {
     if (isGuest) {
       alert("リアクション機能を使用するにはログインが必要です。");
       return;
@@ -130,11 +151,12 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
     setShowReactionPicker(false);
     setPost((current) => ({
       ...current,
-      reactions: toggleReactionSummary(current.reactions, reactionKey),
+      reactions: toggleReactionSummary(current.reactions, reactionKey, customEmoji),
     }));
 
     await toggleReaction(post.id, reactionKey);
   };
+
 
   const handleLike = async () => {
     // Optimistic update
@@ -384,7 +406,11 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
                title="リアクションを切り替え"
              >
-               <span className="mr-1">{reaction.emoji}</span>
+               {reaction.customEmoji ? (
+                 <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={20} height={20} className="mr-1 inline-block h-5 w-5 rounded-sm object-contain align-middle" />
+               ) : (
+                 <span className="mr-1">{reaction.emoji}</span>
+               )}
                <span className="text-xs font-semibold">{reaction.count}</span>
              </button>
            ))}
@@ -501,6 +527,25 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
             </button>
           </div>
           <div className="overflow-y-auto p-3">
+            <section className="mb-5 p-1">
+              <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Custom Emojis</h3>
+              {customEmojis.length > 0 && (
+                <div className="mb-3 grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12">
+                  {customEmojis.map((customEmoji) => (
+                    <button
+                      key={customEmoji.id}
+                      type="button"
+                      onClick={() => handleReaction(`custom:${customEmoji.id}`, customEmoji)}
+                      className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      title={`:${customEmoji.name}: を追加`}
+                    >
+                      <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" />
+                    </button>
+                  ))}
+                </div>
+              )}
+                {customEmojiError && <p className="mt-2 text-xs text-red-500">{customEmojiError}</p>}
+            </section>
             {EMOJI_REACTION_CATEGORIES.map((category) => (
               <section key={category.label} className="mb-4 last:mb-0">
                 <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">

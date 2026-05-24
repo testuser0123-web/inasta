@@ -44,6 +44,7 @@ model User {
   inagawa                Inagawa?
   inagawaHistory         InagawaHistory[]
   postReactions          PostReaction[]
+  customEmojis           CustomEmoji[]
 }
 
 model Inagawa {
@@ -129,12 +130,35 @@ model PostReaction {
   userId      Int
   postId      Int
   reactionKey String
+  customEmojiId Int?
   post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customEmoji CustomEmoji? @relation(fields: [customEmojiId], references: [id], onDelete: SetNull)
 
   @@unique([userId, postId, reactionKey])
   @@index([postId, reactionKey])
   @@index([userId])
+  @@index([customEmojiId])
+}
+
+model CustomEmoji {
+  id          Int      @id @default(autoincrement())
+  name        String
+  imageUrl    String
+  storagePath String
+  mimeType    String
+  width       Int      @default(128)
+  height      Int      @default(128)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  creatorId   Int
+  isActive    Boolean  @default(true)
+  creator   User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  reactions PostReaction[]
+
+  @@unique([name])
+  @@index([isActive, createdAt])
+  @@index([creatorId])
 }
 
 model Comment {

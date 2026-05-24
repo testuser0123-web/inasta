@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import cloudinary from "@/lib/cloudinary";
 import { enrichUser, canUseFrame } from "@/lib/user_logic";
-import { buildPostReactionSummaries, normalizeReactionKey } from "@/lib/reactions";
+import { buildPostReactionSummaries, getCustomEmojiIdFromReactionKey, normalizeReactionKey } from "@/lib/reactions";
 
 export async function fetchFeedPosts({
   cursorId,
@@ -128,7 +128,7 @@ export async function fetchFeedPosts({
         },
         // Removed comments fetch for feed optimization
         reactions: {
-          select: { reactionKey: true, userId: true },
+          select: { reactionKey: true, userId: true, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } },
         },
         _count: {
           select: { likes: true },
@@ -227,7 +227,7 @@ export async function fetchUserPosts({
           },
         },
         reactions: {
-          select: { reactionKey: true, userId: true },
+          select: { reactionKey: true, userId: true, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } },
         },
         _count: {
           select: { likes: true },
@@ -325,7 +325,7 @@ export async function fetchLikedPosts({
                   }
               },
               reactions: {
-                  select: { reactionKey: true, userId: true }
+                  select: { reactionKey: true, userId: true, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } }
               },
               _count: {
                   select: { likes: true }
@@ -534,6 +534,15 @@ export async function toggleReaction(postId: number, reactionKey: string) {
     return;
   }
 
+  const customEmojiId = getCustomEmojiIdFromReactionKey(normalizedReactionKey);
+  if (customEmojiId) {
+    const customEmoji = await db.customEmoji.findFirst({
+      where: { id: customEmojiId, isActive: true },
+      select: { id: true },
+    });
+    if (!customEmoji) return;
+  }
+
   const existingReaction = await db.postReaction.findUnique({
     where: {
       userId_postId_reactionKey: {
@@ -560,6 +569,7 @@ export async function toggleReaction(postId: number, reactionKey: string) {
         userId: session.id,
         postId,
         reactionKey: normalizedReactionKey,
+        customEmojiId,
       },
     });
   }

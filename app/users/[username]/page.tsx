@@ -122,7 +122,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
           }
       },
       reactions: {
-          select: { reactionKey: true, userId: true }
+          select: { reactionKey: true, userId: true, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } }
       },
       _count: {
           select: { likes: true }
@@ -205,7 +205,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                         }
                     },
                     reactions: {
-                        select: { reactionKey: true, userId: true }
+                        select: { reactionKey: true, userId: true, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } }
                     },
                     _count: {
                         select: { likes: true }
