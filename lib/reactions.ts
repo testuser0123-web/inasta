@@ -71,7 +71,7 @@ export function isValidSingleUnicodeEmoji(value: string): boolean {
 export function normalizeCustomEmojiName(input: string): string {
   const name = input.trim().toLowerCase().replace(/[^a-z0-9_]/g, "_").replace(/_+/g, "_").replace(/^_+|_+$/g, "");
   if (!CUSTOM_EMOJI_NAME_PATTERN.test(name)) {
-    throw new Error("Custom emoji name must be 2-32 characters using lowercase letters, numbers, or underscores");
+    throw new Error("絵文字名は2〜32文字で、半角英小文字・数字・アンダースコアのみ使用できます。");
   }
   return name;
 }

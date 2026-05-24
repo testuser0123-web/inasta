@@ -15,7 +15,6 @@ const ALLOWED_CUSTOM_EMOJI_MIME_TYPES = new Set([
 
 const CUSTOM_EMOJI_CACHE_TAG = 'custom-emojis';
 const MAX_CUSTOM_EMOJI_URL_LENGTH = 2048;
-const CUSTOM_EMOJI_SIZE = 128;
 
 const getCachedCustomEmojis = unstable_cache(
   async () => db.customEmoji.findMany({
