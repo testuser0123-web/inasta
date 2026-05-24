@@ -9,7 +9,7 @@ import { addComment, deleteComment } from '@/app/actions/comment';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { Linkify } from '@/components/Linkify';
-import { EMOJI_REACTION_OPTIONS, normalizeReactionKey, type PostReactionSummary } from '@/lib/reactions';
+import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type PostReactionSummary } from '@/lib/reactions';
 
 function toReactionKey(emoji: string) {
   return normalizeReactionKey(emoji);
@@ -369,7 +369,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            })}
          </div>
 
-         <div className="relative flex flex-wrap items-center gap-1 mb-3" data-emoji-picker="unicode-emoji-grid">
+         <div className="flex flex-wrap items-center gap-1 mb-2" data-emoji-picker="unicode-emoji-grid">
            {(post.reactions || []).map((reaction) => (
              <button
                key={reaction.reactionKey}
@@ -391,22 +391,31 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            >
              <Plus className="w-4 h-4" />
            </button>
-           {showReactionPicker && !isGuest && (
-             <div className="absolute left-0 top-full z-20 mt-2 grid max-h-52 w-72 grid-cols-8 gap-1 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
-               {EMOJI_REACTION_OPTIONS.map((emoji) => (
-                 <button
-                   key={emoji}
-                   type="button"
-                   onClick={() => handleReaction(emoji)}
-                   className="rounded-lg p-1.5 text-xl hover:bg-gray-100 dark:hover:bg-gray-800"
-                   title={`${emoji} を追加`}
-                 >
-                   {emoji}
-                 </button>
-               ))}
-             </div>
-           )}
          </div>
+         {showReactionPicker && !isGuest && (
+           <div data-emoji-picker-panel className="mb-3 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+             {EMOJI_REACTION_CATEGORIES.map((category) => (
+               <div key={category.label} className="mb-2 last:mb-0">
+                 <div className="sticky top-0 bg-white/95 px-1 py-1 text-[11px] font-semibold text-gray-500 backdrop-blur dark:bg-gray-900/95 dark:text-gray-400">
+                   {category.label}
+                 </div>
+                 <div className="grid grid-cols-8 gap-1 sm:grid-cols-10">
+                   {category.emojis.map((emoji) => (
+                     <button
+                       key={emoji}
+                       type="button"
+                       onClick={() => handleReaction(emoji)}
+                       className="rounded-lg p-1.5 text-xl hover:bg-gray-100 dark:hover:bg-gray-800"
+                       title={`${emoji} を追加`}
+                     >
+                       {emoji}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+             ))}
+           </div>
+         )}
 
          {/* Comments Section */}
          <div className="space-y-3 border-t dark:border-gray-800 pt-3">
