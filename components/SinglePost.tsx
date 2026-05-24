@@ -527,7 +527,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
             </button>
           </div>
           <div className="overflow-y-auto p-3">
-            <section className="mb-5 rounded-xl border border-dashed border-gray-300 p-3 dark:border-gray-700">
+            <section className="mb-5 p-1">
               <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Custom Emojis</h3>
               {customEmojis.length > 0 && (
                 <div className="mb-3 grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12">

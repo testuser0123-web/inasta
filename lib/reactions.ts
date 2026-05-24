@@ -10,6 +10,7 @@ export type CustomEmojiSummary = {
   id: number;
   name: string;
   imageUrl: string;
+  creatorId?: number;
   width?: number;
   height?: number;
 };
