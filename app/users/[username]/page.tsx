@@ -7,6 +7,7 @@ import ProfileClient from '@/app/profile/ProfileClient';
 import { getUserTrophies } from '@/app/actions/trophy';
 import { getDiariesByUser } from '@/app/actions/diary';
 import { enrichUser } from '@/lib/user_logic';
+import { buildPostReactionSummaries } from '@/lib/reactions';
 
 export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
   const resolvedParams = await params;
@@ -120,6 +121,9 @@ export default async function UserPage({ params }: { params: Promise<{ username:
               subscriptionExpiresAt: true,
           }
       },
+      reactions: {
+          select: { reactionKey: true, userId: true }
+      },
       _count: {
           select: { likes: true }
       },
@@ -148,6 +152,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
       }),
       likesCount: post._count.likes,
       hasLiked: post.likes.length > 0,
+      reactions: buildPostReactionSummaries(post.reactions, session?.id ?? -1),
       likes: undefined,
       _count: undefined
   }));
@@ -199,6 +204,9 @@ export default async function UserPage({ params }: { params: Promise<{ username:
                             subscriptionExpiresAt: true,
                         }
                     },
+                    reactions: {
+                        select: { reactionKey: true, userId: true }
+                    },
                     _count: {
                         select: { likes: true }
                     },
@@ -229,6 +237,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
           }),
           likesCount: item.post._count.likes,
           hasLiked: item.post.likes.length > 0,
+          reactions: buildPostReactionSummaries(item.post.reactions, session?.id ?? -1),
           likes: undefined,
           _count: undefined
       }));

@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import cloudinary from "@/lib/cloudinary";
 import { enrichUser, canUseFrame } from "@/lib/user_logic";
+import { buildPostReactionSummaries, normalizeReactionKey } from "@/lib/reactions";
 
 export async function fetchFeedPosts({
   cursorId,
@@ -126,6 +127,9 @@ export async function fetchFeedPosts({
           },
         },
         // Removed comments fetch for feed optimization
+        reactions: {
+          select: { reactionKey: true, userId: true },
+        },
         _count: {
           select: { likes: true },
         },
@@ -158,6 +162,7 @@ export async function fetchFeedPosts({
       }),
       likesCount: post._count.likes,
       hasLiked: post.likes.length > 0,
+      reactions: buildPostReactionSummaries(post.reactions, currentUserId),
       likes: undefined,
       _count: undefined,
     }));
@@ -221,6 +226,9 @@ export async function fetchUserPosts({
             subscriptionExpiresAt: true,
           },
         },
+        reactions: {
+          select: { reactionKey: true, userId: true },
+        },
         _count: {
           select: { likes: true },
         },
@@ -253,6 +261,7 @@ export async function fetchUserPosts({
       }),
       likesCount: post._count.likes,
       hasLiked: post.likes.length > 0,
+      reactions: buildPostReactionSummaries(post.reactions, currentUserId),
       likes: undefined,
       _count: undefined,
     }));
@@ -315,6 +324,9 @@ export async function fetchLikedPosts({
                       subscriptionExpiresAt: true,
                   }
               },
+              reactions: {
+                  select: { reactionKey: true, userId: true }
+              },
               _count: {
                   select: { likes: true }
               },
@@ -349,6 +361,7 @@ export async function fetchLikedPosts({
       }),
       likesCount: item.post._count.likes,
       hasLiked: item.post.likes.length > 0,
+      reactions: buildPostReactionSummaries(item.post.reactions, session.id),
       likes: undefined,
       _count: undefined,
     }));
@@ -508,6 +521,52 @@ export async function toggleLike(postId: number) {
 
   revalidatePath("/");
   revalidatePath("/profile");
+}
+
+export async function toggleReaction(postId: number, reactionKey: string) {
+  const session = await getSession();
+  if (!session) return;
+
+  let normalizedReactionKey: string;
+  try {
+    normalizedReactionKey = normalizeReactionKey(reactionKey);
+  } catch {
+    return;
+  }
+
+  const existingReaction = await db.postReaction.findUnique({
+    where: {
+      userId_postId_reactionKey: {
+        userId: session.id,
+        postId,
+        reactionKey: normalizedReactionKey,
+      },
+    },
+  });
+
+  if (existingReaction) {
+    await db.postReaction.delete({
+      where: {
+        userId_postId_reactionKey: {
+          userId: session.id,
+          postId,
+          reactionKey: normalizedReactionKey,
+        },
+      },
+    });
+  } else {
+    await db.postReaction.create({
+      data: {
+        userId: session.id,
+        postId,
+        reactionKey: normalizedReactionKey,
+      },
+    });
+  }
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath(`/p/${postId}`);
 }
 
 export async function deletePost(postId: number) {

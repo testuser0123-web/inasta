@@ -1,14 +1,46 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X } from 'lucide-react';
+import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { toggleLike, deletePost } from '@/app/actions/post';
+import { toggleLike, toggleReaction, deletePost } from '@/app/actions/post';
 import { addComment, deleteComment } from '@/app/actions/comment';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { Linkify } from '@/components/Linkify';
+import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type PostReactionSummary } from '@/lib/reactions';
+
+function toReactionKey(emoji: string) {
+  return normalizeReactionKey(emoji);
+}
+
+function reactionKeyToEmoji(reactionKey: string) {
+  return reactionKey.startsWith('unicode:') ? reactionKey.slice('unicode:'.length) : reactionKey;
+}
+
+function toggleReactionSummary(
+  reactions: PostReactionSummary[] | undefined,
+  reactionKey: string
+): PostReactionSummary[] {
+  const current = reactions ? [...reactions] : [];
+  const index = current.findIndex((reaction) => reaction.reactionKey === reactionKey);
+
+  if (index >= 0) {
+    const existing = current[index];
+    if (existing.hasReacted) {
+      const nextCount = existing.count - 1;
+      if (nextCount <= 0) current.splice(index, 1);
+      else current[index] = { ...existing, count: nextCount, hasReacted: false };
+    } else {
+      current[index] = { ...existing, count: existing.count + 1, hasReacted: true };
+    }
+  } else {
+    current.push({ reactionKey, emoji: reactionKeyToEmoji(reactionKey), count: 1, hasReacted: true });
+  }
+
+  return current.sort((a, b) => b.count - a.count || a.reactionKey.localeCompare(b.reactionKey));
+}
 
 type Comment = {
   id: number;
@@ -39,6 +71,7 @@ type Post = {
       roles?: string[];
   };
   comments?: Comment[];
+  reactions?: PostReactionSummary[];
   hashtags?: { name: string }[];
   images?: { id: number; order: number; url?: string }[];
 };
@@ -52,6 +85,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const [showSpoiler, setShowSpoiler] = useState(!initialPost.isSpoiler);
   const [isPlaying, setIsPlaying] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ commentId: number; username: string } | null>(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   const getCommentTextDetails = (text: string) => {
@@ -72,6 +106,35 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   useEffect(() => {
     setPost(initialPost);
   }, [initialPost]);
+
+  const isGuest = currentUserId === -1 || !currentUserId;
+
+  const handleReaction = async (emojiOrReactionKey?: string) => {
+    if (isGuest) {
+      alert("リアクション機能を使用するにはログインが必要です。");
+      return;
+    }
+
+    if (!emojiOrReactionKey) {
+      setShowReactionPicker((current) => !current);
+      return;
+    }
+
+    let reactionKey: string;
+    try {
+      reactionKey = toReactionKey(emojiOrReactionKey);
+    } catch {
+      alert('リアクションには絵文字1つだけを選択してください。');
+      return;
+    }
+    setShowReactionPicker(false);
+    setPost((current) => ({
+      ...current,
+      reactions: toggleReactionSummary(current.reactions, reactionKey),
+    }));
+
+    await toggleReaction(post.id, reactionKey);
+  };
 
   const handleLike = async () => {
     // Optimistic update
@@ -178,6 +241,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   }
 
   return (
+    <>
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border dark:border-gray-800 overflow-hidden w-full max-w-lg mx-auto flex flex-col">
        {post.mediaType === 'VIDEO' ? (
          <div className="w-full relative bg-black aspect-video flex items-center justify-center">
@@ -281,19 +345,8 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            </p>
          )}
 
-         <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-           {new Date(post.createdAt).toLocaleString('ja-JP', {
-             timeZone: 'Asia/Tokyo',
-             year: 'numeric',
-             month: '2-digit',
-             day: '2-digit',
-             hour: '2-digit',
-             minute: '2-digit',
-           })}
-         </div>
-
          {post.hashtags && post.hashtags.length > 0 && (
-           <div className="flex flex-wrap gap-1 mb-4">
+           <div className="flex flex-wrap gap-1 mb-2">
              {post.hashtags.map((tag) => (
                <Link
                  key={tag.name}
@@ -306,8 +359,45 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            </div>
          )}
 
+         <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+           {new Date(post.createdAt).toLocaleString('ja-JP', {
+             timeZone: 'Asia/Tokyo',
+             year: 'numeric',
+             month: '2-digit',
+             day: '2-digit',
+             hour: '2-digit',
+             minute: '2-digit',
+           })}
+         </div>
+
+
+
+
          {/* Comments Section */}
          <div className="space-y-3 border-t dark:border-gray-800 pt-3">
+           <div className="flex flex-wrap items-center gap-1 pb-3 border-b border-gray-100 dark:border-gray-800" data-emoji-picker="unicode-emoji-grid">
+           {(post.reactions || []).map((reaction) => (
+             <button
+               key={reaction.reactionKey}
+               type="button"
+               onClick={() => handleReaction(reaction.reactionKey)}
+               className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+               title="リアクションを切り替え"
+             >
+               <span className="mr-1">{reaction.emoji}</span>
+               <span className="text-xs font-semibold">{reaction.count}</span>
+             </button>
+           ))}
+           <button
+             type="button"
+             onClick={() => handleReaction()}
+             className={`px-2 py-1 rounded-full border text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
+             title="絵文字一覧から追加"
+             aria-expanded={showReactionPicker}
+           >
+             <Plus className="w-4 h-4" />
+           </button>
+         </div>
              {post.comments === undefined ? (
                  <div className="flex justify-center p-4">
                      <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
@@ -392,5 +482,49 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            </div>
        </div>
     </div>
+
+    {showReactionPicker && !isGuest && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="絵文字リアクションを選択">
+        <div data-emoji-picker-panel className="flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
+          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">リアクションを選択</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">絵文字1つだけ追加できます</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowReactionPicker(false)}
+              className="rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+              aria-label="絵文字一覧を閉じる"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="overflow-y-auto p-3">
+            {EMOJI_REACTION_CATEGORIES.map((category) => (
+              <section key={category.label} className="mb-4 last:mb-0">
+                <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  {category.label}
+                </h3>
+                <div className="grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12">
+                  {category.emojis.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => handleReaction(emoji)}
+                      className="rounded-lg p-2 text-2xl hover:bg-gray-100 dark:hover:bg-gray-800"
+                      title={`${emoji} を追加`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
