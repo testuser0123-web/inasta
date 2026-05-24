@@ -10,10 +10,7 @@ import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { ImageWithSpinner } from '@/components/ImageWithSpinner';
 import { Linkify } from '@/components/Linkify';
-import type { PostReactionSummary } from '@/lib/reactions';
-
-const QUICK_REACTIONS = ['👍', '❤️', '😂', '😭', '🎉', '🔥'];
-const ALL_EMOJI_PICKER_URL = 'native-emoji-prompt';
+import { EMOJI_REACTION_OPTIONS, normalizeReactionKey, type PostReactionSummary } from '@/lib/reactions';
 
 type Comment = {
   id: number;
@@ -42,7 +39,7 @@ async function fetchPostComments(postId: number, signal?: AbortSignal): Promise<
 }
 
 function toReactionKey(emoji: string) {
-  return emoji.trim().startsWith('unicode:') ? emoji.trim() : `unicode:${emoji.trim()}`;
+  return normalizeReactionKey(emoji);
 }
 
 function reactionKeyToEmoji(reactionKey: string) {
@@ -115,6 +112,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ commentId: number; username: string } | null>(null);
+  const [showReactionPickerForPostId, setShowReactionPickerForPostId] = useState<number | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   const getCommentTextDetails = (text: string) => {
@@ -299,10 +297,19 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       return;
     }
 
-    const emoji = emojiOrReactionKey ?? window.prompt('追加する絵文字を入力してください。Discordのように任意のUnicode絵文字を使えます。');
-    if (!emoji?.trim()) return;
+    if (!emojiOrReactionKey) {
+      setShowReactionPickerForPostId((current) => (current === post.id ? null : post.id));
+      return;
+    }
 
-    const reactionKey = toReactionKey(emoji);
+    let reactionKey: string;
+    try {
+      reactionKey = toReactionKey(emojiOrReactionKey);
+    } catch {
+      alert('リアクションには絵文字1つだけを選択してください。');
+      return;
+    }
+    setShowReactionPickerForPostId(null);
     setPosts((current) =>
       current.map((p) =>
         p.id === post.id
@@ -688,54 +695,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 </p>
               )}
 
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                {new Date(selectedPost.createdAt).toLocaleString('ja-JP', {
-                  timeZone: 'Asia/Tokyo',
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </div>
-
-
-              <div className="flex flex-wrap items-center gap-1 mb-3" data-emoji-picker={ALL_EMOJI_PICKER_URL}>
-                {[...(selectedPost.reactions || []), ...QUICK_REACTIONS.filter((emoji) => !(selectedPost.reactions || []).some((reaction) => reaction.reactionKey === toReactionKey(emoji))).slice(0, Math.max(0, 4 - (selectedPost.reactions || []).length))].map((reaction) =>
-                  typeof reaction === 'string' ? (
-                    <button
-                      key={reaction}
-                      type="button"
-                      onClick={() => handleReaction(selectedPost, reaction)}
-                      className={`px-2 py-1 rounded-full border text-sm bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      title="リアクションを追加"
-                    >
-                      {reaction}
-                    </button>
-                  ) : (
-                    <button
-                      key={reaction.reactionKey}
-                      type="button"
-                      onClick={() => handleReaction(selectedPost, reaction.reactionKey)}
-                      className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                      title="リアクションを切り替え"
-                    >
-                      <span className="mr-1">{reaction.emoji}</span>
-                      <span className="text-xs font-semibold">{reaction.count}</span>
-                    </button>
-                  )
-                )}
-                <button
-                  type="button"
-                  onClick={() => handleReaction(selectedPost)}
-                  className={`px-2 py-1 rounded-full border text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  title="すべての絵文字から追加"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
               {selectedPost.hashtags && selectedPost.hashtags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
+                <div className="flex flex-wrap gap-1 mb-2">
                   {selectedPost.hashtags.map((tag) => (
                     <Link
                       key={tag.name}
@@ -747,6 +708,56 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                   ))}
                 </div>
               )}
+
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                {new Date(selectedPost.createdAt).toLocaleString('ja-JP', {
+                  timeZone: 'Asia/Tokyo',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </div>
+
+              <div className="relative flex flex-wrap items-center gap-1 mb-3" data-emoji-picker="unicode-emoji-grid">
+                {(selectedPost.reactions || []).map((reaction) => (
+                  <button
+                    key={reaction.reactionKey}
+                    type="button"
+                    onClick={() => handleReaction(selectedPost, reaction.reactionKey)}
+                    className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                    title="リアクションを切り替え"
+                  >
+                    <span className="mr-1">{reaction.emoji}</span>
+                    <span className="text-xs font-semibold">{reaction.count}</span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => handleReaction(selectedPost)}
+                  className={`px-2 py-1 rounded-full border text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 ${isGuest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title="絵文字一覧から追加"
+                  aria-expanded={showReactionPickerForPostId === selectedPost.id}
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+                {showReactionPickerForPostId === selectedPost.id && !isGuest && (
+                  <div className="absolute left-0 top-full z-20 mt-2 grid max-h-52 w-72 grid-cols-8 gap-1 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                    {EMOJI_REACTION_OPTIONS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => handleReaction(selectedPost, emoji)}
+                        className="rounded-lg p-1.5 text-xl hover:bg-gray-100 dark:hover:bg-gray-800"
+                        title={`${emoji} を追加`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Comments Section */}
               <div className="space-y-3 border-t dark:border-gray-800 pt-3">
