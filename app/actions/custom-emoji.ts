@@ -236,9 +236,8 @@ export async function deleteCustomEmoji(id: number) {
     return { success: false, message: 'この絵文字は削除できません。' };
   }
 
-  await db.customEmoji.update({
+  await db.customEmoji.delete({
     where: { id },
-    data: { isActive: false },
   });
 
   revalidateTag(CUSTOM_EMOJI_CACHE_TAG, 'max');

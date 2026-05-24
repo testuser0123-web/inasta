@@ -68,7 +68,7 @@ export default function CustomEmojiManager({ currentUserId }: { currentUserId: n
       setFile(null);
       await loadCustomEmojis();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'カスタム絵文字を作成できませんでした。');
+      setStatus(error instanceof Error && error.message ? error.message : 'カスタム絵文字を作成できませんでした。');
     } finally {
       setIsSaving(false);
     }
@@ -165,9 +165,9 @@ export default function CustomEmojiManager({ currentUserId }: { currentUserId: n
               const hasChanged = hasEmojiChanged(emoji);
 
               return (
-                <div key={emoji.id} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 dark:border-gray-800">
-                  <img src={customEmojiImageSrc(emoji)} alt={`:${emoji.name}:`} width={48} height={48} className="h-12 w-12 rounded-md object-contain" />
-                  <div className="min-w-0 flex-1">
+                <div key={emoji.id} className="rounded-xl border border-gray-100 p-3 dark:border-gray-800">
+                  <div className="flex items-center gap-3">
+                    <img src={customEmojiImageSrc(emoji)} alt={`:${emoji.name}:`} width={48} height={48} className="h-12 w-12 rounded-md object-contain" />
                     <input
                       type="text"
                       value={editingNames[emoji.id] ?? emoji.name}
@@ -175,29 +175,29 @@ export default function CustomEmojiManager({ currentUserId }: { currentUserId: n
                       maxLength={32}
                       disabled={!canEdit}
                       aria-label={`:${emoji.name}: の名前`}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:disabled:bg-gray-800"
+                      className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:disabled:bg-gray-800"
                     />
-                    {emoji.creator?.username && (
-                      <p className="mt-1 text-xs lowercase text-gray-400 dark:text-gray-500">作成者: {emoji.creator?.username.toLowerCase()}</p>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleUpdate(emoji)}
+                      disabled={isSaving || !canEdit || !hasChanged}
+                      className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 dark:bg-gray-100 dark:text-gray-900"
+                    >
+                      保存
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(emoji)}
+                      disabled={isSaving || !canEdit}
+                      className="rounded-full p-2 text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-red-950"
+                      aria-label={`:${emoji.name}: を削除`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleUpdate(emoji)}
-                    disabled={isSaving || !canEdit || !hasChanged}
-                    className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 dark:bg-gray-100 dark:text-gray-900"
-                  >
-                    保存
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(emoji)}
-                    disabled={isSaving || !canEdit}
-                    className="rounded-full p-2 text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-red-950"
-                    aria-label={`:${emoji.name}: を削除`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  {emoji.creator?.username && (
+                    <p className="mt-2 text-right text-xs lowercase text-gray-400 dark:text-gray-500">作成者: {emoji.creator?.username.toLowerCase()}</p>
+                  )}
                 </div>
               );
             })}

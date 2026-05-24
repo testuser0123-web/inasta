@@ -29,6 +29,7 @@ assert.match(customEmojiActions, /image\/(png|jpeg|jpg|gif|webp)/, 'custom emoji
 assert.match(customEmojiActions, /data:image|base64/, 'server action should explicitly reject inline/base64 image storage');
 assert.match(customEmojiActions, /width\s*!==\s*128|height\s*!==\s*128/, 'server action should require normalized 128x128 emoji images');
 assert.match(customEmojiActions, /normalizeCustomEmojiName/, 'server action should validate custom emoji names');
+assert.match(customEmojiActions, /db\.customEmoji\.delete/, 'deleting a custom emoji should remove it from the database so the name can be reused');
 assert.match(postActions, /customEmoji:\s*{\s*select:\s*{[\s\S]*name:\s*true[\s\S]*imageUrl:\s*true/, 'post queries should include custom emoji metadata for reaction chips');
 assert.match(postActions, /customEmojiId/, 'toggleReaction should persist the custom emoji relation');
 assert.match(feed, /fetchCustomEmojis/, 'Feed picker should load shared custom emoji');
@@ -51,6 +52,7 @@ assert.match(customEmojiManager, /canEditEmoji\(emoji\)/, 'custom emoji manager 
 assert.match(customEmojiManager, /hasEmojiChanged\(emoji\)/, 'custom emoji save button should activate only after changes');
 assert.match(customEmojiManager, /emoji\.creator\?\.username\.toLowerCase\(\)/, 'custom emoji manager should show the creator username in lowercase');
 assert.match(customEmojiManager, /text-xs[\s\S]*作成者/, 'custom emoji creator should be rendered as small text');
+assert.match(customEmojiManager, /text-right[\s\S]*作成者/, 'custom emoji creator should be on its own row aligned to the lower right');
 assert.match(customEmojiManager, /htmlFor="custom-emoji-file"[\s\S]*ファイルを選択/, 'custom emoji file input should be presented as a proper button');
 assert.match(customEmojiRoute, /db\.customEmoji\.findUnique[\s\S]*fetch\(customEmoji\.imageUrl\)/, 'custom emoji images should be served through a same-origin proxy route');
 assert.match(reactionsLib, /絵文字名は2〜32文字で、半角英小文字・数字・アンダースコアのみ使用できます。/, 'custom emoji validation message should be Japanese');
@@ -58,4 +60,6 @@ assert.doesNotMatch(reactionsLib, /Custom emoji name must/, 'custom emoji valida
 assert.match(clientUpload, /export async function prepareCustomEmojiUpload/, 'client upload helper should normalize custom emoji images before storage upload');
 assert.match(clientUpload, /canvas\.width\s*=\s*128[\s\S]*canvas\.height\s*=\s*128/, 'custom emoji uploads should be resized to a square 128x128 canvas');
 assert.match(clientUpload, /Math\.min\(scaleX, scaleY\)/, 'custom emoji resizing should preserve aspect ratio without distortion');
+assert.match(clientUpload, /loadImageElement[\s\S]*URL\.createObjectURL/, 'PNG uploads should fall back to an HTMLImageElement decode path when createImageBitmap cannot decode the source');
+assert.match(clientUpload, /画像を読み込めませんでした。/, 'custom emoji upload decode errors should be shown in Japanese');
 assert.match(clientUpload, /custom-emojis/, 'custom emoji helper should upload to object storage custom-emojis folder');

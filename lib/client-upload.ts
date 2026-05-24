@@ -1,6 +1,30 @@
 
 import { getSignedUploadUrl } from '@/app/actions/storage';
 
+function loadImageElement(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('画像を読み込めませんでした。'));
+    };
+    image.src = objectUrl;
+  });
+}
+
+async function decodeCustomEmojiImage(file: File): Promise<ImageBitmap | HTMLImageElement> {
+  try {
+    return await createImageBitmap(file);
+  } catch {
+    return loadImageElement(file);
+  }
+}
+
 /**
  * Uploads a file to Supabase Storage using a signed URL.
  *
@@ -44,7 +68,12 @@ export async function prepareCustomEmojiUpload(file: File): Promise<{ file: File
     throw new Error('画像ファイルを選択してください。');
   }
 
-  const bitmap = await createImageBitmap(file);
+  let bitmap: ImageBitmap | HTMLImageElement;
+  try {
+    bitmap = await decodeCustomEmojiImage(file);
+  } catch {
+    throw new Error('画像を読み込めませんでした。');
+  }
   const canvas = document.createElement('canvas');
   canvas.width = 128;
   canvas.height = 128;
@@ -60,7 +89,9 @@ export async function prepareCustomEmojiUpload(file: File): Promise<{ file: File
   const dx = Math.round((canvas.width - drawWidth) / 2);
   const dy = Math.round((canvas.height - drawHeight) / 2);
   ctx.drawImage(bitmap, dx, dy, drawWidth, drawHeight);
-  bitmap.close?.();
+  if ('close' in bitmap) {
+    bitmap.close();
+  }
 
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((result) => result ? resolve(result) : reject(new Error('絵文字画像を生成できませんでした。')), 'image/webp', 0.92);
