@@ -759,7 +759,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                     title="リアクションを切り替え"
                   >
                     {reaction.customEmoji ? (
-                      <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={20} height={20} className="mr-1 inline-block h-5 w-5 rounded-sm object-contain align-middle" />
+                      <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} className="mr-1 inline-block h-6 w-6 rounded-sm object-contain align-middle" />
                     ) : (
                       <span className="mr-1">{reaction.emoji}</span>
                     )}

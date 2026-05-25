@@ -38,12 +38,14 @@ assert.doesNotMatch(feed, /createCustomEmoji|uploadCustomEmojiImage|showCustomEm
 assert.doesNotMatch(feed, /オブジェクトストレージに保存/, 'Feed UI must not expose storage implementation details to users');
 assert.match(feed, /\/api\/custom_emoji\/\$\{customEmoji\.id\}\.webp/, 'Feed should render custom emoji through the same-origin proxy route');
 assert.match(feed, /customEmoji\.imageUrl/, 'Feed should render custom emoji images');
+assert.match(feed, /width=\{24\}[\s\S]*height=\{24\}[\s\S]*h-6 w-6/, 'Feed reaction chips should render custom emoji large enough while preserving chip balance');
 assert.doesNotMatch(feed, /border-dashed/, 'Feed picker should not put custom emoji in a special dashed frame');
 assert.match(singlePost, /fetchCustomEmojis/, 'SinglePost picker should load shared custom emoji');
 assert.doesNotMatch(singlePost, /createCustomEmoji|uploadCustomEmojiImage|showCustomEmojiUploadForm|type=\"file\"/, 'SinglePost picker must not contain custom emoji creation UI');
 assert.doesNotMatch(singlePost, /オブジェクトストレージに保存/, 'SinglePost UI must not expose storage implementation details to users');
 assert.match(singlePost, /\/api\/custom_emoji\/\$\{customEmoji\.id\}\.webp/, 'SinglePost should render custom emoji through the same-origin proxy route');
 assert.match(singlePost, /customEmoji\.imageUrl/, 'SinglePost should render custom emoji images');
+assert.match(singlePost, /width=\{24\}[\s\S]*height=\{24\}[\s\S]*h-6 w-6/, 'SinglePost reaction chips should render custom emoji large enough while preserving chip balance');
 assert.doesNotMatch(singlePost, /border-dashed/, 'SinglePost picker should not put custom emoji in a special dashed frame');
 assert.match(sidebar, /カスタム絵文字[\s\S]*href:\s*['"]\/custom-emojis['"]/, 'Sidebar should expose custom emoji management from the hamburger/sidebar menu');
 assert.match(customEmojiPage, /CustomEmojiManager/, 'custom emoji management page should render the manager');
