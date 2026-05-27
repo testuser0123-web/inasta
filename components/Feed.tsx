@@ -122,6 +122,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const [showReactionPickerForPostId, setShowReactionPickerForPostId] = useState<number | null>(null);
   const [customEmojis, setCustomEmojis] = useState<CustomEmojiSummary[]>([]);
   const [customEmojiError, setCustomEmojiError] = useState<string | null>(null);
+  const [enlargedCustomEmoji, setEnlargedCustomEmoji] = useState<CustomEmojiSummary | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   const getCommentTextDetails = (text: string) => {
@@ -751,20 +752,31 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               <div className="space-y-3 border-t dark:border-gray-800 pt-3">
                 <div className="flex flex-wrap items-center gap-1 pb-3 border-b border-gray-100 dark:border-gray-800" data-emoji-picker="unicode-emoji-grid">
                 {(selectedPost.reactions || []).map((reaction) => (
-                  <button
-                    key={reaction.reactionKey}
-                    type="button"
-                    onClick={() => handleReaction(selectedPost, reaction.reactionKey)}
-                    className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                    title="リアクションを切り替え"
-                  >
-                    {reaction.customEmoji ? (
-                      <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} className="mr-1 inline-block h-6 w-6 rounded-sm object-contain align-middle" />
-                    ) : (
-                      <span className="mr-1">{reaction.emoji}</span>
+                  <div key={reaction.reactionKey} className="inline-flex items-center overflow-hidden rounded-full border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+                    <button
+                      type="button"
+                      onClick={() => handleReaction(selectedPost, reaction.reactionKey)}
+                      className={`px-2 py-1 text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800'}`}
+                      title="リアクションを切り替え"
+                    >
+                      {reaction.customEmoji ? (
+                        <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} className="mr-1 inline-block h-6 w-6 rounded-sm object-contain align-middle" />
+                      ) : (
+                        <span className="mr-1">{reaction.emoji}</span>
+                      )}
+                      <span className="text-xs font-semibold">{reaction.count}</span>
+                    </button>
+                    {reaction.customEmoji && (
+                      <button
+                        type="button"
+                        onClick={() => setEnlargedCustomEmoji(reaction.customEmoji ?? null)}
+                        className="border-l border-gray-200 px-2 py-1 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-gray-700 dark:text-indigo-300 dark:hover:bg-indigo-950"
+                        title={`:${reaction.customEmoji.name}: の画像を拡大表示`}
+                      >
+                        拡大
+                      </button>
                     )}
-                    <span className="text-xs font-semibold">{reaction.count}</span>
-                  </button>
+                  </div>
                 ))}
                 <button
                   type="button"
@@ -872,6 +884,30 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
         </div>
       )}
 
+      {enlargedCustomEmoji && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="カスタム絵文字画像を拡大表示">
+          <div className="relative flex max-w-[90vw] flex-col items-center gap-3 rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-700 dark:bg-gray-900">
+            <button
+              type="button"
+              onClick={() => setEnlargedCustomEmoji(null)}
+              className="absolute right-3 top-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+              aria-label="拡大画像を閉じる"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={getCustomEmojiImageSrc(enlargedCustomEmoji)}
+              alt={`:${enlargedCustomEmoji.name}:`}
+              width={192}
+              height={192}
+              className="h-48 w-48 rounded-xl object-contain"
+            />
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">:{enlargedCustomEmoji.name}:</span>
+          </div>
+        </div>
+      )}
+
       {reactionPickerPost && !isGuest && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="絵文字リアクションを選択">
           <div data-emoji-picker-panel className="flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
@@ -895,15 +931,24 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 {customEmojis.length > 0 && (
                   <div className="mb-3 grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12">
                     {customEmojis.map((customEmoji) => (
-                      <button
-                        key={customEmoji.id}
-                        type="button"
-                        onClick={() => handleReaction(reactionPickerPost, `custom:${customEmoji.id}`, customEmoji)}
-                        className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        title={`:${customEmoji.name}: を追加`}
-                      >
-                        <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" />
-                      </button>
+                      <div key={customEmoji.id} className="flex flex-col items-center gap-1 rounded-lg p-1 hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <button
+                          type="button"
+                          onClick={() => handleReaction(reactionPickerPost, `custom:${customEmoji.id}`, customEmoji)}
+                          className="rounded-md p-1"
+                          title={`:${customEmoji.name}: を追加`}
+                        >
+                          <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEnlargedCustomEmoji(customEmoji)}
+                          className="rounded-full border border-indigo-200 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-950"
+                          title={`:${customEmoji.name}: の画像を拡大表示`}
+                        >
+                          拡大
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}
