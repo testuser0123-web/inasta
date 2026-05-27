@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FormEvent, type MouseEvent, type PointerEvent } from 'react';
 import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -94,7 +94,11 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [customEmojis, setCustomEmojis] = useState<CustomEmojiSummary[]>([]);
   const [customEmojiError, setCustomEmojiError] = useState<string | null>(null);
+  const [previewReaction, setPreviewReaction] = useState<PostReactionSummary | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
+  const reactionPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reactionPreviewDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressReactionClickRef = useRef(false);
 
   const getCommentTextDetails = (text: string) => {
     const replyPrefixRegex = /^@[^\s]+\s/;
@@ -157,6 +161,85 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
     await toggleReaction(post.id, reactionKey);
   };
 
+  const clearReactionPreviewTimers = () => {
+    if (reactionPreviewTimerRef.current) {
+      clearTimeout(reactionPreviewTimerRef.current);
+      reactionPreviewTimerRef.current = null;
+    }
+    if (reactionPreviewDismissTimerRef.current) {
+      clearTimeout(reactionPreviewDismissTimerRef.current);
+      reactionPreviewDismissTimerRef.current = null;
+    }
+  };
+
+  const canHoverPreview = () =>
+    typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  const showReactionPreview = (reaction: PostReactionSummary) => {
+    clearReactionPreviewTimers();
+    setPreviewReaction(reaction);
+  };
+
+  const scheduleReactionPreviewHide = (delay = 0) => {
+    if (reactionPreviewDismissTimerRef.current) {
+      clearTimeout(reactionPreviewDismissTimerRef.current);
+    }
+    reactionPreviewDismissTimerRef.current = setTimeout(() => {
+      setPreviewReaction(null);
+      reactionPreviewDismissTimerRef.current = null;
+    }, delay);
+  };
+
+  const handleReactionMouseEnter = (reaction: PostReactionSummary) => {
+    if (canHoverPreview()) showReactionPreview(reaction);
+  };
+
+  const handleReactionMouseLeave = () => {
+    if (canHoverPreview()) scheduleReactionPreviewHide(80);
+  };
+
+  const handleReactionPointerDown = (event: PointerEvent<HTMLButtonElement>, reaction: PostReactionSummary) => {
+    if (event.pointerType === 'mouse') return;
+    clearReactionPreviewTimers();
+    suppressReactionClickRef.current = false;
+    reactionPreviewTimerRef.current = setTimeout(() => {
+      suppressReactionClickRef.current = true;
+      setPreviewReaction(reaction);
+    }, 450);
+  };
+
+  const handleReactionPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'mouse') return;
+    if (reactionPreviewTimerRef.current) {
+      clearTimeout(reactionPreviewTimerRef.current);
+      reactionPreviewTimerRef.current = null;
+    }
+    if (suppressReactionClickRef.current) scheduleReactionPreviewHide(900);
+  };
+
+  const handleReactionPointerCancel = () => {
+    clearReactionPreviewTimers();
+    setPreviewReaction(null);
+    suppressReactionClickRef.current = false;
+  };
+
+  const handleReactionChipClick = (event: MouseEvent<HTMLButtonElement>, reactionKey: string) => {
+    if (suppressReactionClickRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressReactionClickRef.current = false;
+      return;
+    }
+    handleReaction(reactionKey);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (reactionPreviewTimerRef.current) clearTimeout(reactionPreviewTimerRef.current);
+      if (reactionPreviewDismissTimerRef.current) clearTimeout(reactionPreviewDismissTimerRef.current);
+    };
+  }, []);
+
 
   const handleLike = async () => {
     // Optimistic update
@@ -190,7 +273,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
       }
   };
 
-  const handleAddComment = async (e: React.FormEvent) => {
+  const handleAddComment = async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (!actualText.trim()) return;
 
@@ -402,9 +485,17 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
              <button
                key={reaction.reactionKey}
                type="button"
-               onClick={() => handleReaction(reaction.reactionKey)}
+               onClick={(event) => handleReactionChipClick(event, reaction.reactionKey)}
+               onMouseEnter={() => handleReactionMouseEnter(reaction)}
+               onMouseLeave={handleReactionMouseLeave}
+               onPointerDown={(event) => handleReactionPointerDown(event, reaction)}
+               onPointerUp={handleReactionPointerUp}
+               onPointerCancel={handleReactionPointerCancel}
+               onPointerLeave={(event) => {
+                 if (event.pointerType !== 'mouse') handleReactionPointerCancel();
+               }}
                className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-               title="リアクションを切り替え"
+               title="PCではホバー、スマホでは長押しで拡大表示。クリックでリアクションを切り替え"
              >
                {reaction.customEmoji ? (
                  <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} className="mr-1 inline-block h-6 w-6 rounded-sm object-contain align-middle" />
@@ -508,6 +599,26 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            </div>
        </div>
     </div>
+
+    {previewReaction && (
+      <div className="pointer-events-none fixed inset-0 z-[90] flex items-center justify-center p-4" aria-hidden="true">
+        <div className="flex min-w-28 flex-col items-center gap-2 rounded-3xl border border-white/70 bg-white/95 px-6 py-5 text-gray-900 shadow-2xl backdrop-blur dark:border-gray-700/70 dark:bg-gray-900/95 dark:text-gray-100">
+          {previewReaction.customEmoji ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={getCustomEmojiImageSrc(previewReaction.customEmoji)}
+              alt={`:${previewReaction.customEmoji.name}:`}
+              width={96}
+              height={96}
+              className="h-24 w-24 rounded-lg object-contain"
+            />
+          ) : (
+            <span className="text-7xl leading-none">{previewReaction.emoji}</span>
+          )}
+          <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">{previewReaction.count}</span>
+        </div>
+      </div>
+    )}
 
     {showReactionPicker && !isGuest && (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="絵文字リアクションを選択">
