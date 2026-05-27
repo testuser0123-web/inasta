@@ -238,6 +238,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
 
   const handleReactionPointerDown = (event: PointerEvent<HTMLButtonElement>, reaction: PostReactionSummary) => {
     if (event.pointerType === 'mouse') return;
+    event.preventDefault();
     clearReactionPreviewTimers();
     suppressReactionClickRef.current = false;
     reactionPreviewTimerRef.current = setTimeout(() => {
@@ -248,6 +249,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
 
   const handleCustomEmojiPointerDown = (event: PointerEvent<HTMLButtonElement>, customEmoji: CustomEmojiSummary) => {
     if (event.pointerType === 'mouse') return;
+    event.preventDefault();
     clearCustomEmojiPreviewTimers();
     suppressCustomEmojiClickRef.current = false;
     customEmojiPreviewTimerRef.current = setTimeout(() => {
@@ -561,19 +563,24 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                key={reaction.reactionKey}
                type="button"
                onClick={(event) => handleReactionChipClick(event, reaction.reactionKey)}
-               onMouseEnter={() => handleReactionMouseEnter(reaction)}
-               onMouseLeave={handleReactionMouseLeave}
-               onPointerDown={(event) => handleReactionPointerDown(event, reaction)}
-               onPointerUp={handleReactionPointerUp}
-               onPointerCancel={handleReactionPointerCancel}
-               onPointerLeave={(event) => {
-                 if (event.pointerType !== 'mouse') handleReactionPointerCancel();
+               onMouseEnter={() => reaction.customEmoji && handleReactionMouseEnter(reaction)}
+               onMouseLeave={reaction.customEmoji ? handleReactionMouseLeave : undefined}
+               onPointerDown={(event) => {
+                 if (reaction.customEmoji) handleReactionPointerDown(event, reaction);
                }}
-               className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-               title="PCではホバー、スマホでは長押しで拡大表示。クリックでリアクションを切り替え"
+               onPointerUp={reaction.customEmoji ? handleReactionPointerUp : undefined}
+               onPointerCancel={reaction.customEmoji ? handleReactionPointerCancel : undefined}
+               onPointerLeave={(event) => {
+                 if (event.pointerType !== 'mouse' && reaction.customEmoji) handleReactionPointerCancel();
+               }}
+               onContextMenu={(event) => {
+                 if (reaction.customEmoji) event.preventDefault();
+               }}
+               className={`select-none px-2 py-1 rounded-full border text-sm transition-colors [-webkit-touch-callout:none] ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+               aria-label={reaction.customEmoji ? `:${reaction.customEmoji.name}: のリアクションを切り替え` : `${reaction.emoji} のリアクションを切り替え`}
              >
                {reaction.customEmoji ? (
-                 <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} className="mr-1 inline-block h-6 w-6 rounded-sm object-contain align-middle" />
+                 <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} draggable={false} className="mr-1 inline-block h-6 w-6 select-none rounded-sm object-contain align-middle [-webkit-touch-callout:none]" />
                ) : (
                  <span className="mr-1">{reaction.emoji}</span>
                )}
@@ -675,38 +682,34 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
        </div>
     </div>
 
-    {previewReaction && (
+    {previewReaction?.customEmoji && (
       <div className="pointer-events-none fixed inset-0 z-[90] flex items-center justify-center p-4" aria-hidden="true">
-        <div className="flex min-w-28 flex-col items-center gap-2 rounded-3xl border border-white/70 bg-white/95 px-6 py-5 text-gray-900 shadow-2xl backdrop-blur dark:border-gray-700/70 dark:bg-gray-900/95 dark:text-gray-100">
-          {previewReaction.customEmoji ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={getCustomEmojiImageSrc(previewReaction.customEmoji)}
-              alt={`:${previewReaction.customEmoji.name}:`}
-              width={192}
-              height={192}
-              className="h-48 w-48 rounded-xl object-contain"
-            />
-          ) : (
-            <span className="text-7xl leading-none">{previewReaction.emoji}</span>
-          )}
-          <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">{previewReaction.count}</span>
+        <div className="flex max-w-[90vw] items-center justify-center rounded-3xl border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur dark:border-gray-700/70 dark:bg-gray-900/95">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={getCustomEmojiImageSrc(previewReaction.customEmoji)}
+            alt={`:${previewReaction.customEmoji.name}:`}
+            width={192}
+            height={192}
+            draggable={false}
+            className="h-48 w-48 select-none rounded-xl object-contain [-webkit-touch-callout:none]"
+          />
         </div>
       </div>
     )}
 
     {enlargedCustomEmoji && (
       <div className="pointer-events-none fixed inset-0 z-[120] flex items-center justify-center p-4" aria-hidden="true">
-        <div className="flex max-w-[90vw] flex-col items-center gap-3 rounded-3xl border border-white/70 bg-white/95 p-6 text-gray-900 shadow-2xl backdrop-blur dark:border-gray-700/70 dark:bg-gray-900/95 dark:text-gray-100">
+        <div className="flex max-w-[90vw] items-center justify-center rounded-3xl border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur dark:border-gray-700/70 dark:bg-gray-900/95">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={getCustomEmojiImageSrc(enlargedCustomEmoji)}
             alt={`:${enlargedCustomEmoji.name}:`}
             width={192}
             height={192}
-            className="h-48 w-48 rounded-xl object-contain"
+            draggable={false}
+            className="h-48 w-48 select-none rounded-xl object-contain [-webkit-touch-callout:none]"
           />
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">:{enlargedCustomEmoji.name}:</span>
         </div>
       </div>
     )}
@@ -746,10 +749,11 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                       onPointerLeave={(event) => {
                         if (event.pointerType !== 'mouse') handleCustomEmojiPointerCancel();
                       }}
-                      className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      title={`:${customEmoji.name}: を追加。PCではホバー、スマホでは長押しで拡大表示`}
+                      onContextMenu={(event) => event.preventDefault()}
+                      className="select-none rounded-lg p-2 [-webkit-touch-callout:none] hover:bg-gray-100 dark:hover:bg-gray-800"
+                      aria-label={`:${customEmoji.name}: を追加`}
                     >
-                      <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" />
+                      <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} draggable={false} className="h-8 w-8 select-none object-contain [-webkit-touch-callout:none]" />
                     </button>
                   ))}
                 </div>
