@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type MouseEvent, type PointerEvent } from 'react';
 import { Heart, Plus, X, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, Layers, AlertTriangle, Play, CornerDownRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
@@ -124,6 +124,9 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const [customEmojiError, setCustomEmojiError] = useState<string | null>(null);
   const [enlargedCustomEmoji, setEnlargedCustomEmoji] = useState<CustomEmojiSummary | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
+  const customEmojiPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const customEmojiPreviewDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressCustomEmojiClickRef = useRef(false);
 
   const getCommentTextDetails = (text: string) => {
     const replyPrefixRegex = /^@[^\s]+\s/;
@@ -345,6 +348,84 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     await toggleReaction(post.id, reactionKey);
   };
 
+  const clearCustomEmojiPreviewTimers = () => {
+    if (customEmojiPreviewTimerRef.current) {
+      clearTimeout(customEmojiPreviewTimerRef.current);
+      customEmojiPreviewTimerRef.current = null;
+    }
+    if (customEmojiPreviewDismissTimerRef.current) {
+      clearTimeout(customEmojiPreviewDismissTimerRef.current);
+      customEmojiPreviewDismissTimerRef.current = null;
+    }
+  };
+
+  const canHoverPreview = () =>
+    typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  const showCustomEmojiPreview = (customEmoji: CustomEmojiSummary) => {
+    clearCustomEmojiPreviewTimers();
+    setEnlargedCustomEmoji(customEmoji);
+  };
+
+  const scheduleCustomEmojiPreviewHide = (delay = 0) => {
+    if (customEmojiPreviewDismissTimerRef.current) {
+      clearTimeout(customEmojiPreviewDismissTimerRef.current);
+    }
+    customEmojiPreviewDismissTimerRef.current = setTimeout(() => {
+      setEnlargedCustomEmoji(null);
+      customEmojiPreviewDismissTimerRef.current = null;
+    }, delay);
+  };
+
+  const handleCustomEmojiMouseEnter = (customEmoji: CustomEmojiSummary) => {
+    if (canHoverPreview()) showCustomEmojiPreview(customEmoji);
+  };
+
+  const handleCustomEmojiMouseLeave = () => {
+    if (canHoverPreview()) scheduleCustomEmojiPreviewHide(80);
+  };
+
+  const handleCustomEmojiPointerDown = (event: PointerEvent<HTMLButtonElement>, customEmoji: CustomEmojiSummary) => {
+    if (event.pointerType === 'mouse') return;
+    clearCustomEmojiPreviewTimers();
+    suppressCustomEmojiClickRef.current = false;
+    customEmojiPreviewTimerRef.current = setTimeout(() => {
+      suppressCustomEmojiClickRef.current = true;
+      setEnlargedCustomEmoji(customEmoji);
+    }, 450);
+  };
+
+  const handleCustomEmojiPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'mouse') return;
+    if (customEmojiPreviewTimerRef.current) {
+      clearTimeout(customEmojiPreviewTimerRef.current);
+      customEmojiPreviewTimerRef.current = null;
+    }
+    if (suppressCustomEmojiClickRef.current) scheduleCustomEmojiPreviewHide(900);
+  };
+
+  const handleCustomEmojiPointerCancel = () => {
+    clearCustomEmojiPreviewTimers();
+    setEnlargedCustomEmoji(null);
+    suppressCustomEmojiClickRef.current = false;
+  };
+
+  const handleCustomEmojiClick = (event: MouseEvent<HTMLButtonElement>, callback: () => void) => {
+    if (suppressCustomEmojiClickRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressCustomEmojiClickRef.current = false;
+      return;
+    }
+    callback();
+  };
+
+  useEffect(() => {
+    return () => {
+      if (customEmojiPreviewTimerRef.current) clearTimeout(customEmojiPreviewTimerRef.current);
+      if (customEmojiPreviewDismissTimerRef.current) clearTimeout(customEmojiPreviewDismissTimerRef.current);
+    };
+  }, []);
 
   const handleLike = async (post: Post) => {
     if (isGuest) {
@@ -752,31 +833,30 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               <div className="space-y-3 border-t dark:border-gray-800 pt-3">
                 <div className="flex flex-wrap items-center gap-1 pb-3 border-b border-gray-100 dark:border-gray-800" data-emoji-picker="unicode-emoji-grid">
                 {(selectedPost.reactions || []).map((reaction) => (
-                  <div key={reaction.reactionKey} className="inline-flex items-center overflow-hidden rounded-full border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-                    <button
-                      type="button"
-                      onClick={() => handleReaction(selectedPost, reaction.reactionKey)}
-                      className={`px-2 py-1 text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800'}`}
-                      title="リアクションを切り替え"
-                    >
-                      {reaction.customEmoji ? (
-                        <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} className="mr-1 inline-block h-6 w-6 rounded-sm object-contain align-middle" />
-                      ) : (
-                        <span className="mr-1">{reaction.emoji}</span>
-                      )}
-                      <span className="text-xs font-semibold">{reaction.count}</span>
-                    </button>
-                    {reaction.customEmoji && (
-                      <button
-                        type="button"
-                        onClick={() => setEnlargedCustomEmoji(reaction.customEmoji ?? null)}
-                        className="border-l border-gray-200 px-2 py-1 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-gray-700 dark:text-indigo-300 dark:hover:bg-indigo-950"
-                        title={`:${reaction.customEmoji.name}: の画像を拡大表示`}
-                      >
-                        拡大
-                      </button>
+                  <button
+                    key={reaction.reactionKey}
+                    type="button"
+                    onClick={(event) => handleCustomEmojiClick(event, () => handleReaction(selectedPost, reaction.reactionKey))}
+                    onMouseEnter={() => reaction.customEmoji && handleCustomEmojiMouseEnter(reaction.customEmoji)}
+                    onMouseLeave={reaction.customEmoji ? handleCustomEmojiMouseLeave : undefined}
+                    onPointerDown={(event) => {
+                      if (reaction.customEmoji) handleCustomEmojiPointerDown(event, reaction.customEmoji);
+                    }}
+                    onPointerUp={reaction.customEmoji ? handleCustomEmojiPointerUp : undefined}
+                    onPointerCancel={reaction.customEmoji ? handleCustomEmojiPointerCancel : undefined}
+                    onPointerLeave={(event) => {
+                      if (event.pointerType !== 'mouse' && reaction.customEmoji) handleCustomEmojiPointerCancel();
+                    }}
+                    className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                    title="リアクションを切り替え。カスタム絵文字はPCではホバー、スマホでは長押しで拡大表示"
+                  >
+                    {reaction.customEmoji ? (
+                      <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} className="mr-1 inline-block h-6 w-6 rounded-sm object-contain align-middle" />
+                    ) : (
+                      <span className="mr-1">{reaction.emoji}</span>
                     )}
-                  </div>
+                    <span className="text-xs font-semibold">{reaction.count}</span>
+                  </button>
                 ))}
                 <button
                   type="button"
@@ -885,16 +965,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       )}
 
       {enlargedCustomEmoji && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="カスタム絵文字画像を拡大表示">
-          <div className="relative flex max-w-[90vw] flex-col items-center gap-3 rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-700 dark:bg-gray-900">
-            <button
-              type="button"
-              onClick={() => setEnlargedCustomEmoji(null)}
-              className="absolute right-3 top-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-              aria-label="拡大画像を閉じる"
-            >
-              <X className="h-5 w-5" />
-            </button>
+        <div className="pointer-events-none fixed inset-0 z-[120] flex items-center justify-center p-4" aria-hidden="true">
+          <div className="flex max-w-[90vw] flex-col items-center gap-3 rounded-3xl border border-white/70 bg-white/95 p-6 text-gray-900 shadow-2xl backdrop-blur dark:border-gray-700/70 dark:bg-gray-900/95 dark:text-gray-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={getCustomEmojiImageSrc(enlargedCustomEmoji)}
@@ -931,24 +1003,23 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 {customEmojis.length > 0 && (
                   <div className="mb-3 grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12">
                     {customEmojis.map((customEmoji) => (
-                      <div key={customEmoji.id} className="flex flex-col items-center gap-1 rounded-lg p-1 hover:bg-gray-100 dark:hover:bg-gray-800">
-                        <button
-                          type="button"
-                          onClick={() => handleReaction(reactionPickerPost, `custom:${customEmoji.id}`, customEmoji)}
-                          className="rounded-md p-1"
-                          title={`:${customEmoji.name}: を追加`}
-                        >
-                          <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEnlargedCustomEmoji(customEmoji)}
-                          className="rounded-full border border-indigo-200 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-950"
-                          title={`:${customEmoji.name}: の画像を拡大表示`}
-                        >
-                          拡大
-                        </button>
-                      </div>
+                      <button
+                        key={customEmoji.id}
+                        type="button"
+                        onClick={(event) => handleCustomEmojiClick(event, () => handleReaction(reactionPickerPost, `custom:${customEmoji.id}`, customEmoji))}
+                        onMouseEnter={() => handleCustomEmojiMouseEnter(customEmoji)}
+                        onMouseLeave={handleCustomEmojiMouseLeave}
+                        onPointerDown={(event) => handleCustomEmojiPointerDown(event, customEmoji)}
+                        onPointerUp={handleCustomEmojiPointerUp}
+                        onPointerCancel={handleCustomEmojiPointerCancel}
+                        onPointerLeave={(event) => {
+                          if (event.pointerType !== 'mouse') handleCustomEmojiPointerCancel();
+                        }}
+                        className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        title={`:${customEmoji.name}: を追加。PCではホバー、スマホでは長押しで拡大表示`}
+                      >
+                        <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" />
+                      </button>
                     ))}
                   </div>
                 )}
