@@ -336,6 +336,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       alert('リアクションには絵文字1つだけを選択してください。');
       return;
     }
+    clearCustomEmojiPreviewTimers();
+    setEnlargedCustomEmoji(null);
     setShowReactionPickerForPostId(null);
     setPosts((current) =>
       current.map((p) =>
@@ -418,6 +420,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       suppressCustomEmojiClickRef.current = false;
       return;
     }
+    clearCustomEmojiPreviewTimers();
+    setEnlargedCustomEmoji(null);
     callback();
   };
 

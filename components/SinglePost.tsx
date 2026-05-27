@@ -156,6 +156,10 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
       alert('リアクションには絵文字1つだけを選択してください。');
       return;
     }
+    clearReactionPreviewTimers();
+    clearCustomEmojiPreviewTimers();
+    setPreviewReaction(null);
+    setEnlargedCustomEmoji(null);
     setShowReactionPicker(false);
     setPost((current) => ({
       ...current,
@@ -295,6 +299,8 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
       suppressReactionClickRef.current = false;
       return;
     }
+    clearReactionPreviewTimers();
+    setPreviewReaction(null);
     handleReaction(reactionKey);
   };
 
@@ -305,6 +311,8 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
       suppressCustomEmojiClickRef.current = false;
       return;
     }
+    clearCustomEmojiPreviewTimers();
+    setEnlargedCustomEmoji(null);
     handleReaction(`custom:${customEmoji.id}`, customEmoji);
   };
 
