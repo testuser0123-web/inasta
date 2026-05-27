@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FormEvent, type MouseEvent, type PointerEvent } from 'react';
 import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -94,7 +94,15 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [customEmojis, setCustomEmojis] = useState<CustomEmojiSummary[]>([]);
   const [customEmojiError, setCustomEmojiError] = useState<string | null>(null);
+  const [previewReaction, setPreviewReaction] = useState<PostReactionSummary | null>(null);
+  const [enlargedCustomEmoji, setEnlargedCustomEmoji] = useState<CustomEmojiSummary | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
+  const reactionPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reactionPreviewDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const customEmojiPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const customEmojiPreviewDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressReactionClickRef = useRef(false);
+  const suppressCustomEmojiClickRef = useRef(false);
 
   const getCommentTextDetails = (text: string) => {
     const replyPrefixRegex = /^@[^\s]+\s/;
@@ -157,6 +165,158 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
     await toggleReaction(post.id, reactionKey);
   };
 
+  const clearReactionPreviewTimers = () => {
+    if (reactionPreviewTimerRef.current) {
+      clearTimeout(reactionPreviewTimerRef.current);
+      reactionPreviewTimerRef.current = null;
+    }
+    if (reactionPreviewDismissTimerRef.current) {
+      clearTimeout(reactionPreviewDismissTimerRef.current);
+      reactionPreviewDismissTimerRef.current = null;
+    }
+  };
+
+  const clearCustomEmojiPreviewTimers = () => {
+    if (customEmojiPreviewTimerRef.current) {
+      clearTimeout(customEmojiPreviewTimerRef.current);
+      customEmojiPreviewTimerRef.current = null;
+    }
+    if (customEmojiPreviewDismissTimerRef.current) {
+      clearTimeout(customEmojiPreviewDismissTimerRef.current);
+      customEmojiPreviewDismissTimerRef.current = null;
+    }
+  };
+
+  const canHoverPreview = () =>
+    typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  const showReactionPreview = (reaction: PostReactionSummary) => {
+    clearReactionPreviewTimers();
+    setPreviewReaction(reaction);
+  };
+
+  const showCustomEmojiPreview = (customEmoji: CustomEmojiSummary) => {
+    clearCustomEmojiPreviewTimers();
+    setEnlargedCustomEmoji(customEmoji);
+  };
+
+  const scheduleReactionPreviewHide = (delay = 0) => {
+    if (reactionPreviewDismissTimerRef.current) {
+      clearTimeout(reactionPreviewDismissTimerRef.current);
+    }
+    reactionPreviewDismissTimerRef.current = setTimeout(() => {
+      setPreviewReaction(null);
+      reactionPreviewDismissTimerRef.current = null;
+    }, delay);
+  };
+
+  const scheduleCustomEmojiPreviewHide = (delay = 0) => {
+    if (customEmojiPreviewDismissTimerRef.current) {
+      clearTimeout(customEmojiPreviewDismissTimerRef.current);
+    }
+    customEmojiPreviewDismissTimerRef.current = setTimeout(() => {
+      setEnlargedCustomEmoji(null);
+      customEmojiPreviewDismissTimerRef.current = null;
+    }, delay);
+  };
+
+  const handleReactionMouseEnter = (reaction: PostReactionSummary) => {
+    if (canHoverPreview()) showReactionPreview(reaction);
+  };
+
+  const handleReactionMouseLeave = () => {
+    if (canHoverPreview()) scheduleReactionPreviewHide(80);
+  };
+
+  const handleCustomEmojiMouseEnter = (customEmoji: CustomEmojiSummary) => {
+    if (canHoverPreview()) showCustomEmojiPreview(customEmoji);
+  };
+
+  const handleCustomEmojiMouseLeave = () => {
+    if (canHoverPreview()) scheduleCustomEmojiPreviewHide(80);
+  };
+
+  const handleReactionPointerDown = (event: PointerEvent<HTMLButtonElement>, reaction: PostReactionSummary) => {
+    if (event.pointerType === 'mouse') return;
+    event.preventDefault();
+    clearReactionPreviewTimers();
+    suppressReactionClickRef.current = false;
+    reactionPreviewTimerRef.current = setTimeout(() => {
+      suppressReactionClickRef.current = true;
+      setPreviewReaction(reaction);
+    }, 450);
+  };
+
+  const handleCustomEmojiPointerDown = (event: PointerEvent<HTMLButtonElement>, customEmoji: CustomEmojiSummary) => {
+    if (event.pointerType === 'mouse') return;
+    event.preventDefault();
+    clearCustomEmojiPreviewTimers();
+    suppressCustomEmojiClickRef.current = false;
+    customEmojiPreviewTimerRef.current = setTimeout(() => {
+      suppressCustomEmojiClickRef.current = true;
+      setEnlargedCustomEmoji(customEmoji);
+    }, 450);
+  };
+
+  const handleReactionPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'mouse') return;
+    if (reactionPreviewTimerRef.current) {
+      clearTimeout(reactionPreviewTimerRef.current);
+      reactionPreviewTimerRef.current = null;
+    }
+    if (suppressReactionClickRef.current) scheduleReactionPreviewHide(900);
+  };
+
+  const handleCustomEmojiPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'mouse') return;
+    if (customEmojiPreviewTimerRef.current) {
+      clearTimeout(customEmojiPreviewTimerRef.current);
+      customEmojiPreviewTimerRef.current = null;
+    }
+    if (suppressCustomEmojiClickRef.current) scheduleCustomEmojiPreviewHide(900);
+  };
+
+  const handleReactionPointerCancel = () => {
+    clearReactionPreviewTimers();
+    setPreviewReaction(null);
+    suppressReactionClickRef.current = false;
+  };
+
+  const handleCustomEmojiPointerCancel = () => {
+    clearCustomEmojiPreviewTimers();
+    setEnlargedCustomEmoji(null);
+    suppressCustomEmojiClickRef.current = false;
+  };
+
+  const handleReactionChipClick = (event: MouseEvent<HTMLButtonElement>, reactionKey: string) => {
+    if (suppressReactionClickRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressReactionClickRef.current = false;
+      return;
+    }
+    handleReaction(reactionKey);
+  };
+
+  const handleCustomEmojiPickerClick = (event: MouseEvent<HTMLButtonElement>, customEmoji: CustomEmojiSummary) => {
+    if (suppressCustomEmojiClickRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressCustomEmojiClickRef.current = false;
+      return;
+    }
+    handleReaction(`custom:${customEmoji.id}`, customEmoji);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (reactionPreviewTimerRef.current) clearTimeout(reactionPreviewTimerRef.current);
+      if (reactionPreviewDismissTimerRef.current) clearTimeout(reactionPreviewDismissTimerRef.current);
+      if (customEmojiPreviewTimerRef.current) clearTimeout(customEmojiPreviewTimerRef.current);
+      if (customEmojiPreviewDismissTimerRef.current) clearTimeout(customEmojiPreviewDismissTimerRef.current);
+    };
+  }, []);
+
 
   const handleLike = async () => {
     // Optimistic update
@@ -190,7 +350,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
       }
   };
 
-  const handleAddComment = async (e: React.FormEvent) => {
+  const handleAddComment = async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (!actualText.trim()) return;
 
@@ -402,12 +562,25 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
              <button
                key={reaction.reactionKey}
                type="button"
-               onClick={() => handleReaction(reaction.reactionKey)}
-               className={`px-2 py-1 rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-               title="リアクションを切り替え"
+               onClick={(event) => handleReactionChipClick(event, reaction.reactionKey)}
+               onMouseEnter={() => reaction.customEmoji && handleReactionMouseEnter(reaction)}
+               onMouseLeave={reaction.customEmoji ? handleReactionMouseLeave : undefined}
+               onPointerDown={(event) => {
+                 if (reaction.customEmoji) handleReactionPointerDown(event, reaction);
+               }}
+               onPointerUp={reaction.customEmoji ? handleReactionPointerUp : undefined}
+               onPointerCancel={reaction.customEmoji ? handleReactionPointerCancel : undefined}
+               onPointerLeave={(event) => {
+                 if (event.pointerType !== 'mouse' && reaction.customEmoji) handleReactionPointerCancel();
+               }}
+               onContextMenu={(event) => {
+                 if (reaction.customEmoji) event.preventDefault();
+               }}
+               className={`select-none px-2 py-1 rounded-full border text-sm transition-colors [-webkit-touch-callout:none] ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+               aria-label={reaction.customEmoji ? `:${reaction.customEmoji.name}: のリアクションを切り替え` : `${reaction.emoji} のリアクションを切り替え`}
              >
                {reaction.customEmoji ? (
-                 <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} className="mr-1 inline-block h-6 w-6 rounded-sm object-contain align-middle" />
+                 <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} draggable={false} className="mr-1 inline-block h-6 w-6 select-none rounded-sm object-contain align-middle [-webkit-touch-callout:none]" />
                ) : (
                  <span className="mr-1">{reaction.emoji}</span>
                )}
@@ -509,6 +682,38 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
        </div>
     </div>
 
+    {previewReaction?.customEmoji && (
+      <div className="pointer-events-none fixed inset-0 z-[90] flex items-center justify-center p-4" aria-hidden="true">
+        <div className="flex max-w-[90vw] items-center justify-center rounded-3xl border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur dark:border-gray-700/70 dark:bg-gray-900/95">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={getCustomEmojiImageSrc(previewReaction.customEmoji)}
+            alt={`:${previewReaction.customEmoji.name}:`}
+            width={192}
+            height={192}
+            draggable={false}
+            className="h-48 w-48 select-none rounded-xl object-contain [-webkit-touch-callout:none]"
+          />
+        </div>
+      </div>
+    )}
+
+    {enlargedCustomEmoji && (
+      <div className="pointer-events-none fixed inset-0 z-[120] flex items-center justify-center p-4" aria-hidden="true">
+        <div className="flex max-w-[90vw] items-center justify-center rounded-3xl border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur dark:border-gray-700/70 dark:bg-gray-900/95">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={getCustomEmojiImageSrc(enlargedCustomEmoji)}
+            alt={`:${enlargedCustomEmoji.name}:`}
+            width={192}
+            height={192}
+            draggable={false}
+            className="h-48 w-48 select-none rounded-xl object-contain [-webkit-touch-callout:none]"
+          />
+        </div>
+      </div>
+    )}
+
     {showReactionPicker && !isGuest && (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="絵文字リアクションを選択">
         <div data-emoji-picker-panel className="flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
@@ -535,11 +740,20 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                     <button
                       key={customEmoji.id}
                       type="button"
-                      onClick={() => handleReaction(`custom:${customEmoji.id}`, customEmoji)}
-                      className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      title={`:${customEmoji.name}: を追加`}
+                      onClick={(event) => handleCustomEmojiPickerClick(event, customEmoji)}
+                      onMouseEnter={() => handleCustomEmojiMouseEnter(customEmoji)}
+                      onMouseLeave={handleCustomEmojiMouseLeave}
+                      onPointerDown={(event) => handleCustomEmojiPointerDown(event, customEmoji)}
+                      onPointerUp={handleCustomEmojiPointerUp}
+                      onPointerCancel={handleCustomEmojiPointerCancel}
+                      onPointerLeave={(event) => {
+                        if (event.pointerType !== 'mouse') handleCustomEmojiPointerCancel();
+                      }}
+                      onContextMenu={(event) => event.preventDefault()}
+                      className="select-none rounded-lg p-2 [-webkit-touch-callout:none] hover:bg-gray-100 dark:hover:bg-gray-800"
+                      aria-label={`:${customEmoji.name}: を追加`}
                     >
-                      <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} className="h-8 w-8 object-contain" />
+                      <img src={getCustomEmojiImageSrc(customEmoji)} alt={`:${customEmoji.name}:`} width={32} height={32} draggable={false} className="h-8 w-8 select-none object-contain [-webkit-touch-callout:none]" />
                     </button>
                   ))}
                 </div>
