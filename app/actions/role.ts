@@ -3,7 +3,7 @@
 import { db as prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import { RoleId, ROLES } from '@/lib/roles';
+import { isSelfSelectableRole, ROLES } from '@/lib/roles';
 
 // Helper to check if current user is global admin (env based)
 function isGlobalAdmin(userId: number): boolean {
@@ -124,4 +124,70 @@ export async function removeRole(targetUserId: number, roleId: string) {
   });
 
   revalidatePath('/admin/roles');
+}
+
+function revalidateRoleDisplayPaths(username?: string) {
+  revalidatePath('/profile');
+  revalidatePath('/');
+  if (username) {
+    revalidatePath(`/users/${username}`);
+  }
+}
+
+export async function addSelfSelectableRole(roleId: string) {
+  const session = await getSession();
+  if (!session?.id) throw new Error('Unauthorized');
+
+  if (!isSelfSelectableRole(roleId)) {
+    throw new Error('Invalid role');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { roles: true, username: true },
+  });
+
+  if (!user) throw new Error('User not found');
+
+  if (user.roles.includes(roleId)) {
+    return { roles: user.roles };
+  }
+
+  const roles = [...user.roles, roleId];
+
+  await prisma.user.update({
+    where: { id: session.id },
+    data: { roles },
+  });
+
+  revalidateRoleDisplayPaths(user.username);
+
+  return { roles };
+}
+
+export async function removeSelfSelectableRole(roleId: string) {
+  const session = await getSession();
+  if (!session?.id) throw new Error('Unauthorized');
+
+  if (!isSelfSelectableRole(roleId)) {
+    throw new Error('Invalid role');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { roles: true, username: true },
+  });
+
+  if (!user) throw new Error('User not found');
+
+  const roles = user.roles.filter((role) => role !== roleId);
+
+  await prisma.user.update({
+    where: { id: session.id },
+    data: { roles },
+  });
+
+  revalidateRoleDisplayPaths(user.username);
+
+  return { roles };
 }

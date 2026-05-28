@@ -27,9 +27,38 @@ export const ROLES = [
     id: 'subscriber',
     name: 'Subscriber',
   },
+  {
+    id: 'tokimeki_express',
+    name: 'トキメキエクスプレス',
+  },
+  {
+    id: 'bloom_garden_party',
+    name: 'Bloom Garden Party',
+  },
+  {
+    id: 'chutorier_live',
+    name: 'ちゅーとりえらいぶ',
+  },
+  {
+    id: 'Reply to L',
+    name: 'Reply to L',
+  },
 ] as const;
 
 export type RoleId = typeof ROLES[number]['id'];
+
+export const SELF_SELECTABLE_ROLE_IDS = [
+  'tokimeki_express',
+  'bloom_garden_party',
+  'chutorier_live',
+  'Reply to L',
+] as const satisfies readonly RoleId[];
+
+export type SelfSelectableRoleId = typeof SELF_SELECTABLE_ROLE_IDS[number];
+
+export function isSelfSelectableRole(id: string): id is SelfSelectableRoleId {
+  return SELF_SELECTABLE_ROLE_IDS.includes(id as SelfSelectableRoleId);
+}
 
 export function getRole(id: string) {
   return ROLES.find((role) => role.id === id);

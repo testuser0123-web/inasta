@@ -8,13 +8,14 @@ type User = {
     avatarUrl: string | null;
     bio: string | null;
     oshi: string | null;
+    roles: string[];
 };
 
 export default function EditProfileClient({ user }: { user: User }) {
   const router = useRouter();
 
   const handleClose = () => {
-    router.push('/profile');
+    router.replace('/profile');
   };
 
   return <EditProfileForm user={user} onClose={handleClose} />;

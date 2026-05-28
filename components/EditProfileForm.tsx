@@ -7,12 +7,14 @@ import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '@/lib/image';
 import { uploadImageToSupabase } from '@/lib/client-upload';
 import { Spinner } from '@/components/ui/spinner';
+import { SelfRoleSelector } from '@/components/SelfRoleSelector';
 
 type User = {
     username: string;
     avatarUrl: string | null;
     bio: string | null;
     oshi: string | null;
+    roles: string[];
 };
 
 type Area = { x: number; y: number; width: number; height: number };
@@ -145,16 +147,17 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-sm p-6 relative shadow-xl border dark:border-gray-800">
-        <button 
-            onClick={onClose}
-            disabled={isUploading || isPending}
-            className="absolute top-2 right-2 p-1 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white disabled:opacity-50"
-        >
-            <X className="w-6 h-6" />
-        </button>
-
-        <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white">プロフィー</h2>
+      <button
+          type="button"
+          onClick={onClose}
+          aria-label="プロフィール編集を閉じる"
+          disabled={isUploading || isPending}
+          className="fixed right-4 top-[calc(env(safe-area-inset-top)+1rem)] z-[60] rounded-full bg-white/90 p-2 text-gray-700 shadow-lg hover:text-black disabled:opacity-50 dark:bg-gray-900/90 dark:text-gray-300 dark:hover:text-white"
+      >
+          <X className="w-6 h-6" />
+      </button>
+      <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-sm max-h-[90vh] overflow-y-auto p-6 relative shadow-xl border dark:border-gray-800">
+        <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white">プロフィール</h2>
 
         <form action={handleSubmit} className="space-y-6">
             <input type="hidden" name="avatarUrl" value={avatarPreview || ''} />
@@ -236,6 +239,8 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-right">{oshi.length}/20</p>
             </div>
+
+            <SelfRoleSelector initialRoles={user.roles} />
 
             {state?.message && (
                 <div className={`text-sm text-center ${state.success ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
