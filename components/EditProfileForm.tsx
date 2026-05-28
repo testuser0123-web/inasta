@@ -1,13 +1,36 @@
 'use client';
 
 import { useActionState, useState, useRef, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { updateProfile } from '@/app/actions/user';
 import { Camera, Check, X } from 'lucide-react';
-import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '@/lib/image';
 import { uploadImageToSupabase } from '@/lib/client-upload';
 import { Spinner } from '@/components/ui/spinner';
 import { SelfRoleSelector } from '@/components/SelfRoleSelector';
+
+type LazyCropperProps = {
+  image: string;
+  crop: { x: number; y: number };
+  zoom: number;
+  aspect: number;
+  cropShape: 'rect' | 'round';
+  showGrid: boolean;
+  onCropChange: (crop: { x: number; y: number }) => void;
+  onCropComplete: (croppedArea: Area, croppedAreaPixels: Area) => void;
+  onZoomChange: (zoom: number) => void;
+};
+
+const Cropper = dynamic<LazyCropperProps>(
+  () =>
+    import('react-easy-crop').then((mod) => {
+      const CropperComponent = mod.default;
+      return function LazyCropper(props: LazyCropperProps) {
+        return <CropperComponent {...props} />;
+      };
+    }),
+  { ssr: false }
+);
 
 type User = {
     username: string;
