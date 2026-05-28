@@ -7,12 +7,14 @@ import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '@/lib/image';
 import { uploadImageToSupabase } from '@/lib/client-upload';
 import { Spinner } from '@/components/ui/spinner';
+import { SelfRoleSelector } from '@/components/SelfRoleSelector';
 
 type User = {
     username: string;
     avatarUrl: string | null;
     bio: string | null;
     oshi: string | null;
+    roles: string[];
 };
 
 type Area = { x: number; y: number; width: number; height: number };
@@ -145,7 +147,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-sm p-6 relative shadow-xl border dark:border-gray-800">
+      <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-sm max-h-[90vh] overflow-y-auto p-6 relative shadow-xl border dark:border-gray-800">
         <button 
             onClick={onClose}
             disabled={isUploading || isPending}
@@ -236,6 +238,8 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-right">{oshi.length}/20</p>
             </div>
+
+            <SelfRoleSelector initialRoles={user.roles} />
 
             {state?.message && (
                 <div className={`text-sm text-center ${state.success ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>

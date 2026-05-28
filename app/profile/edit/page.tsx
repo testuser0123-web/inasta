@@ -16,6 +16,7 @@ export default async function EditProfilePage() {
       avatarUrl: true,
       bio: true,
       oshi: true,
+      roles: true,
     },
   });
 

@@ -8,6 +8,7 @@ type User = {
     avatarUrl: string | null;
     bio: string | null;
     oshi: string | null;
+    roles: string[];
 };
 
 export default function EditProfileClient({ user }: { user: User }) {
