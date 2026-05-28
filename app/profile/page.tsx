@@ -3,8 +3,7 @@ import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import ProfileClient from './ProfileClient';
 import Link from 'next/link';
-import { ArrowLeft, LogOut } from 'lucide-react';
-import { logout } from '@/app/actions/logout';
+import { ArrowLeft } from 'lucide-react';
 import { getUserTrophies } from '@/app/actions/trophy';
 import { getDiariesByUser } from '@/app/actions/diary';
 import { buildPostReactionSummaries } from '@/lib/reactions';
@@ -46,11 +45,10 @@ export default async function ProfilePage() {
       avatarUrl: userData?.avatarUrl ? `/api/avatar/${userData.username}?v=${userData.updatedAt.getTime()}` : null
   };
 
-  const trophies = await getUserTrophies(session.id);
-  const diaries = await getDiariesByUser(session.id);
-
-  // Fetch my posts
-  const myPostsData = await db.post.findMany({
+  const [trophies, diaries, myPostsData, likedPostsData] = await Promise.all([
+    getUserTrophies(session.id),
+    getDiariesByUser(session.id),
+    db.post.findMany({
     take: 12,
     where: { userId: session.id },
     orderBy: { createdAt: 'desc' },
@@ -113,33 +111,9 @@ export default async function ProfilePage() {
           select: { userId: true }
       }
     },
-  });
+  }),
 
-  const myPosts = myPostsData.map(post => ({
-      ...post,
-      imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
-          ? post.imageUrl
-          : `/api/image/${post.id}.jpg`,
-      thumbnailUrl: post.thumbnailUrl
-        ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
-        : null,
-      images: post.images.map(img => ({
-        ...img,
-        url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
-      })),
-      user: {
-          ...post.user,
-          avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
-      },
-      likesCount: post._count.likes,
-      hasLiked: post.likes.length > 0,
-      reactions: buildPostReactionSummaries(post.reactions, session.id),
-      likes: undefined,
-      _count: undefined
-  }));
-
-  // Fetch liked posts
-  const likedPostsData = await db.like.findMany({
+    db.like.findMany({
       take: 12,
       where: { userId: session.id },
       orderBy: { createdAt: 'desc' },
@@ -206,7 +180,31 @@ export default async function ProfilePage() {
               }
           }
       }
-  });
+  }),
+  ]);
+
+  const myPosts = myPostsData.map(post => ({
+      ...post,
+      imageUrl: post.imageUrl && post.imageUrl.startsWith('http')
+          ? post.imageUrl
+          : `/api/image/${post.id}.jpg`,
+      thumbnailUrl: post.thumbnailUrl
+        ? (post.thumbnailUrl.startsWith('http') ? post.thumbnailUrl : `/api/post_thumbnail/${post.id}.jpg`)
+        : null,
+      images: post.images.map(img => ({
+        ...img,
+        url: img.url && img.url.startsWith('http') ? img.url : `/api/post_image/${img.id}.jpg`
+      })),
+      user: {
+          ...post.user,
+          avatarUrl: post.user.avatarUrl ? `/api/avatar/${post.user.username}?v=${post.user.updatedAt.getTime()}` : null
+      },
+      likesCount: post._count.likes,
+      hasLiked: post.likes.length > 0,
+      reactions: buildPostReactionSummaries(post.reactions, session.id),
+      likes: undefined,
+      _count: undefined
+  }));
 
   const likedPosts = likedPostsData.map(item => ({
       ...item.post,

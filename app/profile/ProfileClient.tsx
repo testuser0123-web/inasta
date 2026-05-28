@@ -1,21 +1,31 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Grid, Heart, Settings, ShieldCheck, MoreHorizontal, Book } from 'lucide-react';
 import { useState, useTransition } from 'react';
-import Feed from '@/components/Feed';
 import { useRouter } from 'next/navigation';
-import VerificationModal from '@/components/VerificationModal';
 import ProfileHeader from '@/components/ProfileHeader';
 import { Spinner } from '@/components/ui/spinner';
-import { DiaryGrid } from '../diary/DiaryGrid';
+import { DiaryGrid, type DiaryEntry } from '../diary/DiaryGrid';
+import type { PostReactionSummary } from '@/lib/reactions';
+
+const Feed = dynamic(() => import('@/components/Feed'), {
+  loading: () => (
+    <div className="flex justify-center p-10">
+      <Spinner />
+    </div>
+  ),
+});
+
+const VerificationModal = dynamic(() => import('@/components/VerificationModal'));
 
 type ProfileClientProps = {
-  user: any;
-  currentUser: any;
-  posts: any[];
-  likedPosts: any[];
-  diaries?: any[];
+  user: ProfileUser;
+  currentUser: { id: number; username: string; avatarUrl?: string | null } | null;
+  posts: ProfilePost[];
+  likedPosts: ProfilePost[];
+  diaries?: DiaryEntry[];
   initialStatus: {
       isFollowing: boolean;
       isMuted: boolean;
@@ -26,6 +36,50 @@ type ProfileClientProps = {
       silver: number;
       bronze: number;
   };
+};
+
+type ProfileUser = {
+  id: number;
+  username: string;
+  avatarUrl: string | null;
+  isVerified: boolean;
+  isGold: boolean;
+  roles: string[];
+  bio: string | null;
+  oshi: string | null;
+  _count: {
+    followers: number;
+    following: number;
+  };
+};
+
+type ProfilePost = {
+  id: number;
+  imageUrl?: string;
+  mediaType?: 'IMAGE' | 'VIDEO';
+  thumbnailUrl?: string | null;
+  comment: string | null;
+  isSpoiler?: boolean;
+  createdAt: Date;
+  userId: number;
+  user?: {
+    username: string;
+    avatarUrl: string | null;
+    isVerified?: boolean;
+    isGold?: boolean;
+    roles?: string[];
+  };
+  likesCount: number;
+  hasLiked: boolean;
+  comments?: {
+    id: number;
+    text: string;
+    userId: number;
+    user: { username: string; avatarUrl: string | null };
+  }[];
+  reactions?: PostReactionSummary[];
+  hashtags?: { name: string }[];
+  images?: { id: number; order: number; url?: string }[];
 };
 
 export default function ProfileClient({ user, currentUser, posts, likedPosts = [], diaries = [], initialStatus, trophies }: ProfileClientProps) {
