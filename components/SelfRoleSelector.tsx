@@ -17,7 +17,6 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
   const [selectedRole, setSelectedRole] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-  const [removableRoleIds, setRemovableRoleIds] = useState<Set<string>>(() => new Set());
 
   const selectableRoles = useMemo(
     () => SELF_SELECTABLE_ROLE_IDS
@@ -32,15 +31,12 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
   const handleAddRole = async () => {
     if (!selectedRole) return;
 
-    const roleToAdd = selectedRole;
-
     setIsSaving(true);
     setError('');
 
     try {
-      const result = await addSelfSelectableRole(roleToAdd);
+      const result = await addSelfSelectableRole(selectedRole);
       setRoles(result.roles);
-      setRemovableRoleIds((current) => new Set(current).add(roleToAdd));
       setSelectedRole('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ロールの追加に失敗しました');
@@ -56,11 +52,6 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
     try {
       const result = await removeSelfSelectableRole(roleId);
       setRoles(result.roles);
-      setRemovableRoleIds((current) => {
-        const next = new Set(current);
-        next.delete(roleId);
-        return next;
-      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ロールの削除に失敗しました');
     } finally {
@@ -82,7 +73,7 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
         {currentRoles.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {currentRoles.map((role) => {
-              const canRemove = isSelfSelectableRole(role.id) && removableRoleIds.has(role.id);
+              const canRemove = isSelfSelectableRole(role.id);
 
               return (
               <div key={role.id} className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 dark:bg-gray-800">
