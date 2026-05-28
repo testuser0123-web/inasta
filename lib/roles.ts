@@ -35,6 +35,10 @@ export const ROLES = [
     id: 'bloom_garden_party',
     name: 'Bloom Garden Party',
   },
+  {
+    id: 'chutorier_live',
+    name: 'ちゅーとりえらいぶ',
+  },
 ] as const;
 
 export type RoleId = typeof ROLES[number]['id'];
