@@ -60,16 +60,18 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
   };
 
   return (
-    <div className="space-y-4 rounded-lg border p-4 dark:border-gray-800">
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">表示ロール</h3>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        表示ロール
+      </label>
+
+      <div className="space-y-4 rounded-md px-3 py-3 text-gray-900 dark:bg-gray-800 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           プロフィールや投稿に表示するロールを選べます
         </p>
-      </div>
 
-      <div>
-        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">現在のロール</h4>
+        <div>
+        <h4 className="mb-3 text-xs font-medium text-gray-500 dark:text-gray-400">現在のロール</h4>
         {currentRoles.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {currentRoles.map((role) => {
@@ -101,8 +103,8 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
         )}
       </div>
 
-      <div className="border-t pt-4 dark:border-gray-800">
-        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">ロールを追加</h4>
+      <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+        <h4 className="mb-3 text-xs font-medium text-gray-500 dark:text-gray-400">ロールを追加</h4>
         <div className="flex gap-2">
           <select
             value={selectedRole}
@@ -130,6 +132,7 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
       </div>
 
       {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
+      </div>
     </div>
   );
 }
