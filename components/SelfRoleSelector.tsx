@@ -1,9 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Lock, Plus, Trash2 } from 'lucide-react';
 import { addSelfSelectableRole, removeSelfSelectableRole } from '@/app/actions/role';
-import { ROLES, SELF_SELECTABLE_ROLE_IDS } from '@/lib/roles';
+import { ROLES, SELF_SELECTABLE_ROLE_IDS, isSelfSelectableRole } from '@/lib/roles';
 import { RoleBadge } from '@/components/RoleBadge';
 
 type Role = typeof ROLES[number];
@@ -18,6 +18,8 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const initialRoleSet = useMemo(() => new Set(initialRoles), [initialRoles]);
+
   const selectableRoles = useMemo(
     () => SELF_SELECTABLE_ROLE_IDS
       .map((roleId) => ROLES.find((role) => role.id === roleId))
@@ -25,7 +27,7 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
     []
   );
 
-  const currentSelfRoles = selectableRoles.filter((role) => roles.includes(role.id));
+  const currentRoles = roles.map((roleId) => ROLES.find((role) => role.id === roleId) ?? { id: roleId, name: roleId });
   const availableRolesToAdd = selectableRoles.filter((role) => !roles.includes(role.id));
 
   const handleAddRole = async () => {
@@ -70,23 +72,31 @@ export function SelfRoleSelector({ initialRoles }: SelfRoleSelectorProps) {
 
       <div>
         <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">現在のロール</h4>
-        {currentSelfRoles.length > 0 ? (
+        {currentRoles.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {currentSelfRoles.map((role) => (
+            {currentRoles.map((role) => {
+              const canRemove = isSelfSelectableRole(role.id) && !initialRoleSet.has(role.id);
+
+              return (
               <div key={role.id} className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 dark:bg-gray-800">
                 <RoleBadge roleId={role.id} />
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{role.name}</span>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveRole(role.id)}
-                  disabled={isSaving}
-                  className="rounded-full p-0.5 text-gray-500 transition-colors hover:bg-gray-200 hover:text-red-500 disabled:opacity-50 dark:hover:bg-gray-700"
-                  title="ロールを削除"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                {canRemove ? (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRole(role.id)}
+                    disabled={isSaving}
+                    className="rounded-full p-0.5 text-gray-500 transition-colors hover:bg-gray-200 hover:text-red-500 disabled:opacity-50 dark:hover:bg-gray-700"
+                    title="ロールを削除"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <Lock className="h-3.5 w-3.5 text-gray-400" aria-label="削除不可" />
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm italic text-gray-500">選択中のロールはありません</p>

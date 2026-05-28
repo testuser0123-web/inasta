@@ -15,7 +15,7 @@ export default function EditProfileClient({ user }: { user: User }) {
   const router = useRouter();
 
   const handleClose = () => {
-    router.push('/profile');
+    router.replace('/profile');
   };
 
   return <EditProfileForm user={user} onClose={handleClose} />;
