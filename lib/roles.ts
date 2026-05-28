@@ -40,8 +40,8 @@ export const ROLES = [
     name: 'ちゅーとりえらいぶ',
   },
   {
-    id: 'repeat',
-    name: 'repeat',
+    id: 'Reply to L',
+    name: 'Reply to L',
   },
 ] as const;
 
@@ -51,7 +51,7 @@ export const SELF_SELECTABLE_ROLE_IDS = [
   'tokimeki_express',
   'bloom_garden_party',
   'chutorier_live',
-  'repeat',
+  'Reply to L',
 ] as const satisfies readonly RoleId[];
 
 export type SelfSelectableRoleId = typeof SELF_SELECTABLE_ROLE_IDS[number];
