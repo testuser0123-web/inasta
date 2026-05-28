@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Palette, Star, Bug, Aperture, Beer, BookMarked } from 'lucide-react';
+import { Palette, Star, Bug, Aperture, Beer, BookMarked, TrainFront, Flower } from 'lucide-react';
 import { getRole } from '@/lib/roles';
 
 const ROLE_NAMES: Record<string, string> = {
@@ -12,6 +12,8 @@ const ROLE_NAMES: Record<string, string> = {
   role_manager: 'ロール管理者',
   drinker: 'ドリンカー',
   subscriber: 'サポーター',
+  tokimeki_express: 'トキメキエクスプレス',
+  bloom_garden_party: 'Bloom Garden Party',
 };
 
 export function RoleBadge({ roleId }: { roleId: string }) {
@@ -38,6 +40,12 @@ export function RoleBadge({ roleId }: { roleId: string }) {
       break;
     case 'subscriber':
       Icon = BookMarked;
+      break;
+    case 'tokimeki_express':
+      Icon = TrainFront;
+      break;
+    case 'bloom_garden_party':
+      Icon = Flower;
       break;
     default:
       return null;
