@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { NotificationType } from '@prisma/client';
 
-export async function getNotifications() {
+export async function getNotifications(limit = 10) {
   const session = await getSession();
   if (!session || !session.id) {
     return [];
@@ -20,6 +20,7 @@ export async function getNotifications() {
       orderBy: {
         createdAt: 'desc',
       },
+      take: limit,
     });
     return notifications;
   } catch (error) {
