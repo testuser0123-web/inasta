@@ -237,7 +237,10 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   useEffect(() => {
     if (!selectedPostId) return;
 
-    const post = posts.find((p) => p.id === selectedPostId);
+    // Do not depend on the whole posts array here. Loading more posts updates
+    // posts while the modal comment request is in flight, and the cleanup would
+    // abort the request before the comments can render.
+    const post = postsRef.current.find((p) => p.id === selectedPostId);
     if (!post || post.comments !== undefined) return;
 
     let isActive = true;
@@ -274,7 +277,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       }
       window.clearTimeout(timeoutId);
     };
-  }, [selectedPostId, posts]);
+  }, [selectedPostId]);
 
   const handlePostClick = async (post: Post) => {
     if (post.isSpoiler) {
