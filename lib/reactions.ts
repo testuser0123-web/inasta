@@ -1,9 +1,17 @@
+export type ReactionUserSummary = {
+  id: number;
+  username: string;
+  avatarUrl: string | null;
+  updatedAt?: Date;
+};
+
 export type PostReactionSummary = {
   reactionKey: string;
   emoji: string;
   count: number;
   hasReacted: boolean;
   customEmoji?: CustomEmojiSummary;
+  users: ReactionUserSummary[];
 };
 
 export type CustomEmojiSummary = {
@@ -20,6 +28,7 @@ type RawPostReaction = {
   reactionKey: string;
   userId: number;
   customEmoji?: CustomEmojiSummary | null;
+  user?: ReactionUserSummary | null;
 };
 
 const UNICODE_REACTION_PREFIX = "unicode:";
@@ -124,6 +133,17 @@ export function reactionKeyToEmoji(reactionKey: string): string {
   return reactionKey;
 }
 
+function normalizeReactionUser(user: ReactionUserSummary): ReactionUserSummary {
+  return {
+    ...user,
+    avatarUrl: user.avatarUrl
+      ? (user.avatarUrl.startsWith('http')
+          ? user.avatarUrl
+          : `/api/avatar/${user.username}${user.updatedAt ? `?v=${user.updatedAt.getTime()}` : ''}`)
+      : null,
+  };
+}
+
 export function buildPostReactionSummaries(
   reactions: RawPostReaction[],
   currentUserId: number
@@ -132,9 +152,13 @@ export function buildPostReactionSummaries(
 
   for (const reaction of reactions) {
     const existing = summaries.get(reaction.reactionKey);
+    const user = reaction.user ? normalizeReactionUser(reaction.user) : null;
     if (existing) {
       existing.count += 1;
       existing.hasReacted ||= reaction.userId === currentUserId;
+      if (user && !existing.users.some((existingUser) => existingUser.id === user.id)) {
+        existing.users.push(user);
+      }
     } else {
       summaries.set(reaction.reactionKey, {
         reactionKey: reaction.reactionKey,
@@ -142,6 +166,7 @@ export function buildPostReactionSummaries(
         count: 1,
         hasReacted: reaction.userId === currentUserId,
         customEmoji: reaction.customEmoji ?? undefined,
+        users: user ? [user] : [],
       });
     }
   }
