@@ -1,6 +1,25 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
+function getAvatarCacheControl(request: NextRequest): string {
+  const hasVersion = request.nextUrl.searchParams.has("v");
+
+  if (hasVersion) {
+    return "public, max-age=31536000, s-maxage=31536000, immutable";
+  }
+
+  return "public, max-age=60, s-maxage=600, stale-while-revalidate=600";
+}
+
+function getCommonAvatarHeaders(etag: string, cacheControl: string) {
+  return {
+    "ETag": etag,
+    "Cache-Control": cacheControl,
+    "Cross-Origin-Resource-Policy": "cross-origin",
+    "Access-Control-Allow-Origin": "*",
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ username: string }> }
@@ -14,66 +33,46 @@ export async function GET(
     });
 
     if (!user || !user.avatarUrl) {
-      // Default avatar or 404
       return new NextResponse("Not Found", { status: 404 });
     }
 
     const etag = `"${user.updatedAt.getTime().toString()}"`;
+    const cacheControl = getAvatarCacheControl(request);
+    const headers = getCommonAvatarHeaders(etag, cacheControl);
     const ifNoneMatch = request.headers.get("if-none-match");
 
     if (ifNoneMatch === etag) {
       return new NextResponse(null, {
         status: 304,
-        headers: {
-            "ETag": etag,
-            "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
-        }
+        headers,
       });
     }
 
-    const headers = {
-        "ETag": etag,
-        "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
-        "Cross-Origin-Resource-Policy": "cross-origin",
-        "Access-Control-Allow-Origin": "*",
-    };
-
-    // Proxy Supabase/Cloudinary URLs
-    if (user.avatarUrl.startsWith('http')) {
-        const response = await fetch(user.avatarUrl);
-        if (!response.ok) {
-             return new NextResponse('Error fetching avatar', { status: response.status });
-        }
-        const contentType = response.headers.get('content-type') || 'application/octet-stream';
-        const buffer = await response.arrayBuffer();
-
-        return new NextResponse(buffer, {
-            headers: {
-                "Content-Type": contentType,
-                ...headers
-            }
-        });
+    if (user.avatarUrl.startsWith("http://") || user.avatarUrl.startsWith("https://")) {
+      return NextResponse.redirect(user.avatarUrl, {
+        status: 302,
+        headers,
+      });
     }
 
-    // Legacy Data URI
     if (user.avatarUrl.startsWith("data:")) {
-      const commaIndex = user.avatarUrl.indexOf(',');
-      const base64Data = user.avatarUrl.substring(commaIndex + 1);
+      const [metadata, base64Data] = user.avatarUrl.split(",", 2);
+      if (!metadata || !base64Data || !metadata.includes(";base64")) {
+        return new NextResponse("Invalid Avatar Format", { status: 500 });
+      }
+
+      const contentType = metadata.slice("data:".length).replace(";base64", "") || "image/jpeg";
       const buffer = Buffer.from(base64Data, "base64");
 
       return new NextResponse(buffer, {
         headers: {
-          "Content-Type": "image/jpeg",
-          ...headers
+          "Content-Type": contentType,
+          ...headers,
         },
       });
     }
 
-    // Fallback Proxy (if path is weird but accessible?)
-    // If it's not http and not data:, it might be invalid or relative?
-    // Let's assume invalid for now, but keeping safe logic.
     return new NextResponse("Invalid Avatar Format", { status: 500 });
-
   } catch (error) {
     console.error("Error fetching avatar:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
