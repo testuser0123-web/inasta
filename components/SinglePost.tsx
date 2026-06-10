@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef, type FormEvent, type MouseEvent, type PointerEvent } from 'react';
-import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X, Plus } from 'lucide-react';
+import { Heart, Trash2, BadgeCheck, Loader2, Share2, Send, User as UserIcon, AlertTriangle, CornerDownRight, X, Plus, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { toggleLike, toggleReaction, deletePost } from '@/app/actions/post';
+import { toggleLike, toggleReaction, deletePost, updatePostComment } from '@/app/actions/post';
 import { addComment, deleteComment } from '@/app/actions/comment';
 import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
@@ -42,7 +42,7 @@ function toggleReactionSummary(
       current[index] = { ...existing, count: existing.count + 1, hasReacted: true };
     }
   } else {
-    current.push({ reactionKey, emoji: customEmoji ? `:${customEmoji.name}:` : reactionKeyToEmoji(reactionKey), count: 1, hasReacted: true, customEmoji });
+    current.push({ reactionKey, emoji: customEmoji ? `:${customEmoji.name}:` : reactionKeyToEmoji(reactionKey), count: 1, hasReacted: true, customEmoji, users: [] });
   }
 
   return current.sort((a, b) => b.count - a.count || a.reactionKey.localeCompare(b.reactionKey));
@@ -96,6 +96,10 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const [customEmojiError, setCustomEmojiError] = useState<string | null>(null);
   const [previewReaction, setPreviewReaction] = useState<PostReactionSummary | null>(null);
   const [enlargedCustomEmoji, setEnlargedCustomEmoji] = useState<CustomEmojiSummary | null>(null);
+  const [isEditingPostComment, setIsEditingPostComment] = useState(false);
+  const [editCommentText, setEditCommentText] = useState(initialPost.comment ?? '');
+  const [isSavingPostComment, setIsSavingPostComment] = useState(false);
+  const [reactionViewer, setReactionViewer] = useState<PostReactionSummary | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
   const reactionPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reactionPreviewDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,7 +124,10 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const router = useRouter();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- keep local optimistic state aligned after router.refresh() supplies a new post payload.
     setPost(initialPost);
+    setEditCommentText(initialPost.comment ?? '');
+    setIsEditingPostComment(false);
   }, [initialPost]);
 
   const isGuest = currentUserId === -1 || !currentUserId;
@@ -345,6 +352,34 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
     router.push('/');
   };
 
+  const startEditingPostComment = () => {
+    setEditCommentText(post.comment ?? '');
+    setIsEditingPostComment(true);
+  };
+
+  const cancelEditingPostComment = () => {
+    setEditCommentText(post.comment ?? '');
+    setIsEditingPostComment(false);
+  };
+
+  const handleSavePostComment = async () => {
+    if (editCommentText.trim().length > 173) {
+      alert('コメントが長すぎます(173文字まで)');
+      return;
+    }
+
+    setIsSavingPostComment(true);
+    const result = await updatePostComment(post.id, editCommentText);
+    setIsSavingPostComment(false);
+
+    if (result?.success) {
+      setPost((current) => ({ ...current, comment: result.comment }));
+      setIsEditingPostComment(false);
+    } else {
+      alert(result?.message || '投稿の編集に失敗しました');
+    }
+  };
+
   const handleShare = async () => {
       // Use the actual post URL instead of just the image API URL
       const url = `${window.location.origin}/p/${post.id}`;
@@ -455,8 +490,8 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
        )}
 
        <div className="p-4">
-         <div className="flex items-center justify-between mb-4">
-           <div className="flex items-center gap-3">
+         <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
                <button
                    onClick={handleLike}
                    className="flex items-center gap-1.5 transition-colors group"
@@ -485,8 +520,8 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
 
                {/* User Info */}
                {post.user && (
-                   <div className="flex items-center gap-2 ml-2">
-                        <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
+                   <div className="ml-0 flex min-w-0 flex-wrap items-center gap-2 sm:ml-2">
+                        <div className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                            {post.user.avatarUrl ? (
                                // eslint-disable-next-line @next/next/no-img-element
                                <img
@@ -501,7 +536,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                                </div>
                            )}
                         </div>
-                        <Link href={`/users/${post.user.username}`} className="text-sm font-semibold hover:underline">
+                        <Link href={`/users/${post.user.username}`} className="min-w-0 max-w-[10rem] truncate text-sm font-semibold hover:underline sm:max-w-none">
                            @{post.user.username}
                         </Link>
                         {post.user.isGold ? (
@@ -510,7 +545,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                           <BadgeCheck className="w-4 h-4 text-blue-500" />
                         ) : null}
                         {post.user.roles?.map(roleId => (
-                           <div key={roleId} className="scale-75 origin-left flex item-center">
+                           <div key={roleId} className="flex origin-left scale-75 items-center">
                                <RoleBadge roleId={roleId} />
                            </div>
                         ))}
@@ -519,21 +554,68 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            </div>
 
            {currentUserId === post.userId && (
-              <button
-               onClick={handleDelete}
-               disabled={isDeleting}
-               className="text-gray-400 dark:text-gray-500 hover:text-red-500 disabled:opacity-50"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                <button
+                 type="button"
+                 onClick={startEditingPostComment}
+                 disabled={isDeleting || isSavingPostComment}
+                 className="text-gray-400 dark:text-gray-500 hover:text-indigo-500 disabled:opacity-50"
+                 aria-label="投稿本文を編集"
+                >
+                  <Pencil className="w-5 h-5" />
+                </button>
+                <button
+                 type="button"
+                 onClick={handleDelete}
+                 disabled={isDeleting}
+                 className="text-gray-400 dark:text-gray-500 hover:text-red-500 disabled:opacity-50"
+                 aria-label="投稿を削除"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
            )}
          </div>
 
-         {post.comment && (
+         {isEditingPostComment ? (
+           <div className="mb-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+             <textarea
+               value={editCommentText}
+               onChange={(event) => setEditCommentText(event.target.value)}
+               maxLength={173}
+               rows={4}
+               className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+               placeholder="本文を入力"
+             />
+             <div className="mt-2 flex items-center justify-between">
+               <span className={`text-[10px] ${editCommentText.trim().length >= 173 ? 'text-red-500' : 'text-gray-400'}`}>
+                 {editCommentText.trim().length}/173
+               </span>
+               <div className="flex gap-2">
+                 <button
+                   type="button"
+                   onClick={cancelEditingPostComment}
+                   disabled={isSavingPostComment}
+                   className="rounded-full px-3 py-1 text-xs font-semibold text-gray-500 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                 >
+                   キャンセル
+                 </button>
+                 <button
+                   type="button"
+                   onClick={handleSavePostComment}
+                   disabled={isSavingPostComment || editCommentText.trim().length > 173}
+                   className="rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+                 >
+                   {isSavingPostComment ? '保存中...' : '保存'}
+                 </button>
+               </div>
+             </div>
+           </div>
+         ) : post.comment ? (
            <p className="text-gray-900 dark:text-gray-100 break-words mb-2">
              <Linkify>{post.comment}</Linkify>
            </p>
-         )}
+         ) : null}
 
          {post.hashtags && post.hashtags.length > 0 && (
            <div className="flex flex-wrap gap-1 mb-2">
@@ -567,33 +649,44 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
          <div className="space-y-3 border-t dark:border-gray-800 pt-3">
            <div className="flex flex-wrap items-center gap-1 pb-3 border-b border-gray-100 dark:border-gray-800" data-emoji-picker="unicode-emoji-grid">
            {(post.reactions || []).map((reaction) => (
-             <button
+             <div
                key={reaction.reactionKey}
-               type="button"
-               onClick={(event) => handleReactionChipClick(event, reaction.reactionKey)}
-               onMouseEnter={() => reaction.customEmoji && handleReactionMouseEnter(reaction)}
-               onMouseLeave={reaction.customEmoji ? handleReactionMouseLeave : undefined}
-               onPointerDown={(event) => {
-                 if (reaction.customEmoji) handleReactionPointerDown(event, reaction);
-               }}
-               onPointerUp={reaction.customEmoji ? handleReactionPointerUp : undefined}
-               onPointerCancel={reaction.customEmoji ? handleReactionPointerCancel : undefined}
-               onPointerLeave={(event) => {
-                 if (event.pointerType !== 'mouse' && reaction.customEmoji) handleReactionPointerCancel();
-               }}
-               onContextMenu={(event) => {
-                 if (reaction.customEmoji) event.preventDefault();
-               }}
-               className={`select-none px-2 py-1 rounded-full border text-sm transition-colors [-webkit-touch-callout:none] ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-               aria-label={reaction.customEmoji ? `:${reaction.customEmoji.name}: のリアクションを切り替え` : `${reaction.emoji} のリアクションを切り替え`}
+               className={`inline-flex overflow-hidden rounded-full border text-sm transition-colors ${reaction.hasReacted ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-700 dark:text-indigo-200' : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200'}`}
              >
-               {reaction.customEmoji ? (
-                 <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} draggable={false} className="mr-1 inline-block h-6 w-6 select-none rounded-sm object-contain align-middle [-webkit-touch-callout:none]" />
-               ) : (
-                 <span className="mr-1">{reaction.emoji}</span>
-               )}
-               <span className="text-xs font-semibold">{reaction.count}</span>
-             </button>
+               <button
+                 type="button"
+                 onClick={(event) => handleReactionChipClick(event, reaction.reactionKey)}
+                 onMouseEnter={() => reaction.customEmoji && handleReactionMouseEnter(reaction)}
+                 onMouseLeave={reaction.customEmoji ? handleReactionMouseLeave : undefined}
+                 onPointerDown={(event) => {
+                   if (reaction.customEmoji) handleReactionPointerDown(event, reaction);
+                 }}
+                 onPointerUp={reaction.customEmoji ? handleReactionPointerUp : undefined}
+                 onPointerCancel={reaction.customEmoji ? handleReactionPointerCancel : undefined}
+                 onPointerLeave={(event) => {
+                   if (event.pointerType !== 'mouse' && reaction.customEmoji) handleReactionPointerCancel();
+                 }}
+                 onContextMenu={(event) => {
+                   if (reaction.customEmoji) event.preventDefault();
+                 }}
+                 className={`select-none py-1 pl-2 pr-1 transition-colors [-webkit-touch-callout:none] ${reaction.hasReacted ? 'hover:bg-indigo-100 dark:hover:bg-indigo-900' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                 aria-label={reaction.customEmoji ? `:${reaction.customEmoji.name}: のリアクションを切り替え` : `${reaction.emoji} のリアクションを切り替え`}
+               >
+                 {reaction.customEmoji ? (
+                   <img src={getCustomEmojiImageSrc(reaction.customEmoji)} alt={`:${reaction.customEmoji.name}:`} width={24} height={24} draggable={false} className="inline-block h-6 w-6 select-none rounded-sm object-contain align-middle [-webkit-touch-callout:none]" />
+                 ) : (
+                   <span>{reaction.emoji}</span>
+                 )}
+               </button>
+               <button
+                 type="button"
+                 onClick={() => setReactionViewer(reaction)}
+                 className={`border-l border-gray-300 py-1 pl-2 pr-2 text-xs font-semibold transition-colors dark:border-gray-600 ${reaction.hasReacted ? 'hover:bg-indigo-100 dark:hover:bg-indigo-900' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                 aria-label={`${reaction.count}人のリアクションを表示`}
+               >
+                 {reaction.count}
+               </button>
+             </div>
            ))}
            <button
              type="button"
@@ -689,6 +782,57 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
            </div>
        </div>
     </div>
+
+    {reactionViewer && (
+      <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="リアクションしたユーザー">
+        <div className="w-full max-w-sm overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
+          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {reactionViewer.customEmoji ? (
+                <img src={getCustomEmojiImageSrc(reactionViewer.customEmoji)} alt={`:${reactionViewer.customEmoji.name}:`} width={24} height={24} className="h-6 w-6 rounded-sm object-contain" />
+              ) : (
+                <span className="text-xl">{reactionViewer.emoji}</span>
+              )}
+              <span>{reactionViewer.count}人</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReactionViewer(null)}
+              className="rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+              aria-label="閉じる"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="max-h-[60vh] overflow-y-auto p-2">
+            {reactionViewer.users.map((user) => (
+              <Link
+                key={user.id}
+                href={`/users/${user.username}`}
+                onClick={() => setReactionViewer(null)}
+                className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <div className="h-9 w-9 flex-shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.username} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-gray-500 dark:text-gray-300">
+                      <UserIcon className="h-5 w-5" />
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">@{user.username}</span>
+              </Link>
+            ))}
+            {reactionViewer.users.length < reactionViewer.count && (
+              <p className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+                ほか{reactionViewer.count - reactionViewer.users.length}人
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
 
     {previewReaction?.customEmoji && (
       <div className="pointer-events-none fixed inset-0 z-[90] flex items-center justify-center p-4" aria-hidden="true">

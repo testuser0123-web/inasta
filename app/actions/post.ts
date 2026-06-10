@@ -128,7 +128,7 @@ export async function fetchFeedPosts({
         },
         // Removed comments fetch for feed optimization
         reactions: {
-          select: { reactionKey: true, userId: true, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } },
+          select: { reactionKey: true, userId: true, user: { select: { id: true, username: true, avatarUrl: true, updatedAt: true } }, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } },
         },
         _count: {
           select: { likes: true },
@@ -227,7 +227,7 @@ export async function fetchUserPosts({
           },
         },
         reactions: {
-          select: { reactionKey: true, userId: true, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } },
+          select: { reactionKey: true, userId: true, user: { select: { id: true, username: true, avatarUrl: true, updatedAt: true } }, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } },
         },
         _count: {
           select: { likes: true },
@@ -325,7 +325,7 @@ export async function fetchLikedPosts({
                   }
               },
               reactions: {
-                  select: { reactionKey: true, userId: true, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } }
+                  select: { reactionKey: true, userId: true, user: { select: { id: true, username: true, avatarUrl: true, updatedAt: true } }, customEmoji: { select: { id: true, name: true, imageUrl: true, width: true, height: true } } }
               },
               _count: {
                   select: { likes: true }
@@ -486,6 +486,44 @@ export async function createPost(prevState: unknown, formData: FormData) {
   revalidatePath("/");
   revalidatePath("/profile");
   redirect("/");
+}
+
+export async function updatePostComment(postId: number, comment: string) {
+  const session = await getSession();
+  if (!session) return { message: "Unauthorized" };
+
+  const normalizedComment = comment.trim();
+  if (normalizedComment.length > 173) {
+    return { message: "コメントが長すぎます(173文字まで)" };
+  }
+
+  const post = await db.post.findUnique({
+    where: { id: postId },
+    select: { userId: true },
+  });
+
+  if (!post) {
+    return { message: "Post not found" };
+  }
+
+  if (post.userId !== session.id) {
+    return { message: "Forbidden" };
+  }
+
+  try {
+    await db.post.update({
+      where: { id: postId },
+      data: { comment: normalizedComment || null },
+    });
+  } catch (error) {
+    console.error("Failed to update post comment:", error);
+    return { message: "Failed to update post" };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath(`/p/${postId}`);
+  return { success: true, comment: normalizedComment || null };
 }
 
 export async function toggleLike(postId: number) {
