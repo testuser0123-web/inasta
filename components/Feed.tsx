@@ -767,8 +767,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
             )}
 
             <div className="p-4 overflow-y-auto flex-1 min-h-0 dark:text-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
                     <button
                         onClick={() => handleLike(selectedPost)}
                         className={`flex items-center gap-1.5 transition-colors group ${isGuest ? 'cursor-not-allowed opacity-50' : ''}`}
@@ -796,8 +796,8 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                     </button>
                     {/* Username link with Avatar */}
                     {selectedPost.user && (
-                        <div className="flex items-center gap-2">
-                             <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                             <div className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                                 {selectedPost.user.avatarUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img
@@ -812,7 +812,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                                     </div>
                                 )}
                              </div>
-                             <Link href={`/users/${selectedPost.user.username}`} className="text-sm font-semibold hover:underline">
+                             <Link href={`/users/${selectedPost.user.username}`} className="min-w-0 max-w-[10rem] truncate text-sm font-semibold hover:underline sm:max-w-none">
                                 @{selectedPost.user.username}
                              </Link>
                              {selectedPost.user.isGold ? (
@@ -821,7 +821,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                                <BadgeCheck className="w-4 h-4 text-blue-500" />
                              ) : null}
                              {selectedPost.user.roles?.map(roleId => (
-                                <div key={roleId} className="scale-75 origin-left flex item-center">
+                                <div key={roleId} className="flex origin-left scale-75 items-center">
                                     <RoleBadge roleId={roleId} />
                                 </div>
                              ))}
@@ -830,7 +830,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                 </div>
 
                 {!isGuest && currentUserId === selectedPost.userId && (
-                   <div className="flex items-center gap-2">
+                   <div className="ml-auto flex shrink-0 items-center gap-2">
                      <button
                       type="button"
                       onClick={() => startEditingPostComment(selectedPost)}
