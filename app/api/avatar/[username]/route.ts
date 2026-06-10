@@ -49,9 +49,24 @@ export async function GET(
     }
 
     if (user.avatarUrl.startsWith("http://") || user.avatarUrl.startsWith("https://")) {
-      return NextResponse.redirect(user.avatarUrl, {
-        status: 302,
-        headers,
+      const response = await fetch(user.avatarUrl, {
+        cache: "force-cache",
+        next: request.nextUrl.searchParams.has("v")
+          ? { revalidate: 31536000 }
+          : { revalidate: 600 },
+      });
+
+      if (!response.ok) {
+        return new NextResponse("Error fetching avatar", { status: response.status });
+      }
+
+      const contentType = response.headers.get("content-type") || "application/octet-stream";
+
+      return new NextResponse(response.body, {
+        headers: {
+          "Content-Type": contentType,
+          ...headers,
+        },
       });
     }
 

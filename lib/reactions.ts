@@ -142,12 +142,32 @@ function getAvatarCacheVersion(updatedAt: Date | string | undefined): string {
   return Number.isNaN(timestamp) ? '' : `?v=${timestamp}`;
 }
 
+function appendAvatarCacheVersion(url: string, updatedAt: Date | string | undefined): string {
+  const version = getAvatarCacheVersion(updatedAt);
+  if (!version) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}${version.slice(1)}`;
+}
+
 function normalizeReactionUser(user: ReactionUserSummary): ReactionUserSummary {
+  if (!user.avatarUrl) {
+    return { ...user, avatarUrl: null };
+  }
+
+  if (user.avatarUrl.startsWith('http://') || user.avatarUrl.startsWith('https://')) {
+    return {
+      ...user,
+      avatarUrl: appendAvatarCacheVersion(user.avatarUrl, user.updatedAt),
+    };
+  }
+
+  if (user.avatarUrl.startsWith('data:')) {
+    return user;
+  }
+
   return {
     ...user,
-    avatarUrl: user.avatarUrl
-      ? `/api/avatar/${user.username}${getAvatarCacheVersion(user.updatedAt)}`
-      : null,
+    avatarUrl: `/api/avatar/${user.username}${getAvatarCacheVersion(user.updatedAt)}`,
   };
 }
 
