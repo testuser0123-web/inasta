@@ -957,7 +957,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                     <button
                       type="button"
                       onClick={() => setReactionViewer(reaction)}
-                      className={`py-1 pl-1 pr-2 text-xs font-semibold transition-colors ${reaction.hasReacted ? 'hover:bg-indigo-100 dark:hover:bg-indigo-900' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                      className={`border-l border-gray-300 py-1 pl-2 pr-2 text-xs font-semibold transition-colors dark:border-gray-600 ${reaction.hasReacted ? 'hover:bg-indigo-100 dark:hover:bg-indigo-900' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
                       aria-label={`${reaction.count}人のリアクションを表示`}
                     >
                       {reaction.count}

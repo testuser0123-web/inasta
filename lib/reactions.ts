@@ -2,7 +2,7 @@ export type ReactionUserSummary = {
   id: number;
   username: string;
   avatarUrl: string | null;
-  updatedAt?: Date;
+  updatedAt?: Date | string;
 };
 
 export type PostReactionSummary = {
@@ -133,13 +133,20 @@ export function reactionKeyToEmoji(reactionKey: string): string {
   return reactionKey;
 }
 
+function getAvatarCacheVersion(updatedAt: Date | string | undefined): string {
+  if (!updatedAt) return '';
+  const timestamp = updatedAt instanceof Date
+    ? updatedAt.getTime()
+    : new Date(updatedAt).getTime();
+
+  return Number.isNaN(timestamp) ? '' : `?v=${timestamp}`;
+}
+
 function normalizeReactionUser(user: ReactionUserSummary): ReactionUserSummary {
   return {
     ...user,
     avatarUrl: user.avatarUrl
-      ? (user.avatarUrl.startsWith('http')
-          ? user.avatarUrl
-          : `/api/avatar/${user.username}${user.updatedAt ? `?v=${user.updatedAt.getTime()}` : ''}`)
+      ? `/api/avatar/${user.username}${getAvatarCacheVersion(user.updatedAt)}`
       : null,
   };
 }
