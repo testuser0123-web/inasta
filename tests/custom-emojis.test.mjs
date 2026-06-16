@@ -60,7 +60,9 @@ assert.match(customEmojiRoute, /db\.customEmoji\.findUnique[\s\S]*fetch\(customE
 assert.match(clientCustomEmojis, /let customEmojiCache/, 'client custom emoji helper should memoize the fetched emoji list');
 assert.match(clientCustomEmojis, /warmCustomEmojis[\s\S]*requestIdleCallback/, 'client custom emoji helper should warm the picker cache during idle time');
 assert.match(clientCustomEmojis, /preloadCustomEmojiImages[\s\S]*new Image\(\)/, 'client custom emoji helper should preload custom emoji images before the picker opens');
-assert.match(clientCustomEmojis, /customEmoji\.imageUrl \|\| ''/, 'client custom emoji helper should use direct object-storage image URLs instead of the proxy on the hot path');
+assert.match(clientCustomEmojis, /\/api\/custom_emoji\/\$\{customEmoji\.id\}\.webp/, 'client custom emoji helper should keep browser rendering on the same-origin proxy route');
+assert.match(customEmojiRoute, /unstable_cache[\s\S]*custom-emoji:image/, 'custom emoji proxy route should cache metadata lookup before fetching the image');
+assert.match(customEmojiRoute, /new NextResponse\(response\.body/, 'custom emoji proxy route should stream upstream image bytes instead of buffering the whole file');
 assert.match(reactionsLib, /絵文字名は2〜32文字で、半角英小文字・数字・アンダースコアのみ使用できます。/, 'custom emoji validation message should be Japanese');
 assert.doesNotMatch(reactionsLib, /Custom emoji name must/, 'custom emoji validation should not expose English errors');
 assert.match(clientUpload, /export async function prepareCustomEmojiUpload/, 'client upload helper should normalize custom emoji images before storage upload');

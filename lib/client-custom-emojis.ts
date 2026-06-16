@@ -7,7 +7,7 @@ let customEmojiCache: CustomEmojiSummary[] | null = null;
 let customEmojiPromise: Promise<CustomEmojiSummary[]> | null = null;
 
 export function getCustomEmojiImageSrc(customEmoji: CustomEmojiSummary) {
-  return customEmoji.imageUrl || '';
+  return customEmoji.imageUrl ? `/api/custom_emoji/${customEmoji.id}.webp` : '';
 }
 
 export function preloadCustomEmojiImages(emojis: CustomEmojiSummary[]) {
