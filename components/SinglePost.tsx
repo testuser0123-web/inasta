@@ -10,7 +10,7 @@ import { RoleBadge } from '@/components/RoleBadge';
 import { ImageCarousel } from '@/components/ImageCarousel';
 import { Linkify } from '@/components/Linkify';
 import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type CustomEmojiSummary, type PostReactionSummary } from '@/lib/reactions';
-import { fetchCustomEmojis } from '@/app/actions/custom-emoji';
+import { getCustomEmojiImageSrc, loadCustomEmojis, warmCustomEmojis } from '@/lib/client-custom-emojis';
 
 function toReactionKey(emoji: string) {
   return normalizeReactionKey(emoji);
@@ -18,10 +18,6 @@ function toReactionKey(emoji: string) {
 
 function reactionKeyToEmoji(reactionKey: string) {
   return reactionKey.startsWith('unicode:') ? reactionKey.slice('unicode:'.length) : reactionKey;
-}
-
-function getCustomEmojiImageSrc(customEmoji: CustomEmojiSummary) {
-  return customEmoji.imageUrl ? `/api/custom_emoji/${customEmoji.id}.webp` : customEmoji.imageUrl;
 }
 
 function toggleReactionSummary(
@@ -133,9 +129,13 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
   const isGuest = currentUserId === -1 || !currentUserId;
 
   useEffect(() => {
+    if (!isGuest) warmCustomEmojis();
+  }, [isGuest]);
+
+  useEffect(() => {
     if (!showReactionPicker || isGuest) return;
     let cancelled = false;
-    fetchCustomEmojis()
+    loadCustomEmojis()
       .then((emojis) => {
         if (!cancelled) setCustomEmojis(emojis);
       })
@@ -152,6 +152,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
     }
 
     if (!emojiOrReactionKey) {
+      setCustomEmojiError(null);
       setShowReactionPicker((current) => !current);
       return;
     }

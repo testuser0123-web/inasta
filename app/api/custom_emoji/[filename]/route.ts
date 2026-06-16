@@ -1,7 +1,17 @@
 import { db } from '@/lib/db';
+import { unstable_cache } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 const CACHE_CONTROL = 'public, max-age=31536000, s-maxage=31536000, immutable';
+
+const getCachedCustomEmoji = unstable_cache(
+  async (id: number) => db.customEmoji.findUnique({
+    where: { id },
+    select: { imageUrl: true, mimeType: true, isActive: true },
+  }),
+  ['custom-emoji:image'],
+  { tags: ['custom-emojis'], revalidate: 300 }
+);
 
 export async function GET(
   _request: Request,
@@ -14,10 +24,7 @@ export async function GET(
     return new NextResponse('Invalid custom emoji id', { status: 400 });
   }
 
-  const customEmoji = await db.customEmoji.findUnique({
-    where: { id },
-    select: { imageUrl: true, mimeType: true, isActive: true },
-  });
+  const customEmoji = await getCachedCustomEmoji(id);
 
   if (!customEmoji || !customEmoji.isActive) {
     return new NextResponse('Not Found', { status: 404 });
@@ -29,9 +36,7 @@ export async function GET(
   }
 
   const contentType = response.headers.get('content-type') || customEmoji.mimeType || 'image/webp';
-  const body = await response.arrayBuffer();
-
-  return new NextResponse(body, {
+  return new NextResponse(response.body, {
     headers: {
       'Content-Type': contentType,
       'Cache-Control': CACHE_CONTROL,
