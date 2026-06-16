@@ -11,7 +11,7 @@ import { ImageCarousel } from '@/components/ImageCarousel';
 import { ImageWithSpinner } from '@/components/ImageWithSpinner';
 import { Linkify } from '@/components/Linkify';
 import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type CustomEmojiSummary, type PostReactionSummary } from '@/lib/reactions';
-import { fetchCustomEmojis } from '@/app/actions/custom-emoji';
+import { getCustomEmojiImageSrc, loadCustomEmojis, warmCustomEmojis } from '@/lib/client-custom-emojis';
 
 type Comment = {
   id: number;
@@ -45,10 +45,6 @@ function toReactionKey(emoji: string) {
 
 function reactionKeyToEmoji(reactionKey: string) {
   return reactionKey.startsWith('unicode:') ? reactionKey.slice('unicode:'.length) : reactionKey;
-}
-
-function getCustomEmojiImageSrc(customEmoji: CustomEmojiSummary) {
-  return customEmoji.imageUrl ? `/api/custom_emoji/${customEmoji.id}.webp` : customEmoji.imageUrl;
 }
 
 function toggleReactionSummary(
@@ -227,9 +223,13 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const reactionPickerPost = showReactionPickerForPostId ? posts.find((p) => p.id === showReactionPickerForPostId) : null;
 
   useEffect(() => {
+    if (!isGuest) warmCustomEmojis();
+  }, [isGuest]);
+
+  useEffect(() => {
     if (!showReactionPickerForPostId || isGuest) return;
     let cancelled = false;
-    fetchCustomEmojis()
+    loadCustomEmojis()
       .then((emojis) => {
         if (!cancelled) setCustomEmojis(emojis);
       })
@@ -333,6 +333,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
     }
 
     if (!emojiOrReactionKey) {
+      setCustomEmojiError(null);
       setShowReactionPickerForPostId((current) => (current === post.id ? null : post.id));
       return;
     }

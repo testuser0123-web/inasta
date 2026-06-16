@@ -3,12 +3,9 @@
 import { useEffect, useState } from 'react';
 import { ImagePlus, Loader2, Trash2, Upload } from 'lucide-react';
 import { createCustomEmoji, deleteCustomEmoji, fetchCustomEmojis, updateCustomEmoji } from '@/app/actions/custom-emoji';
+import { getCustomEmojiImageSrc, invalidateCustomEmojiCache, primeCustomEmojiCache } from '@/lib/client-custom-emojis';
 import { uploadCustomEmojiImage } from '@/lib/client-upload';
 import type { CustomEmojiSummary } from '@/lib/reactions';
-
-function customEmojiImageSrc(customEmoji: CustomEmojiSummary) {
-  return customEmoji.imageUrl ? `/api/custom_emoji/${customEmoji.id}.webp` : customEmoji.imageUrl;
-}
 
 export default function CustomEmojiManager({ currentUserId }: { currentUserId: number | null }) {
   const [customEmojis, setCustomEmojis] = useState<CustomEmojiSummary[]>([]);
@@ -27,6 +24,7 @@ export default function CustomEmojiManager({ currentUserId }: { currentUserId: n
     setStatus(null);
     try {
       const emojis = await fetchCustomEmojis();
+      primeCustomEmojiCache(emojis);
       setCustomEmojis(emojis);
       setEditingNames(Object.fromEntries(emojis.map((emoji) => [emoji.id, emoji.name])));
     } catch {
@@ -66,6 +64,7 @@ export default function CustomEmojiManager({ currentUserId }: { currentUserId: n
 
       setName('');
       setFile(null);
+      invalidateCustomEmojiCache();
       await loadCustomEmojis();
     } catch (error) {
       setStatus(error instanceof Error && error.message ? error.message : 'カスタム絵文字を作成できませんでした。');
@@ -83,6 +82,7 @@ export default function CustomEmojiManager({ currentUserId }: { currentUserId: n
         setStatus(result.message ?? 'カスタム絵文字を更新できませんでした。');
         return;
       }
+      invalidateCustomEmojiCache();
       await loadCustomEmojis();
     } finally {
       setIsSaving(false);
@@ -100,6 +100,7 @@ export default function CustomEmojiManager({ currentUserId }: { currentUserId: n
         setStatus(result.message ?? 'カスタム絵文字を削除できませんでした。');
         return;
       }
+      invalidateCustomEmojiCache();
       await loadCustomEmojis();
     } finally {
       setIsSaving(false);
@@ -167,7 +168,7 @@ export default function CustomEmojiManager({ currentUserId }: { currentUserId: n
               return (
                 <div key={emoji.id} className="rounded-xl border border-gray-100 p-3 dark:border-gray-800">
                   <div className="flex items-center gap-3">
-                    <img src={customEmojiImageSrc(emoji)} alt={`:${emoji.name}:`} width={48} height={48} className="h-12 w-12 rounded-md object-contain" />
+                    <img src={getCustomEmojiImageSrc(emoji)} alt={`:${emoji.name}:`} width={48} height={48} className="h-12 w-12 rounded-md object-contain" />
                     <input
                       type="text"
                       value={editingNames[emoji.id] ?? emoji.name}
