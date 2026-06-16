@@ -12,6 +12,7 @@ const customEmojiPage = readFileSync(new URL('../app/custom-emojis/page.tsx', im
 const customEmojiManager = readFileSync(new URL('../app/custom-emojis/CustomEmojiManager.tsx', import.meta.url), 'utf8');
 const customEmojiRoute = readFileSync(new URL('../app/api/custom_emoji/[filename]/route.ts', import.meta.url), 'utf8');
 const clientUpload = readFileSync(new URL('../lib/client-upload.ts', import.meta.url), 'utf8');
+const clientCustomEmojis = readFileSync(new URL('../lib/client-custom-emojis.ts', import.meta.url), 'utf8');
 
 assert.match(schema, /model CustomEmoji\s*{[\s\S]*name\s+String[\s\S]*imageUrl\s+String[\s\S]*storagePath\s+String[\s\S]*width\s+Int[\s\S]*height\s+Int[\s\S]*creatorId\s+Int[\s\S]*isActive\s+Boolean\s+@default\(true\)[\s\S]*@@unique\(\[name\]\)/, 'CustomEmoji model should store shared named image emoji metadata without embedding image bytes');
 assert.match(schema, /customEmojiId\s+Int\?/, 'PostReaction should optionally reference a custom emoji');
@@ -33,18 +34,16 @@ assert.match(customEmojiActions, /db\.customEmoji\.delete/, 'deleting a custom e
 assert.match(customEmojiActions, /db\.customEmoji\.deleteMany\(\{[\s\S]*where:\s*\{\s*name,[\s\S]*isActive:\s*false/, 'creating a custom emoji should purge old soft-deleted rows with the same name before checking uniqueness');
 assert.match(postActions, /customEmoji:\s*{\s*select:\s*{[\s\S]*name:\s*true[\s\S]*imageUrl:\s*true/, 'post queries should include custom emoji metadata for reaction chips');
 assert.match(postActions, /customEmojiId/, 'toggleReaction should persist the custom emoji relation');
-assert.match(feed, /fetchCustomEmojis/, 'Feed picker should load shared custom emoji');
+assert.match(feed, /loadCustomEmojis/, 'Feed picker should load shared custom emoji');
 assert.doesNotMatch(feed, /createCustomEmoji|uploadCustomEmojiImage|showCustomEmojiUploadForm|type=\"file\"/, 'Feed picker must not contain custom emoji creation UI');
 assert.doesNotMatch(feed, /オブジェクトストレージに保存/, 'Feed UI must not expose storage implementation details to users');
-assert.match(feed, /\/api\/custom_emoji\/\$\{customEmoji\.id\}\.webp/, 'Feed should render custom emoji through the same-origin proxy route');
-assert.match(feed, /customEmoji\.imageUrl/, 'Feed should render custom emoji images');
+assert.match(feed, /getCustomEmojiImageSrc/, 'Feed should render custom emoji images through the shared client helper');
 assert.match(feed, /width=\{24\}[\s\S]*height=\{24\}[\s\S]*h-6 w-6/, 'Feed reaction chips should render custom emoji large enough while preserving chip balance');
 assert.doesNotMatch(feed, /border-dashed/, 'Feed picker should not put custom emoji in a special dashed frame');
-assert.match(singlePost, /fetchCustomEmojis/, 'SinglePost picker should load shared custom emoji');
+assert.match(singlePost, /loadCustomEmojis/, 'SinglePost picker should load shared custom emoji');
 assert.doesNotMatch(singlePost, /createCustomEmoji|uploadCustomEmojiImage|showCustomEmojiUploadForm|type=\"file\"/, 'SinglePost picker must not contain custom emoji creation UI');
 assert.doesNotMatch(singlePost, /オブジェクトストレージに保存/, 'SinglePost UI must not expose storage implementation details to users');
-assert.match(singlePost, /\/api\/custom_emoji\/\$\{customEmoji\.id\}\.webp/, 'SinglePost should render custom emoji through the same-origin proxy route');
-assert.match(singlePost, /customEmoji\.imageUrl/, 'SinglePost should render custom emoji images');
+assert.match(singlePost, /getCustomEmojiImageSrc/, 'SinglePost should render custom emoji images through the shared client helper');
 assert.match(singlePost, /width=\{24\}[\s\S]*height=\{24\}[\s\S]*h-6 w-6/, 'SinglePost reaction chips should render custom emoji large enough while preserving chip balance');
 assert.doesNotMatch(singlePost, /border-dashed/, 'SinglePost picker should not put custom emoji in a special dashed frame');
 assert.match(sidebar, /カスタム絵文字[\s\S]*href:\s*['"]\/custom-emojis['"]/, 'Sidebar should expose custom emoji management from the hamburger/sidebar menu');
@@ -58,6 +57,10 @@ assert.match(customEmojiManager, /text-xs[\s\S]*作成者/, 'custom emoji creato
 assert.match(customEmojiManager, /text-right[\s\S]*作成者/, 'custom emoji creator should be on its own row aligned to the lower right');
 assert.match(customEmojiManager, /htmlFor="custom-emoji-file"[\s\S]*ファイルを選択/, 'custom emoji file input should be presented as a proper button');
 assert.match(customEmojiRoute, /db\.customEmoji\.findUnique[\s\S]*fetch\(customEmoji\.imageUrl\)/, 'custom emoji images should be served through a same-origin proxy route');
+assert.match(clientCustomEmojis, /let customEmojiCache/, 'client custom emoji helper should memoize the fetched emoji list');
+assert.match(clientCustomEmojis, /warmCustomEmojis[\s\S]*requestIdleCallback/, 'client custom emoji helper should warm the picker cache during idle time');
+assert.match(clientCustomEmojis, /preloadCustomEmojiImages[\s\S]*new Image\(\)/, 'client custom emoji helper should preload custom emoji images before the picker opens');
+assert.match(clientCustomEmojis, /customEmoji\.imageUrl \|\| ''/, 'client custom emoji helper should use direct object-storage image URLs instead of the proxy on the hot path');
 assert.match(reactionsLib, /絵文字名は2〜32文字で、半角英小文字・数字・アンダースコアのみ使用できます。/, 'custom emoji validation message should be Japanese');
 assert.doesNotMatch(reactionsLib, /Custom emoji name must/, 'custom emoji validation should not expose English errors');
 assert.match(clientUpload, /export async function prepareCustomEmojiUpload/, 'client upload helper should normalize custom emoji images before storage upload');
