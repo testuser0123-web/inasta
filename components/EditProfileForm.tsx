@@ -49,7 +49,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
       makeAspectCrop(
         {
           unit: '%',
-          width: 90,
+          width: 100,
         },
         1,
         width,

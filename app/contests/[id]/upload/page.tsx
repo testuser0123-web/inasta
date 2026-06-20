@@ -49,12 +49,13 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
 
     let newCrop;
     if (initialAspect) {
+      const cropConfig = aspect > initialAspect
+        ? { unit: '%' as const, height: 100 }
+        : { unit: '%' as const, width: 100 };
+
       newCrop = centerCrop(
         makeAspectCrop(
-          {
-            unit: '%',
-            width: 90,
-          },
+          cropConfig,
           initialAspect,
           width,
           height,
@@ -63,17 +64,13 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
         height,
       );
     } else {
-      newCrop = centerCrop(
-        {
-          unit: '%',
-          width: 90,
-          height: 90,
-          x: 5,
-          y: 5
-        },
-        width,
-        height,
-      );
+      newCrop = {
+        unit: '%' as const,
+        width: 100,
+        height: 100,
+        x: 0,
+        y: 0
+      };
     }
     setCrop(newCrop);
   }
@@ -85,12 +82,13 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
 
         let newCrop;
         if (aspect) {
+          const cropConfig = imageAspectRatio > aspect
+            ? { unit: '%' as const, height: 100 }
+            : { unit: '%' as const, width: 100 };
+
           newCrop = centerCrop(
             makeAspectCrop(
-              {
-                unit: '%',
-                width: 90,
-              },
+              cropConfig,
               aspect,
               width,
               height,
@@ -99,17 +97,13 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
             height,
           );
         } else {
-          newCrop = centerCrop(
-            {
-              unit: '%',
-              width: 90,
-              height: 90,
-              x: 5,
-              y: 5
-            },
-            width,
-            height,
-          );
+          newCrop = {
+            unit: '%' as const,
+            width: 100,
+            height: 100,
+            x: 0,
+            y: 0
+          };
         }
         setCrop(newCrop);
     }
@@ -226,7 +220,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
             <button type="button" onClick={() => setAspectRatio("custom")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "custom" ? "bg-black text-white" : "bg-white text-gray-700 hover:bg-gray-50"}`}><Maximize className="w-3 h-3" /> カスタム</button>
           </div>
         </div>
-        <div className="flex-1 min-h-0 bg-black flex items-center justify-center p-4">
+        <div className="flex-1 min-h-0 bg-black flex items-center justify-center p-1">
           <ReactCrop
             crop={crop}
             onChange={c => setCrop(c)}

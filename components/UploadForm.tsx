@@ -137,12 +137,13 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
     let newCrop;
     if (initialAspect) {
+      const cropConfig = aspect > initialAspect
+        ? { unit: '%' as const, height: 100 }
+        : { unit: '%' as const, width: 100 };
+
       newCrop = centerCrop(
         makeAspectCrop(
-          {
-            unit: '%',
-            width: 90,
-          },
+          cropConfig,
           initialAspect,
           width,
           height,
@@ -151,17 +152,13 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
         height,
       );
     } else {
-      newCrop = centerCrop(
-        {
-          unit: '%',
-          width: 90,
-          height: 90,
-          x: 5,
-          y: 5
-        },
-        width,
-        height,
-      );
+      newCrop = {
+        unit: '%' as const,
+        width: 100,
+        height: 100,
+        x: 0,
+        y: 0
+      };
     }
     setCrop(newCrop);
   }
@@ -173,12 +170,13 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
         let newCrop;
         if (aspect) {
+          const cropConfig = imageAspectRatio > aspect
+            ? { unit: '%' as const, height: 100 }
+            : { unit: '%' as const, width: 100 };
+
           newCrop = centerCrop(
             makeAspectCrop(
-              {
-                unit: '%',
-                width: 90,
-              },
+              cropConfig,
               aspect,
               width,
               height,
@@ -187,17 +185,13 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
             height,
           );
         } else {
-          newCrop = centerCrop(
-            {
-              unit: '%',
-              width: 90,
-              height: 90,
-              x: 5,
-              y: 5
-            },
-            width,
-            height,
-          );
+          newCrop = {
+            unit: '%' as const,
+            width: 100,
+            height: 100,
+            x: 0,
+            y: 0
+          };
         }
         setCrop(newCrop);
     }
@@ -282,13 +276,6 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
         const reader = new FileReader();
         reader.addEventListener("load", () => {
           setMediaSrc(reader.result as string);
-
-          // Load image to get dimensions
-          const img = new Image();
-          img.onload = () => {
-            setImageAspectRatio(img.width / img.height);
-          };
-          img.src = reader.result as string;
         });
         reader.readAsDataURL(file);
     }
@@ -575,7 +562,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
             </button>
           </div>
         </div>
-        <div className="flex-1 min-h-0 bg-black flex items-center justify-center p-4">
+        <div className="flex-1 min-h-0 bg-black flex items-center justify-center p-1">
           <ReactCrop
             crop={crop}
             onChange={c => setCrop(c)}
