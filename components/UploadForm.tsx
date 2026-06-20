@@ -135,19 +135,34 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
     const initialAspect = aspectRatio === "1:1" ? 1 : aspectRatio === "original" ? aspect : undefined;
 
-    const newCrop = centerCrop(
-      makeAspectCrop(
+    let newCrop;
+    if (initialAspect) {
+      newCrop = centerCrop(
+        makeAspectCrop(
+          {
+            unit: '%',
+            width: 90,
+          },
+          initialAspect,
+          width,
+          height,
+        ),
+        width,
+        height,
+      );
+    } else {
+      newCrop = centerCrop(
         {
           unit: '%',
           width: 90,
+          height: 90,
+          x: 5,
+          y: 5
         },
-        initialAspect,
         width,
         height,
-      ),
-      width,
-      height,
-    );
+      );
+    }
     setCrop(newCrop);
   }
 
@@ -156,19 +171,34 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
         const { width, height } = imgRef.current;
         const aspect = aspectRatio === "1:1" ? 1 : aspectRatio === "original" ? imageAspectRatio : undefined;
 
-        const newCrop = centerCrop(
-          makeAspectCrop(
+        let newCrop;
+        if (aspect) {
+          newCrop = centerCrop(
+            makeAspectCrop(
+              {
+                unit: '%',
+                width: 90,
+              },
+              aspect,
+              width,
+              height,
+            ),
+            width,
+            height,
+          );
+        } else {
+          newCrop = centerCrop(
             {
               unit: '%',
               width: 90,
+              height: 90,
+              x: 5,
+              y: 5
             },
-            aspect,
             width,
             height,
-          ),
-          width,
-          height,
-        );
+          );
+        }
         setCrop(newCrop);
     }
   }, [aspectRatio, imageAspectRatio, mediaSrc]);
