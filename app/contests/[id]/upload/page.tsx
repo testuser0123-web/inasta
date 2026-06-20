@@ -2,8 +2,9 @@
 
 import { useActionState, useState, useRef, useCallback, useEffect } from "react";
 import { createContestPost } from "@/app/actions/contest";
-import { Camera, Check, X, Smartphone, Image as ImageIcon } from "lucide-react";
-import Cropper from "react-easy-crop";
+import { Camera, Check, X, Smartphone, Image as ImageIcon, Maximize } from "lucide-react";
+import ReactCrop, { centerCrop, makeAspectCrop, Crop, PixelCrop, convertToPixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from "@/lib/image";
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -12,7 +13,7 @@ import { uploadImageToSupabase } from "@/lib/client-upload";
 import { Spinner } from "@/components/ui/spinner";
 
 type Area = { x: number; y: number; width: number; height: number };
-type AspectRatio = "1:1" | "original";
+type AspectRatio = "1:1" | "original" | "custom";
 
 import { use } from "react";
 
@@ -28,20 +29,85 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
   }, [state, contestId, router]);
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
   const [comment, setComment] = useState("");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
   const [isUploading, setIsUploading] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { width, height } = e.currentTarget;
+    const aspect = width / height;
+    setImageAspectRatio(aspect);
+
+    const initialAspect = aspectRatio === "1:1" ? 1 : aspectRatio === "original" ? aspect : undefined;
+
+    let newCrop;
+    if (initialAspect) {
+      const cropConfig = aspect > initialAspect
+        ? { unit: '%' as const, height: 100 }
+        : { unit: '%' as const, width: 100 };
+
+      newCrop = centerCrop(
+        makeAspectCrop(
+          cropConfig,
+          initialAspect,
+          width,
+          height,
+        ),
+        width,
+        height,
+      );
+    } else {
+      newCrop = {
+        unit: '%' as const,
+        width: 100,
+        height: 100,
+        x: 0,
+        y: 0
+      };
+    }
+    setCrop(newCrop);
+  }
+
+  useEffect(() => {
+    if (imageSrc && imgRef.current) {
+        const { width, height } = imgRef.current;
+        const aspect = aspectRatio === "1:1" ? 1 : aspectRatio === "original" ? imageAspectRatio : undefined;
+
+        let newCrop;
+        if (aspect) {
+          const cropConfig = imageAspectRatio > aspect
+            ? { unit: '%' as const, height: 100 }
+            : { unit: '%' as const, width: 100 };
+
+          newCrop = centerCrop(
+            makeAspectCrop(
+              cropConfig,
+              aspect,
+              width,
+              height,
+            ),
+            width,
+            height,
+          );
+        } else {
+          newCrop = {
+            unit: '%' as const,
+            width: 100,
+            height: 100,
+            x: 0,
+            y: 0
+          };
+        }
+        setCrop(newCrop);
+    }
+  }, [aspectRatio, imageAspectRatio, imageSrc]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -50,51 +116,62 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
     const reader = new FileReader();
     reader.addEventListener("load", () => {
       setImageSrc(reader.result as string);
-      const img = new Image();
-      img.onload = () => setImageAspectRatio(img.width / img.height);
-      img.src = reader.result as string;
     });
     reader.readAsDataURL(file);
     e.target.value = "";
   };
 
   const handleCropConfirm = useCallback(async () => {
-    if (!imageSrc || !croppedAreaPixels) return;
+    if (!imageSrc || !imgRef.current) return;
+
+    const image = imgRef.current;
+    let finalCrop = completedCrop;
+
+    if (!finalCrop && crop) {
+        finalCrop = convertToPixelCrop(crop, image.width, image.height);
+    }
+
+    if (!finalCrop) return;
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    const pixelCrop = {
+        x: finalCrop.x * scaleX,
+        y: finalCrop.y * scaleY,
+        width: finalCrop.width * scaleX,
+        height: finalCrop.height * scaleY,
+    };
+
     try {
       let outputWidth = 512;
       let outputHeight = 512;
 
-      if (aspectRatio === "original") {
-        const width = croppedAreaPixels.width;
-        const height = croppedAreaPixels.height;
-        const aspect = width / height;
+      const aspect = pixelCrop.width / pixelCrop.height;
 
-        if (width > height) {
+      if (aspect > 1) {
           outputWidth = 512;
           outputHeight = Math.round(512 / aspect);
-        } else {
+      } else {
           outputHeight = 512;
           outputWidth = Math.round(512 * aspect);
-        }
       }
 
       const cropped = await getCroppedImg(
         imageSrc,
-        croppedAreaPixels,
+        pixelCrop,
         { width: outputWidth, height: outputHeight }
       );
 
       if (cropped) setCroppedImages(prev => [...prev, cropped]);
       setImageSrc(null);
-      setZoom(1);
     } catch (e) {
       console.error(e);
     }
-  }, [imageSrc, croppedAreaPixels, aspectRatio]);
+  }, [imageSrc, completedCrop, crop]);
 
   const cancelCrop = () => {
     setImageSrc(null);
-    setZoom(1);
   };
 
   const removeImage = (index: number) => {
@@ -128,25 +205,38 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
 
   if (imageSrc) {
     return (
-      <div className="flex flex-col h-screen bg-black">
-        <div className="p-4 bg-white border-b flex flex-col gap-4 z-10">
+      <div className="flex flex-col h-screen bg-black overflow-hidden">
+        <div className="p-4 bg-white border-b flex flex-col gap-4 z-10 shrink-0">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <label className="text-xs text-gray-500 mb-1 block">ズーム</label>
-              <input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(Number(e.target.value))} className="w-full" />
-            </div>
+            <h3 className="font-bold text-sm">範囲を選択</h3>
             <div className="flex items-center gap-2">
-              <button onClick={cancelCrop} className="p-2"><X className="w-6 h-6" /></button>
-              <button onClick={handleCropConfirm} className="px-4 py-2 bg-indigo-600 text-white rounded-md"><Check className="w-5 h-5" /></button>
+              <button onClick={cancelCrop} className="p-2 text-gray-500 hover:text-black"><X className="w-6 h-6" /></button>
+              <button onClick={handleCropConfirm} className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold text-sm hover:bg-indigo-500"><Check className="w-5 h-5" /></button>
             </div>
           </div>
-          <div className="flex justify-center gap-4">
-            <button type="button" onClick={() => setAspectRatio("1:1")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "1:1" ? "bg-black text-white" : "bg-white text-gray-700"}`}><Smartphone className="w-3 h-3" /> 正方形</button>
-            <button type="button" onClick={() => setAspectRatio("original")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "original" ? "bg-black text-white" : "bg-white text-gray-700"}`}><ImageIcon className="w-3 h-3" /> 元の比率</button>
+          <div className="flex justify-center gap-2">
+            <button type="button" onClick={() => setAspectRatio("1:1")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "1:1" ? "bg-black text-white" : "bg-white text-gray-700 hover:bg-gray-50"}`}><Smartphone className="w-3 h-3" /> 正方形</button>
+            <button type="button" onClick={() => setAspectRatio("original")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "original" ? "bg-black text-white" : "bg-white text-gray-700 hover:bg-gray-50"}`}><ImageIcon className="w-3 h-3" /> 元の比率</button>
+            <button type="button" onClick={() => setAspectRatio("custom")} className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${aspectRatio === "custom" ? "bg-black text-white" : "bg-white text-gray-700 hover:bg-gray-50"}`}><Maximize className="w-3 h-3" /> カスタム</button>
           </div>
         </div>
-        <div className="relative flex-1 bg-black w-full">
-          <Cropper image={imageSrc} crop={crop} zoom={zoom} aspect={aspectRatio === "1:1" ? 1 : imageAspectRatio} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} />
+        <div className="flex-1 min-h-0 bg-black flex items-center justify-center p-1">
+          <ReactCrop
+            crop={crop}
+            onChange={c => setCrop(c)}
+            onComplete={c => setCompletedCrop(c)}
+            aspect={aspectRatio === "1:1" ? 1 : aspectRatio === "original" ? imageAspectRatio : undefined}
+            className="max-h-full"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imgRef}
+              alt="Crop me"
+              src={imageSrc}
+              onLoad={onImageLoad}
+              className="max-h-full w-auto object-contain"
+            />
+          </ReactCrop>
         </div>
       </div>
     );

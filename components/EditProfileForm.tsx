@@ -4,33 +4,13 @@ import { useActionState, useState, useRef, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic';
 import { updateProfile } from '@/app/actions/user';
 import { Camera, Check, X } from 'lucide-react';
+import ReactCrop, { centerCrop, makeAspectCrop, Crop, PixelCrop, convertToPixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from '@/lib/image';
 import { uploadImageToSupabase } from '@/lib/client-upload';
 import { Spinner } from '@/components/ui/spinner';
 import { SelfRoleSelector } from '@/components/SelfRoleSelector';
 
-type LazyCropperProps = {
-  image: string;
-  crop: { x: number; y: number };
-  zoom: number;
-  aspect: number;
-  cropShape: 'rect' | 'round';
-  showGrid: boolean;
-  onCropChange: (crop: { x: number; y: number }) => void;
-  onCropComplete: (croppedArea: Area, croppedAreaPixels: Area) => void;
-  onZoomChange: (zoom: number) => void;
-};
-
-const Cropper = dynamic<LazyCropperProps>(
-  () =>
-    import('react-easy-crop').then((mod) => {
-      const CropperComponent = mod.default;
-      return function LazyCropper(props: LazyCropperProps) {
-        return <CropperComponent {...props} />;
-      };
-    }),
-  { ssr: false }
-);
 
 type User = {
     username: string;
@@ -50,10 +30,10 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
   const [oshi, setOshi] = useState(user.oshi || '');
   
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [isUploading, setIsUploading] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,9 +43,23 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
       }
   }, [state, onClose]);
 
-  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { width, height } = e.currentTarget;
+    const newCrop = centerCrop(
+      makeAspectCrop(
+        {
+          unit: '%',
+          width: 100,
+        },
+        1,
+        width,
+        height,
+      ),
+      width,
+      height,
+    );
+    setCrop(newCrop);
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,12 +73,32 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
     e.target.value = '';
   };
 
-  const applyCrop = async () => {
-    if (!imageSrc || !croppedAreaPixels) return;
+  const applyCrop = useCallback(async () => {
+    if (!imageSrc || !imgRef.current) return;
+
+    const image = imgRef.current;
+    let finalCrop = completedCrop;
+
+    if (!finalCrop && crop) {
+        finalCrop = convertToPixelCrop(crop, image.width, image.height);
+    }
+
+    if (!finalCrop) return;
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    const pixelCrop = {
+        x: finalCrop.x * scaleX,
+        y: finalCrop.y * scaleY,
+        width: finalCrop.width * scaleX,
+        height: finalCrop.height * scaleY,
+    };
+
     try {
         const croppedImage = await getCroppedImg(
             imageSrc,
-            croppedAreaPixels,
+            pixelCrop,
             128 // Output size for avatar
         );
         setAvatarPreview(croppedImage);
@@ -92,7 +106,7 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
     } catch (e) {
         console.error(e);
     }
-  };
+  }, [imageSrc, completedCrop, crop]);
 
   const cancelCrop = () => {
       setImageSrc(null);
@@ -127,42 +141,43 @@ export default function EditProfileForm({ user, onClose }: { user: User, onClose
   // If in cropping mode
   if (imageSrc) {
       return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90">
-            <div className="w-full max-w-md h-[500px] flex flex-col relative bg-black">
-                 <div className="relative flex-1 w-full bg-black">
-                    <Cropper
-                        image={imageSrc}
-                        crop={crop}
-                        zoom={zoom}
-                        aspect={1}
-                        cropShape="round" // Round crop guide for avatar
-                        showGrid={false}
-                        onCropChange={setCrop}
-                        onCropComplete={onCropComplete}
-                        onZoomChange={setZoom}
-                    />
-                </div>
-                 <div className="p-4 flex items-center justify-between gap-4 bg-white/10 backdrop-blur-sm absolute bottom-0 w-full">
-                     <div className="flex-1">
-                         <input
-                            type="range"
-                            value={zoom}
-                            min={1}
-                            max={3}
-                            step={0.1}
-                            onChange={(e) => setZoom(Number(e.target.value))}
-                            className="w-full h-1 bg-gray-500 rounded-lg appearance-none cursor-pointer"
-                        />
-                     </div>
-                     <div className="flex items-center gap-4">
-                         <button onClick={cancelCrop} className="text-white hover:text-gray-300">
-                             <X className="w-6 h-6" />
-                         </button>
-                         <button onClick={applyCrop} className="text-white hover:text-gray-300">
-                             <Check className="w-6 h-6" />
-                         </button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4">
+            <div className="w-full max-w-md flex flex-col bg-zinc-900 rounded-xl overflow-hidden shadow-2xl">
+                 <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+                     <h3 className="text-white font-bold">アイコンを調整</h3>
+                     <div className="flex items-center gap-2">
+                        <button onClick={cancelCrop} className="p-2 text-zinc-400 hover:text-white transition-colors">
+                            <X className="w-6 h-6" />
+                        </button>
+                        <button onClick={applyCrop} className="p-2 text-white bg-indigo-600 rounded-full hover:bg-indigo-500 transition-colors">
+                            <Check className="w-6 h-6" />
+                        </button>
                      </div>
                  </div>
+                 <div className="relative flex-1 flex items-center justify-center p-8 bg-black min-h-[300px]">
+                    <style>{`
+                        .avatar-cropper .ReactCrop__child-wrapper {
+                            border-radius: 9999px;
+                        }
+                    `}</style>
+                    <ReactCrop
+                        crop={crop}
+                        onChange={c => setCrop(c)}
+                        onComplete={c => setCompletedCrop(c)}
+                        aspect={1}
+                        circularCrop
+                        className="avatar-cropper"
+                    >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            ref={imgRef}
+                            alt="Crop me"
+                            src={imageSrc}
+                            onLoad={onImageLoad}
+                            className="max-h-[60vh] w-auto object-contain"
+                        />
+                    </ReactCrop>
+                </div>
             </div>
         </div>
       );

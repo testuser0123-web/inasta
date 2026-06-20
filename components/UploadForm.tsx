@@ -2,8 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { createPost } from "@/app/actions/post";
-import { Camera, Check, X, Smartphone, Image as ImageIcon, Video, Loader2 } from "lucide-react";
-import Cropper from "react-easy-crop";
+import { Camera, Check, X, Smartphone, Image as ImageIcon, Video, Loader2, Maximize } from "lucide-react";
+import ReactCrop, { centerCrop, makeAspectCrop, Crop, PixelCrop, convertToPixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from "@/lib/image";
 import { uploadImageToSupabase } from "@/lib/client-upload";
 import { Spinner } from "@/components/ui/spinner";
@@ -16,7 +17,7 @@ import { fetchLinkMetadata } from "@/app/actions/metadata";
 import { HexColorPicker } from "react-colorful";
 
 type Area = { x: number; y: number; width: number; height: number };
-type AspectRatio = "1:1" | "original";
+type AspectRatio = "1:1" | "original" | "custom";
 type MediaType = "IMAGE" | "VIDEO";
 
 interface UploadFormProps {
@@ -40,9 +41,8 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
   // State for Image Text Editing
   const [editingImageSrc, setEditingImageSrc] = useState<string | null>(null);
 
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [croppedImages, setCroppedImages] = useState<string[]>([]);
 
   // Local upload state (replaced global state)
@@ -55,6 +55,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   // GIF Conversion State
   const [isConverting, setIsConverting] = useState(false);
@@ -127,12 +128,74 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
       return () => setSidebarVisible(true);
   }, [mediaType, mediaFile, editingImageSrc, setSidebarVisible]);
 
-  const onCropComplete = useCallback(
-    (croppedArea: Area, croppedAreaPixels: Area) => {
-      setCroppedAreaPixels(croppedAreaPixels);
-    },
-    []
-  );
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { width, height } = e.currentTarget;
+    const aspect = width / height;
+    setImageAspectRatio(aspect);
+
+    const initialAspect = aspectRatio === "1:1" ? 1 : aspectRatio === "original" ? aspect : undefined;
+
+    let newCrop;
+    if (initialAspect) {
+      const cropConfig = aspect > initialAspect
+        ? { unit: '%' as const, height: 100 }
+        : { unit: '%' as const, width: 100 };
+
+      newCrop = centerCrop(
+        makeAspectCrop(
+          cropConfig,
+          initialAspect,
+          width,
+          height,
+        ),
+        width,
+        height,
+      );
+    } else {
+      newCrop = {
+        unit: '%' as const,
+        width: 100,
+        height: 100,
+        x: 0,
+        y: 0
+      };
+    }
+    setCrop(newCrop);
+  }
+
+  useEffect(() => {
+    if (mediaSrc && imgRef.current) {
+        const { width, height } = imgRef.current;
+        const aspect = aspectRatio === "1:1" ? 1 : aspectRatio === "original" ? imageAspectRatio : undefined;
+
+        let newCrop;
+        if (aspect) {
+          const cropConfig = imageAspectRatio > aspect
+            ? { unit: '%' as const, height: 100 }
+            : { unit: '%' as const, width: 100 };
+
+          newCrop = centerCrop(
+            makeAspectCrop(
+              cropConfig,
+              aspect,
+              width,
+              height,
+            ),
+            width,
+            height,
+          );
+        } else {
+          newCrop = {
+            unit: '%' as const,
+            width: 100,
+            height: 100,
+            x: 0,
+            y: 0
+          };
+        }
+        setCrop(newCrop);
+    }
+  }, [aspectRatio, imageAspectRatio, mediaSrc]);
 
   const loadFFmpeg = async () => {
     if (ffmpegRef.current) return ffmpegRef.current;
@@ -213,44 +276,52 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
         const reader = new FileReader();
         reader.addEventListener("load", () => {
           setMediaSrc(reader.result as string);
-
-          // Load image to get dimensions
-          const img = new Image();
-          img.onload = () => {
-            setImageAspectRatio(img.width / img.height);
-          };
-          img.src = reader.result as string;
         });
         reader.readAsDataURL(file);
     }
   };
 
   const handleCropConfirm = useCallback(async () => {
-    if (!mediaSrc || !croppedAreaPixels) return;
+    if (!mediaSrc || !imgRef.current) return;
+
+    const image = imgRef.current;
+    let finalCrop = completedCrop;
+
+    if (!finalCrop && crop) {
+        finalCrop = convertToPixelCrop(crop, image.width, image.height);
+    }
+
+    if (!finalCrop) return;
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    const pixelCrop = {
+        x: finalCrop.x * scaleX,
+        y: finalCrop.y * scaleY,
+        width: finalCrop.width * scaleX,
+        height: finalCrop.height * scaleY,
+    };
+
     try {
       let outputWidth = 512;
       let outputHeight = 512;
 
-      if (aspectRatio === "original") {
-        // Calculate dimensions such that long side is 512px
-        const width = croppedAreaPixels.width;
-        const height = croppedAreaPixels.height;
-        const aspect = width / height;
+      const aspect = pixelCrop.width / pixelCrop.height;
 
-        if (width > height) {
+      if (aspect > 1) {
           // Landscape
           outputWidth = 512;
           outputHeight = Math.round(512 / aspect);
-        } else {
+      } else {
           // Portrait
           outputHeight = 512;
           outputWidth = Math.round(512 * aspect);
-        }
       }
 
       const cropped = await getCroppedImg(
         mediaSrc,
-        croppedAreaPixels,
+        pixelCrop,
         { width: outputWidth, height: outputHeight }
       );
 
@@ -261,11 +332,10 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
       // Hide Cropper
       setMediaSrc(null);
-      setZoom(1);
     } catch (e) {
       console.error(e);
     }
-  }, [mediaSrc, croppedAreaPixels, aspectRatio]);
+  }, [mediaSrc, completedCrop, crop]);
 
   const handleTextEditComplete = (finalImageSrc: string) => {
       setCroppedImages(prev => [...prev, finalImageSrc]);
@@ -274,7 +344,6 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
 
   const cancelCrop = () => {
     setMediaSrc(null);
-    setZoom(1);
   };
 
   const cancelTextEdit = () => {
@@ -430,22 +499,10 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
   // Image Cropper
   if (mediaType === "IMAGE" && mediaSrc) {
     return (
-      <div className="flex flex-col h-[calc(100vh-100px)]">
-        <div className="p-4 bg-white dark:bg-zinc-900 border-b flex flex-col gap-4">
+      <div className="flex flex-col h-[calc(100vh-64px)] bg-black overflow-hidden">
+        <div className="p-4 bg-white dark:bg-zinc-900 border-b flex flex-col gap-4 shrink-0">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <label className="text-xs text-gray-500 mb-1 block">ズーム</label>
-              <input
-                type="range"
-                value={zoom}
-                min={1}
-                max={3}
-                step={0.1}
-                aria-labelledby="Zoom"
-                onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-            </div>
+            <h3 className="font-bold text-sm">範囲を選択</h3>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -466,7 +523,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
             </div>
           </div>
 
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-2">
             <button
               type="button"
               onClick={() => setAspectRatio("1:1")}
@@ -477,7 +534,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
               }`}
             >
               <Smartphone className="w-3 h-3" />
-              正方形 (1:1)
+              正方形
             </button>
             <button
               type="button"
@@ -491,18 +548,37 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
               <ImageIcon className="w-3 h-3" />
               オリジナル
             </button>
+            <button
+              type="button"
+              onClick={() => setAspectRatio("custom")}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${
+                aspectRatio === "custom"
+                  ? "bg-black text-white border-black dark:bg-white dark:text-black"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-700"
+              }`}
+            >
+              <Maximize className="w-3 h-3" />
+              カスタム
+            </button>
           </div>
         </div>
-        <div className="relative flex-1 bg-black w-full">
-          <Cropper
-            image={mediaSrc}
+        <div className="flex-1 min-h-0 bg-black flex items-center justify-center p-1">
+          <ReactCrop
             crop={crop}
-            zoom={zoom}
-            aspect={aspectRatio === "1:1" ? 1 : imageAspectRatio}
-            onCropChange={setCrop}
-            onCropComplete={onCropComplete}
-            onZoomChange={setZoom}
-          />
+            onChange={c => setCrop(c)}
+            onComplete={c => setCompletedCrop(c)}
+            aspect={aspectRatio === "1:1" ? 1 : aspectRatio === "original" ? imageAspectRatio : undefined}
+            className="max-h-full"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imgRef}
+              alt="Crop me"
+              src={mediaSrc}
+              onLoad={onImageLoad}
+              className="max-h-full w-auto object-contain"
+            />
+          </ReactCrop>
         </div>
       </div>
     );
