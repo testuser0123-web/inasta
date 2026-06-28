@@ -20,14 +20,13 @@ const geistMono = Geist_Mono({
 
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
-  subsets: ["latin"],
   weight: ["400", "500", "700"],
   preload: false,
 });
 
 const notoSans = Noto_Sans({
   variable: "--font-noto-sans",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "700"],
   preload: false,
 });
@@ -88,7 +87,7 @@ export default async function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} ${notoSans.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} ${notoSans.variable} font-sans antialiased`}
       >
         <ThemeProvider
             attribute="class"

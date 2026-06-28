@@ -75,7 +75,7 @@ export default async function AdminInboxPage() {
                 </div>
               </div>
 
-              <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed bg-gray-50 dark:bg-gray-950/50 p-4 rounded-md">
+              <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed bg-gray-50 dark:bg-gray-950/50 p-4 rounded-md font-sans">
                 {suggestion.content}
               </div>
             </div>
