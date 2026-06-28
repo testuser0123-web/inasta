@@ -2,6 +2,33 @@
 
 @plugin "tailwindcss-animate";
 
+/* Specialized font stack for Kaomoji and special symbols */
+@font-face {
+  font-family: 'KaomojiSupport';
+  /* Prioritize fonts known for excellent symbol and combining mark support */
+  src:
+    local('Apple Symbols'),        /* macOS/iOS */
+    local('Segoe UI Symbol'),     /* Windows */
+    local('Noto Sans Symbols'),   /* Linux/Android */
+    local('Noto Sans CJK JP'),    /* Android Japanese */
+    local('Hiragino Sans'),       /* macOS/iOS Japanese */
+    local('Hiragino Kaku Gothic ProN'),
+    local('Meiryo'),              /* Windows Japanese */
+    local('MS PGothic'),          /* Classic Japanese web fonts for AA/Kaomoji */
+    local('Symbola'),             /* Common symbol font */
+    local('Arial Unicode MS');    /* Comprehensive fallback */
+  /* Target Unicode ranges used in common Kaomoji and special characters.
+     We include the base characters (like halfwidth katakana) along with combining marks
+     to ensure the browser uses the same font for both, which is critical for correct positioning.
+     U+02B0-036F: Modifier Letters & Combining Diacritical Marks
+     U+1DC0-1DFF: Combining Diacritical Marks Supplement (Critical for the reported case)
+     U+2000-2BFF: General Punctuation, Symbols, Arrows, etc.
+     U+3000-30FF: CJK Symbols, Hiragana, Katakana
+     U+FF00-FFEF: Halfwidth and Fullwidth Forms (Including halfwidth katakana)
+  */
+  unicode-range: U+02B0-036F, U+1DC0-1DFF, U+2000-2BFF, U+3000-30FF, U+FF00-FFEF;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
@@ -17,7 +44,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), var(--font-noto-sans), var(--font-noto-sans-jp), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "Segoe UI Symbol", "Apple Color Emoji", sans-serif;
+  --font-sans: 'KaomojiSupport', var(--font-geist-sans), var(--font-noto-sans), var(--font-noto-sans-jp), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "Segoe UI Symbol", "Apple Color Emoji", sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
@@ -25,5 +52,9 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), var(--font-noto-sans), var(--font-noto-sans-jp), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "Segoe UI Symbol", "Apple Color Emoji", sans-serif;
+  font-family: 'KaomojiSupport', var(--font-geist-sans), var(--font-noto-sans), var(--font-noto-sans-jp), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "Segoe UI Symbol", "Apple Color Emoji", sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-ligatures: contextual;
 }
