@@ -128,7 +128,7 @@ const Toolbar = ({ onInsertImage }: { onInsertImage: () => void }) => {
 }
 
 const theme = {
-  paragraph: 'mb-4',
+  paragraph: 'kaomoji-safe mb-4',
   quote: 'border-l-4 border-gray-500 pl-4 italic my-4',
   heading: {
     h1: 'text-3xl font-bold mb-4',

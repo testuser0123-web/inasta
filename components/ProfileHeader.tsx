@@ -95,7 +95,7 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
       </div>
       
       <div className="flex items-center gap-1 mb-2">
-        <h2 className="text-xl font-bold">@{user.username}</h2>
+        <h2 className="kaomoji-safe text-xl font-bold">@{user.username}</h2>
         {user.isGold ? (
           <BadgeCheck className="w-5 h-5 text-yellow-500 fill-yellow-500/10" />
         ) : user.isVerified ? (
@@ -132,13 +132,13 @@ export default function ProfileHeader({ user, currentUser, initialCounts, initia
       {(user.bio || user.oshi) && (
           <div className="flex flex-col items-center gap-1 mb-4 max-w-md text-center px-4">
               {user.oshi && (
-                  <div className="text-pink-500 font-medium text-sm flex items-center gap-1">
+                  <div className="kaomoji-safe text-pink-500 font-medium text-sm flex items-center gap-1">
                       <Heart className="w-3 h-3 fill-current" />
                       <span>{user.oshi}</span>
                   </div>
               )}
               {user.bio && (
-                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm">{user.bio}</p>
+                  <p className="kaomoji-safe text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm">{user.bio}</p>
               )}
           </div>
       )}

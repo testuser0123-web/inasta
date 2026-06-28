@@ -34,10 +34,10 @@ export function RenderNotificationContent({ notification }: { notification: Noti
     const parts = content.split(`「${title}」`);
 
     // Safety check: if split didn't find the exact quoted title
-    if (parts.length < 2) return <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm font-sans">{content}</p>;
+    if (parts.length < 2) return <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm kaomoji-safe">{content}</p>;
 
     return (
-      <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm font-sans">
+      <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm kaomoji-safe">
         {parts.map((part, index) => {
           if (index === parts.length - 1) return <span key={index}>{part}</span>;
           return (
@@ -57,10 +57,10 @@ export function RenderNotificationContent({ notification }: { notification: Noti
     const title = metadata.diaryTitle;
     const parts = content.split(`「${title}」`);
 
-    if (parts.length < 2) return <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm font-sans">{content}</p>;
+    if (parts.length < 2) return <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm kaomoji-safe">{content}</p>;
 
     return (
-      <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm font-sans">
+      <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm kaomoji-safe">
          {parts.map((part, index) => {
           if (index === parts.length - 1) return <span key={index}>{part}</span>;
           return (
@@ -81,7 +81,7 @@ export function RenderNotificationContent({ notification }: { notification: Noti
     const linkHref = metadata.postId ? `/p/${metadata.postId}` : `/diary/${metadata.diaryId}`;
 
     return (
-      <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm font-sans">
+      <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm kaomoji-safe">
         {parts.map((part, index) => {
           if (index === parts.length - 1) return <span key={index}>{part}</span>;
           return (
@@ -98,7 +98,7 @@ export function RenderNotificationContent({ notification }: { notification: Noti
   }
 
   return (
-    <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm font-sans">
+    <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm kaomoji-safe">
       {notification.content}
     </p>
   );

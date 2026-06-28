@@ -97,9 +97,9 @@ export default function InagawaModal({ session }: { session: Session | null }) {
 
         {step === 'intro' && (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <h2 className="text-2xl font-bold text-foreground">ᶘｲ^⇁^ﾅ川</h2>
+            <h2 className="kaomoji-safe text-2xl font-bold text-foreground">ᶘｲ^⇁^ﾅ川</h2>
             <div className="text-6xl animate-bounce">💸</div>
-            <p className="text-lg font-medium text-foreground">
+            <p className="kaomoji-safe text-lg font-medium text-foreground">
               「飼い主さん、おこづかいください！」
             </p>
             <div className="w-full space-y-3">
@@ -156,7 +156,7 @@ export default function InagawaModal({ session }: { session: Session | null }) {
                 <div className="text-6xl mb-4">😿</div>
              )}
 
-             <div className="text-lg text-foreground font-medium p-4 bg-muted/50 rounded-lg w-full">
+             <div className="kaomoji-safe text-lg text-foreground font-medium p-4 bg-muted/50 rounded-lg w-full">
                  {result.message}
              </div>
 

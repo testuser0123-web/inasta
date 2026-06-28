@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Sans_JP, Noto_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_JP, Noto_Sans, Noto_Sans_Symbols, Noto_Sans_Symbols_2 } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { UIProvider } from "@/components/providers/ui-provider";
@@ -21,6 +21,18 @@ const geistMono = Geist_Mono({
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
   weight: ["400", "500", "700"],
+  preload: false,
+});
+
+const notoSansSymbols = Noto_Sans_Symbols({
+  variable: "--font-noto-sans-symbols",
+  weight: ["400", "700"],
+  preload: false,
+});
+
+const notoSansSymbols2 = Noto_Sans_Symbols_2({
+  variable: "--font-noto-sans-symbols-2",
+  weight: ["400"],
   preload: false,
 });
 
@@ -87,7 +99,7 @@ export default async function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} ${notoSans.variable} font-sans antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} ${notoSans.variable} ${notoSansSymbols.variable} ${notoSansSymbols2.variable} font-sans antialiased`}
       >
         <ThemeProvider
             attribute="class"

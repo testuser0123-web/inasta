@@ -190,7 +190,7 @@ export default async function InagawaPage() {
                       <span className="text-sm text-muted-foreground">
                         {new Date(record.timestamp).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
                       </span>
-                      <span className="font-medium text-foreground">{record.message}</span>
+                      <span className="kaomoji-safe font-medium text-foreground">{record.message}</span>
                     </div>
                     <div className={`font-bold ${record.amount > 0 ? 'text-green-500' : 'text-red-500'}`}>
                       {record.amount > 0 ? `+${record.amount}` : record.amount}円

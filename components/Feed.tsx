@@ -889,7 +889,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                   </div>
                 </div>
               ) : selectedPost.comment ? (
-                <p className="text-gray-900 dark:text-gray-100 break-words mb-2">
+                <p className="kaomoji-safe text-gray-900 dark:text-gray-100 break-words mb-2">
                     <Linkify>{selectedPost.comment}</Linkify>
                 </p>
               ) : null}
@@ -987,7 +987,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                                 <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline mr-2 text-gray-900 dark:text-gray-100">
                                     {comment.user.username}
                                 </Link>
-                                <span className="text-gray-800 dark:text-gray-200 break-words">
+                                <span className="kaomoji-safe text-gray-800 dark:text-gray-200 break-words">
                                     <Linkify>{comment.text}</Linkify>
                                 </span>
                               </div>

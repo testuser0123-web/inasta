@@ -613,7 +613,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
              </div>
            </div>
          ) : post.comment ? (
-           <p className="text-gray-900 dark:text-gray-100 break-words mb-2 font-sans">
+           <p className="kaomoji-safe text-gray-900 dark:text-gray-100 break-words mb-2">
              <Linkify>{post.comment}</Linkify>
            </p>
          ) : null}
@@ -711,7 +711,7 @@ export default function SinglePost({ initialPost, currentUserId }: { initialPost
                             <Link href={`/users/${comment.user.username}`} className="font-bold hover:underline mr-2 text-gray-900 dark:text-gray-100">
                                 {comment.user.username}
                             </Link>
-                            <span className="text-gray-800 dark:text-gray-200 break-words font-sans">
+                            <span className="kaomoji-safe text-gray-800 dark:text-gray-200 break-words">
                                 <Linkify>{comment.text}</Linkify>
                             </span>
                          </div>

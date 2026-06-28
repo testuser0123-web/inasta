@@ -198,7 +198,7 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
                                )}
                            </div>
                         </div>
-                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{comment.text}</p>
+                        <p className="kaomoji-safe text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{comment.text}</p>
                      </div>
                   </div>
                ))
