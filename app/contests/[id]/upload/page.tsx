@@ -73,6 +73,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
       };
     }
     setCrop(newCrop);
+    setCompletedCrop(undefined);
   }
 
   useEffect(() => {
@@ -94,7 +95,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
               height,
             ),
             width,
-            height,
+              height,
           );
         } else {
           newCrop = {
@@ -106,6 +107,7 @@ export default function ContestUploadPage({ params }: { params: Promise<{ id: st
           };
         }
         setCrop(newCrop);
+        setCompletedCrop(undefined);
     }
   }, [aspectRatio, imageAspectRatio, imageSrc]);
 

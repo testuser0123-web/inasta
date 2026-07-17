@@ -161,6 +161,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
       };
     }
     setCrop(newCrop);
+    setCompletedCrop(undefined);
   }
 
   useEffect(() => {
@@ -194,6 +195,7 @@ export default function UploadForm({ initialComment = "", initialHashtags = "", 
           };
         }
         setCrop(newCrop);
+        setCompletedCrop(undefined);
     }
   }, [aspectRatio, imageAspectRatio, mediaSrc]);
 
