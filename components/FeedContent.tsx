@@ -1,5 +1,5 @@
 import { fetchFeedPosts } from "@/app/actions/post";
-import Feed from "@/components/Feed";
+import Feed, { type Post } from "@/components/Feed";
 import { getSession } from "@/lib/auth";
 
 export default async function FeedContent({
@@ -13,7 +13,7 @@ export default async function FeedContent({
     // Use -1 for guest ID (or any ID that won't match a real user)
     const currentUserId = session ? session.id : -1;
 
-    let posts = [];
+    let posts: Post[] = [];
     try {
         posts = await fetchFeedPosts({ feedType, searchQuery });
     } catch (e) {
