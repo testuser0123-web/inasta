@@ -82,7 +82,7 @@ function toggleReactionSummary(
   return current.sort((a, b) => b.count - a.count || a.reactionKey.localeCompare(b.reactionKey));
 }
 
-type Post = {
+export type Post = {
   id: number;
   imageUrl?: string; // Main image URL
   mediaType?: "IMAGE" | "VIDEO";
