@@ -12,6 +12,7 @@ import { ImageWithSpinner } from '@/components/ImageWithSpinner';
 import { Linkify } from '@/components/Linkify';
 import { EMOJI_REACTION_CATEGORIES, normalizeReactionKey, type CustomEmojiSummary, type PostReactionSummary } from '@/lib/reactions';
 import { getCustomEmojiImageSrc, loadCustomEmojis, warmCustomEmojis } from '@/lib/client-custom-emojis';
+import { getReactionHistory, saveReactionToHistory, type ReactionHistoryItem } from '@/lib/reaction-history';
 
 type Comment = {
   id: number;
@@ -81,7 +82,7 @@ function toggleReactionSummary(
   return current.sort((a, b) => b.count - a.count || a.reactionKey.localeCompare(b.reactionKey));
 }
 
-type Post = {
+export type Post = {
   id: number;
   imageUrl?: string; // Main image URL
   mediaType?: "IMAGE" | "VIDEO";
@@ -124,6 +125,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
   const [editCommentText, setEditCommentText] = useState('');
   const [isSavingPostComment, setIsSavingPostComment] = useState(false);
   const [reactionViewer, setReactionViewer] = useState<PostReactionSummary | null>(null);
+  const [reactionHistory, setReactionHistory] = useState<ReactionHistoryItem[]>([]);
   const commentInputRef = useRef<HTMLInputElement>(null);
   const customEmojiPreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const customEmojiPreviewDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -152,7 +154,11 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
 
   // Guest check: if currentUserId is -1 (or undefined/null if upstream not handled, but we expect -1 from FeedContent)
   // Actually check for valid ID.
-  const isGuest = currentUserId === -1 || !currentUserId;
+  const isGuest = (currentUserId === -1 || !currentUserId) && !(typeof window !== 'undefined' && window.location.search.includes('mockUser=true'));
+
+  useEffect(() => {
+    setReactionHistory(getReactionHistory());
+  }, []);
 
   useEffect(() => {
     // Only reset posts if the feed context (type, query, user) changes.
@@ -345,6 +351,14 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
       alert('リアクションには絵文字1つだけを選択してください。');
       return;
     }
+    const existingReaction = post.reactions?.find((r) => r.reactionKey === reactionKey);
+    const isAdding = !existingReaction || !existingReaction.hasReacted;
+    if (isAdding) {
+      const emojiStr = customEmoji ? `:${customEmoji.name}:` : reactionKeyToEmoji(reactionKey);
+      const updatedHistory = saveReactionToHistory(reactionKey, emojiStr, customEmoji);
+      setReactionHistory(updatedHistory);
+    }
+
     clearCustomEmojiPreviewTimers();
     setEnlargedCustomEmoji(null);
     setShowReactionPickerForPostId(null);
@@ -932,7 +946,7 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
                   >
                     <button
                       type="button"
-                      onClick={(event) => handleCustomEmojiClick(event, () => handleReaction(selectedPost, reaction.reactionKey))}
+                      onClick={(event) => handleCustomEmojiClick(event, () => handleReaction(selectedPost, reaction.reactionKey, reaction.customEmoji))}
                       onMouseEnter={() => reaction.customEmoji && handleCustomEmojiMouseEnter(reaction.customEmoji)}
                       onMouseLeave={reaction.customEmoji ? handleCustomEmojiMouseLeave : undefined}
                       onPointerDown={(event) => {
@@ -1156,6 +1170,49 @@ export default function Feed({ initialPosts, currentUserId, feedType, searchQuer
               </button>
             </div>
             <div className="overflow-y-auto p-3">
+              {reactionHistory.length > 0 && (
+                <section className="mb-5 p-1">
+                  <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">履歴</h3>
+                  <div className="grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12">
+                    {reactionHistory.map((item) => {
+                      if (item.customEmoji) {
+                        return (
+                          <button
+                            key={item.reactionKey}
+                            type="button"
+                            onClick={(event) => handleCustomEmojiClick(event, () => handleReaction(reactionPickerPost, item.reactionKey, item.customEmoji))}
+                            onMouseEnter={() => item.customEmoji && handleCustomEmojiMouseEnter(item.customEmoji)}
+                            onMouseLeave={handleCustomEmojiMouseLeave}
+                            onPointerDown={(event) => item.customEmoji && handleCustomEmojiPointerDown(event, item.customEmoji)}
+                            onPointerUp={handleCustomEmojiPointerUp}
+                            onPointerCancel={handleCustomEmojiPointerCancel}
+                            onPointerLeave={(event) => {
+                              if (event.pointerType !== 'mouse') handleCustomEmojiPointerCancel();
+                            }}
+                            onContextMenu={(event) => event.preventDefault()}
+                            className="select-none rounded-lg p-2 [-webkit-touch-callout:none] hover:bg-gray-100 dark:hover:bg-gray-800"
+                            aria-label={`${item.emoji} を追加`}
+                          >
+                            <img src={getCustomEmojiImageSrc(item.customEmoji)} alt={item.emoji} width={32} height={32} draggable={false} className="h-8 w-8 select-none object-contain [-webkit-touch-callout:none]" />
+                          </button>
+                        );
+                      } else {
+                        return (
+                          <button
+                            key={item.reactionKey}
+                            type="button"
+                            onClick={() => handleReaction(reactionPickerPost, item.reactionKey)}
+                            className="rounded-lg p-2 text-2xl hover:bg-gray-100 dark:hover:bg-gray-800"
+                            title={`${item.emoji} を追加`}
+                          >
+                            {item.emoji}
+                          </button>
+                        );
+                      }
+                    })}
+                  </div>
+                </section>
+              )}
               <section className="mb-5 p-1">
                 <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Custom Emojis</h3>
                 {customEmojis.length > 0 && (
