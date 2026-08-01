@@ -17,6 +17,11 @@ export function canUseFrame(user: Partial<UserSubscriptionInfo>): boolean {
 }
 
 export function calculateIsGold(user: Partial<UserSubscriptionInfo>): boolean {
+  // If the user is already gold (e.g. from database flag for admin or other manual statuses)
+  if (user.isGold) {
+    return true;
+  }
+
   // If user has subscription >= 300 and not expired
   if ((user.subscriptionAmount || 0) >= 300 && isSubscriptionValid(user.subscriptionExpiresAt || null)) {
     return true;
