@@ -83,6 +83,22 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
     }
   };
 
+  // Check periodically or on interaction if duration is loaded as fallback for stubborn mobile browsers
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (videoRef.current) {
+        const dur = videoRef.current.duration;
+        if (dur && !isNaN(dur) && dur !== Infinity && duration === 0) {
+          setDuration(dur);
+          setEndTime(dur);
+          clearInterval(interval);
+        }
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [duration]);
+
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     setCurrentTime(e.currentTarget.currentTime);
     // Loop preview within selected range
@@ -164,6 +180,7 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
           className="max-h-full max-w-full"
           preload="metadata"
           playsInline
+          muted
           onLoadedMetadata={handleLoadedMetadata}
           onDurationChange={handleDurationChange}
           onTimeUpdate={handleTimeUpdate}
