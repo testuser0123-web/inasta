@@ -156,33 +156,33 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] bg-black text-white p-4 gap-4">
       <div className="relative flex-1 min-h-0 flex items-center justify-center bg-zinc-900 rounded-lg overflow-hidden">
-        {!loaded ? (
-          <div className="flex flex-col items-center gap-2">
-            <Spinner className="w-8 h-8 text-white" />
+        {/* Render the video immediately so mobile browsers can fetch metadata/duration without waiting for FFmpeg.wasm load */}
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <video
+          ref={videoRef}
+          src={videoUrl || ""}
+          className="max-h-full max-w-full"
+          preload="metadata"
+          playsInline
+          onLoadedMetadata={handleLoadedMetadata}
+          onDurationChange={handleDurationChange}
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={() => setIsPlaying(false)}
+        />
+
+        {!loaded && (
+          <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-10">
+            <Spinner className="w-8 h-8 text-white mb-2" />
             <p className="text-sm text-gray-400">Loading video editor...</p>
           </div>
-        ) : (
-          <>
-             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-            <video
-              ref={videoRef}
-              src={videoUrl || ""}
-              className="max-h-full max-w-full"
-              preload="metadata"
-              playsInline
-              onLoadedMetadata={handleLoadedMetadata}
-              onDurationChange={handleDurationChange}
-              onTimeUpdate={handleTimeUpdate}
-              onEnded={() => setIsPlaying(false)}
-            />
-            {processing && (
-                <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-10">
-                    <Spinner className="w-10 h-10 text-white mb-4" />
-                    <p className="text-white font-medium">Processing...</p>
-                    {progress > 0 && <p className="text-gray-400 text-sm mt-2">{progress}%</p>}
-                </div>
-            )}
-          </>
+        )}
+
+        {processing && (
+            <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-10">
+                <Spinner className="w-10 h-10 text-white mb-4" />
+                <p className="text-white font-medium">Processing...</p>
+                {progress > 0 && <p className="text-gray-400 text-sm mt-2">{progress}%</p>}
+            </div>
         )}
       </div>
 
