@@ -65,14 +65,28 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
 
   const handleLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const dur = e.currentTarget.duration;
-    setDuration(dur);
-    setEndTime(dur);
+    if (dur && !isNaN(dur) && dur !== Infinity) {
+      setDuration(dur);
+      setEndTime(dur);
+    }
+    // Seek slightly to render the first frame on iOS/mobile browsers
+    e.currentTarget.currentTime = 0.001;
+  };
+
+  const handleDurationChange = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const dur = e.currentTarget.duration;
+    if (dur && !isNaN(dur) && dur !== Infinity) {
+      setDuration(dur);
+      if (endTime === 0) {
+        setEndTime(dur);
+      }
+    }
   };
 
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     setCurrentTime(e.currentTarget.currentTime);
     // Loop preview within selected range
-    if (e.currentTarget.currentTime > endTime) {
+    if (endTime > 0 && e.currentTarget.currentTime > endTime) {
         e.currentTarget.currentTime = startTime;
     }
   };
@@ -139,8 +153,8 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
   };
 
   return (
-    <div className="flex flex-col h-full bg-black text-white p-4 gap-4">
-      <div className="relative flex-1 flex items-center justify-center bg-zinc-900 rounded-lg overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-black text-white p-4 gap-4">
+      <div className="relative flex-1 min-h-0 flex items-center justify-center bg-zinc-900 rounded-lg overflow-hidden">
         {!loaded ? (
           <div className="flex flex-col items-center gap-2">
             <Spinner className="w-8 h-8 text-white" />
@@ -153,7 +167,10 @@ export default function VideoEditor({ file, onCancel, onComplete }: VideoEditorP
               ref={videoRef}
               src={videoUrl || ""}
               className="max-h-full max-w-full"
+              preload="metadata"
+              playsInline
               onLoadedMetadata={handleLoadedMetadata}
+              onDurationChange={handleDurationChange}
               onTimeUpdate={handleTimeUpdate}
               onEnded={() => setIsPlaying(false)}
             />
