@@ -729,3 +729,102 @@ export async function deleteDiary(diaryId: number) {
   revalidatePath('/diary');
   revalidatePath(`/profile`);
 }
+
+export async function getOtherDrafts(currentDateStr: string) {
+  const session = await getSession();
+  if (!session) return [];
+
+  const targetDate = new Date(currentDateStr);
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const drafts = await db.diary.findMany({
+    where: {
+      userId: session.id,
+      isDraft: true,
+      NOT: {
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      date: true,
+      content: true,
+      thumbnailUrl: true,
+    },
+    orderBy: {
+      date: 'desc',
+    },
+  });
+
+  return drafts.map(draft => ({
+    ...draft,
+    dateString: draft.date.toISOString().split('T')[0],
+  }));
+}
+
+export async function loadDraftToDate(draftId: number, targetDateStr: string) {
+  const session = await getSession();
+  if (!session) {
+    throw new Error('ログインが必要です');
+  }
+
+  const draft = await db.diary.findUnique({
+    where: { id: draftId },
+  });
+
+  if (!draft || draft.userId !== session.id || !draft.isDraft) {
+    throw new Error('下書きが見つかりません');
+  }
+
+  const targetDate = new Date(targetDateStr);
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  // Check if there is an existing entry on target date
+  const existing = await db.diary.findFirst({
+    where: {
+      userId: session.id,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+  });
+
+  if (existing) {
+    if (!existing.isDraft) {
+      throw new Error('指定した日付には既に投稿された日記が存在します');
+    }
+    // Delete the target date draft to avoid unique constraint conflict
+    await db.diary.delete({
+      where: { id: existing.id },
+    });
+  }
+
+  // Move the draft to the target date
+  const updatedDraft = await db.diary.update({
+    where: { id: draftId },
+    data: {
+      date: targetDate,
+    },
+  });
+
+  revalidatePath('/diary');
+  revalidatePath('/diary/new');
+  return {
+    success: true,
+    draft: {
+      ...updatedDraft,
+      dateString: updatedDraft.date.toISOString().split('T')[0],
+    }
+  };
+}
