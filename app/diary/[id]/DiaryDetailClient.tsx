@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef } from 'react';
 import { format } from 'date-fns';
-import { Heart, MessageCircle, Trash2, CornerDownRight, X } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, CornerDownRight, X, Edit } from 'lucide-react';
 import DiaryEditor from '@/components/DiaryEditor';
 import { toggleDiaryLike, addDiaryComment, deleteDiaryComment } from '@/app/actions/diary';
 import Link from 'next/link';
@@ -101,24 +101,35 @@ export default function DiaryDetailClient({ diary, currentUserId }: { diary: any
   return (
     <div className="max-w-4xl mx-auto pb-12 px-4 sm:px-0 pt-6">
       <div className="mb-6">
-         <div className="flex items-center gap-4 mb-6">
-             <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                {diary.user.avatarUrl ? (
-                   <img src={diary.user.avatarUrl} alt={diary.user.username} crossOrigin="anonymous" className="w-full h-full object-cover" />
-                ) : (
-                   <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white text-lg">
-                      {diary.user.username[0].toUpperCase()}
-                   </div>
-                )}
+         <div className="flex items-center justify-between gap-4 mb-6">
+             <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                    {diary.user.avatarUrl ? (
+                       <img src={diary.user.avatarUrl} alt={diary.user.username} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                    ) : (
+                       <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white text-lg">
+                          {diary.user.username[0].toUpperCase()}
+                       </div>
+                    )}
+                 </div>
+                 <div>
+                    <h1 className="text-3xl font-bold mb-1">{diary.title}</h1>
+                    <div className="flex items-center gap-2 text-gray-500 text-sm">
+                       <span className="font-medium text-gray-900 dark:text-gray-100">{diary.user.username}</span>
+                       <span>•</span>
+                       <span>{format(new Date(diary.date), 'MMMM d, yyyy')}</span>
+                    </div>
+                 </div>
              </div>
-             <div>
-                <h1 className="text-3xl font-bold mb-1">{diary.title}</h1>
-                <div className="flex items-center gap-2 text-gray-500 text-sm">
-                   <span className="font-medium text-gray-900 dark:text-gray-100">{diary.user.username}</span>
-                   <span>•</span>
-                   <span>{format(new Date(diary.date), 'MMMM d, yyyy')}</span>
-                </div>
-             </div>
+             {currentUserId === diary.userId && (
+                <Link
+                   href={`/diary/${diary.id}/edit`}
+                   className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                >
+                   <Edit className="w-4 h-4" />
+                   <span>編集する</span>
+                </Link>
+             )}
          </div>
 
          {diary.thumbnailUrl && (
