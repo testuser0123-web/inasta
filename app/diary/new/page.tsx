@@ -26,6 +26,21 @@ export default function NewDiaryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoadingOtherDrafts, setIsLoadingOtherDrafts] = useState(false);
 
+  const [fromDraftId, setFromDraftId] = useState<number | null>(null);
+  const [fromDraftTitle, setFromDraftTitle] = useState<string | null>(null);
+
+  useEffect(() => {
+    const savedId = localStorage.getItem(`from_draft_id_${dateParam}`);
+    const savedTitle = localStorage.getItem(`from_draft_title_${dateParam}`);
+    if (savedId) {
+      setFromDraftId(parseInt(savedId, 10));
+      setFromDraftTitle(savedTitle || 'タイトルなし');
+    } else {
+      setFromDraftId(null);
+      setFromDraftTitle(null);
+    }
+  }, [dateParam]);
+
   const loadOtherDrafts = async () => {
     setIsLoadingOtherDrafts(true);
     try {
@@ -53,6 +68,10 @@ export default function NewDiaryPage() {
         } else {
           setInitialContent(undefined);
         }
+        localStorage.setItem(`from_draft_id_${dateParam}`, draft.id.toString());
+        localStorage.setItem(`from_draft_title_${dateParam}`, draft.title || 'タイトルなし');
+        setFromDraftId(draft.id);
+        setFromDraftTitle(draft.title || 'タイトルなし');
         setEditorKey(prev => prev + 1);
         setLastSavedAt(new Date());
         setIsModalOpen(false);
@@ -138,6 +157,9 @@ export default function NewDiaryPage() {
       formData.append('title', title);
       formData.append('content', content);
       formData.append('date', dateParam);
+      if (fromDraftId) {
+        formData.append('fromDraftId', fromDraftId.toString());
+      }
 
       if (thumbnailFile) {
         const compressedBlob = await resizeImage(thumbnailFile);
@@ -153,6 +175,8 @@ export default function NewDiaryPage() {
         // We don't append thumbnailFile anymore to avoid Vercel Blob upload in server action if it still exists
       }
 
+      localStorage.removeItem(`from_draft_id_${dateParam}`);
+      localStorage.removeItem(`from_draft_title_${dateParam}`);
       await createDiary(formData);
     } catch (error: any) {
       if (error.message === 'NEXT_REDIRECT' || error.digest?.startsWith('NEXT_REDIRECT')) {
@@ -180,6 +204,26 @@ export default function NewDiaryPage() {
           過去の下書きを読み込む
         </button>
       </div>
+
+      {fromDraftId && (
+        <div className="mb-6 flex items-center justify-between gap-2 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-200 px-4 py-3 rounded-lg text-sm border border-amber-200 dark:border-amber-900/50 animate-in fade-in slide-in-from-top-1 duration-200">
+          <span className="font-medium">
+            下書き「{fromDraftTitle}」から作成中（投稿時に元の下書きは削除されます）
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem(`from_draft_id_${dateParam}`);
+              localStorage.removeItem(`from_draft_title_${dateParam}`);
+              setFromDraftId(null);
+              setFromDraftTitle(null);
+            }}
+            className="text-xs bg-amber-100 hover:bg-amber-200 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-800 dark:text-amber-200 px-2.5 py-1 rounded-md transition-colors font-semibold cursor-pointer"
+          >
+            関連付けを解除
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
