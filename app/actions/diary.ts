@@ -54,6 +54,9 @@ export async function createDiary(formData: FormData) {
     throw new Error('ログインが必要です');
   }
 
+  const fromDraftIdStr = formData.get('fromDraftId') as string | null;
+  const fromDraftId = fromDraftIdStr ? parseInt(fromDraftIdStr, 10) : null;
+
   // Check for thumbnailUrl first (Supabase)
   let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
 
@@ -126,6 +129,18 @@ export async function createDiary(formData: FormData) {
       },
     });
     diaryId = newDiary.id;
+  }
+
+  // Delete the original past draft if this diary was posted from a loaded past draft
+  if (fromDraftId) {
+    const draftToDelete = await db.diary.findUnique({
+      where: { id: fromDraftId },
+    });
+    if (draftToDelete && draftToDelete.userId === session.id && draftToDelete.isDraft) {
+      await db.diary.delete({
+        where: { id: fromDraftId },
+      });
+    }
   }
 
   // Notify followers
@@ -800,23 +815,33 @@ export async function loadDraftToDate(draftId: number, targetDateStr: string) {
     },
   });
 
+  let updatedDraft;
   if (existing) {
     if (!existing.isDraft) {
       throw new Error('指定した日付には既に投稿された日記が存在します');
     }
-    // Delete the target date draft to avoid unique constraint conflict
-    await db.diary.delete({
+    // Update the existing draft with the contents of the past draft
+    updatedDraft = await db.diary.update({
       where: { id: existing.id },
+      data: {
+        title: draft.title,
+        content: draft.content as any,
+        thumbnailUrl: draft.thumbnailUrl,
+      },
+    });
+  } else {
+    // Create a new draft on the target date with the contents of the past draft
+    updatedDraft = await db.diary.create({
+      data: {
+        title: draft.title,
+        content: draft.content as any,
+        thumbnailUrl: draft.thumbnailUrl,
+        date: targetDate,
+        userId: session.id,
+        isDraft: true,
+      },
     });
   }
-
-  // Move the draft to the target date
-  const updatedDraft = await db.diary.update({
-    where: { id: draftId },
-    data: {
-      date: targetDate,
-    },
-  });
 
   revalidatePath('/diary');
   revalidatePath('/diary/new');
