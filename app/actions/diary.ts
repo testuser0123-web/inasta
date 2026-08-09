@@ -625,3 +625,107 @@ export async function getDraft(dateStr: string) {
 
   return draft;
 }
+
+export async function updateDiary(diaryId: number, formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    throw new Error('ログインが必要です');
+  }
+
+  const diary = await db.diary.findUnique({
+    where: { id: diaryId },
+  });
+
+  if (!diary) {
+    throw new Error('日記が見つかりません');
+  }
+
+  if (diary.userId !== session.id) {
+    throw new Error('編集権限がありません');
+  }
+
+  const title = formData.get('title') as string;
+  const contentStr = formData.get('content') as string;
+  const deleteThumbnail = formData.get('deleteThumbnail') === 'true';
+  let thumbnailUrl = formData.get('thumbnailUrl') as string | undefined;
+
+  if (deleteThumbnail) {
+    thumbnailUrl = undefined;
+  } else if (!thumbnailUrl) {
+    const thumbnailFile = formData.get('thumbnailFile') as File;
+    if (thumbnailFile && thumbnailFile.size > 0) {
+      thumbnailUrl = await uploadToSupabase(thumbnailFile, session.id.toString(), 'diary-thumbnail');
+    } else {
+      thumbnailUrl = diary.thumbnailUrl || undefined;
+    }
+  }
+
+  const validatedFields = diarySchema.safeParse({
+    title,
+    content: JSON.parse(contentStr),
+    thumbnailUrl: thumbnailUrl ?? null,
+    date: diary.date.toISOString().split('T')[0], // date is read-only
+  });
+
+  if (!validatedFields.success) {
+    throw new Error('入力内容に誤りがあります');
+  }
+
+  await db.diary.update({
+    where: { id: diaryId },
+    data: {
+      title,
+      content: JSON.parse(contentStr),
+      thumbnailUrl: deleteThumbnail ? null : (thumbnailUrl ?? null),
+    },
+  });
+
+  revalidatePath('/diary');
+  revalidatePath(`/diary/${diaryId}`);
+  revalidatePath(`/profile`);
+}
+
+export async function deleteDiary(diaryId: number) {
+  const session = await getSession();
+  if (!session) {
+    throw new Error('ログインが必要です');
+  }
+
+  const diary = await db.diary.findUnique({
+    where: { id: diaryId },
+  });
+
+  if (!diary) {
+    throw new Error('日記が見つかりません');
+  }
+
+  if (diary.userId !== session.id) {
+    throw new Error('削除権限がありません');
+  }
+
+  await db.diary.delete({
+    where: { id: diaryId },
+  });
+
+  // Delete associated SYSTEM notifications
+  const notifications = await db.notification.findMany({
+    where: {
+      type: NotificationType.SYSTEM,
+      metadata: {
+        path: ['diaryId'],
+        equals: diaryId
+      }
+    }
+  });
+
+  if (notifications.length > 0) {
+    await db.notification.deleteMany({
+      where: {
+        id: { in: notifications.map(n => n.id) }
+      }
+    });
+  }
+
+  revalidatePath('/diary');
+  revalidatePath(`/profile`);
+}
