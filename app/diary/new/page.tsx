@@ -175,9 +175,9 @@ export default function NewDiaryPage() {
         // We don't append thumbnailFile anymore to avoid Vercel Blob upload in server action if it still exists
       }
 
-      await createDiary(formData);
       localStorage.removeItem(`from_draft_id_${dateParam}`);
       localStorage.removeItem(`from_draft_title_${dateParam}`);
+      await createDiary(formData);
     } catch (error: any) {
       if (error.message === 'NEXT_REDIRECT' || error.digest?.startsWith('NEXT_REDIRECT')) {
         throw error;
