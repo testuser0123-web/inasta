@@ -272,7 +272,9 @@ function CaptureEditorRef({ editorRef }: { editorRef: any }) {
 function LoadInitialContent({ content }: { content: string }) {
   const [editor] = useLexicalComposerContext();
   useEffect(() => {
-    if (content) {
+    // Never re-import an onChange echo. setEditorState resets IME composition
+    // and selection even when the serialized document has not changed.
+    if (content && content !== JSON.stringify(editor.getEditorState())) {
       const initialEditorState = editor.parseEditorState(content);
       editor.setEditorState(initialEditorState);
     }
