@@ -26,7 +26,10 @@ export default function EditDiaryClient({ diary }: EditDiaryClientProps) {
   const dateStr = new Date(diary.date).toISOString().split('T')[0];
 
   const [title, setTitle] = useState(diary.title);
-  const [content, setContent] = useState(JSON.stringify(diary.content));
+  // Keep the loaded document separate from onChange output: reloading each
+  // keystroke resets Lexical's selection and Android IME composition.
+  const [initialContent] = useState(() => JSON.stringify(diary.content));
+  const [content, setContent] = useState(initialContent);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [deleteThumbnail, setDeleteThumbnail] = useState(false);
@@ -159,7 +162,7 @@ export default function EditDiaryClient({ diary }: EditDiaryClientProps) {
 
         <div>
           <label className="block text-sm font-medium mb-2">本文</label>
-          <DiaryEditor onChange={setContent} initialContent={content} />
+          <DiaryEditor onChange={setContent} initialContent={initialContent} />
         </div>
 
         <div className="flex flex-col gap-4 border-t dark:border-gray-800 pt-6">
