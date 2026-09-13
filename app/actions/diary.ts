@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { db } from '@/lib/db';
+import { recordActivity } from '@/lib/activity';
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
@@ -99,37 +100,41 @@ export async function createDiary(formData: FormData) {
     },
   });
 
-  let diaryId: number;
-
-  if (existingDiary) {
-    if (!existingDiary.isDraft) {
-      throw new Error('この日付の日記は既に投稿されています');
+  const publishedAt = new Date();
+  const diaryId = await db.$transaction(async (tx) => {
+    let id: number;
+    if (existingDiary) {
+      if (!existingDiary.isDraft) {
+        throw new Error('この日付の日記は既に投稿されています');
+      }
+      // A draft counts only when it is published, using the publication day.
+      await tx.diary.update({
+        where: { id: existingDiary.id },
+        data: {
+          title,
+          content,
+          thumbnailUrl: thumbnailUrl ?? existingDiary.thumbnailUrl,
+          date: targetDate,
+          isDraft: false,
+        },
+      });
+      id = existingDiary.id;
+    } else {
+      const newDiary = await tx.diary.create({
+        data: {
+          title,
+          content,
+          thumbnailUrl,
+          date: targetDate,
+          userId: session.id,
+          isDraft: false,
+        },
+      });
+      id = newDiary.id;
     }
-    // Update draft to published
-    await db.diary.update({
-      where: { id: existingDiary.id },
-      data: {
-        title,
-        content,
-        thumbnailUrl: thumbnailUrl ?? existingDiary.thumbnailUrl,
-        date: targetDate,
-        isDraft: false,
-      },
-    });
-    diaryId = existingDiary.id;
-  } else {
-    const newDiary = await db.diary.create({
-      data: {
-        title,
-        content,
-        thumbnailUrl,
-        date: targetDate,
-        userId: session.id,
-        isDraft: false,
-      },
-    });
-    diaryId = newDiary.id;
-  }
+    await recordActivity(tx, session.id, true, publishedAt);
+    return id;
+  });
 
   // Delete the original past draft if this diary was posted from a loaded past draft
   if (fromDraftId) {

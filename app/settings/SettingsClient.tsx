@@ -123,7 +123,7 @@ export default function SettingsClient({ initialActivityCalendarVisibility, init
                                 {label}
                             </label>
                         ))}
-                        <p className="text-xs text-gray-500 dark:text-gray-400">非表示中も活動は記録されます。日付は日本時間です。通常の画像・動画投稿が対象で、削除後も投稿日の記録は残ります。</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">非表示中も活動は記録されます。日付は日本時間です。通常の投稿および公開した日記が対象で、削除後も投稿日は記録に残ります。</p>
                     </fieldset>
 
                     {settingsState?.message && (

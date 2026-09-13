@@ -84,7 +84,7 @@ export function ActivityCalendarView({ data, loading = false, onMonthChange }: {
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-green-200 dark:bg-green-300" />アクセス</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-green-700 dark:bg-green-600" />投稿</span>
       </div>
-      <p className="text-[11px] text-gray-500 mt-3 leading-relaxed">日本時間・アクセス記録は{data.trackingStartedAt.replaceAll('-', '/')}から。開始前のアクセスは不明です。通常の画像・動画投稿が対象です。</p>
+      <p className="text-[11px] text-gray-500 mt-3 leading-relaxed">アクセス記録は{data.trackingStartedAt.replaceAll('-', '/')}から記録。それ以前は不明。通常の投稿および日記が対象です。</p>
     </section>
   );
 }

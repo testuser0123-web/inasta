@@ -19,4 +19,10 @@ INSERT INTO "UserActivity" ("userId", "date", "accessed", "posted")
 SELECT DISTINCT "userId", ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tokyo')::date, false, true
 FROM "Post"
 ON CONFLICT ("userId", "date") DO UPDATE SET "posted" = true;
+-- Historical published diaries use their creation time. Older drafts have no
+-- stored publication timestamp, so their historical day may be approximate.
+INSERT INTO "UserActivity" ("userId", "date", "accessed", "posted")
+SELECT DISTINCT "userId", ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tokyo')::date, false, true
+FROM "Diary" WHERE "isDraft" = false
+ON CONFLICT ("userId", "date") DO UPDATE SET "posted" = true;
 COMMIT;
