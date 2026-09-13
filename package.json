@@ -50,6 +50,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",

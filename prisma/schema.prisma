@@ -11,6 +11,9 @@ datasource db {
 model User {
   id                     Int            @id @default(autoincrement())
   username               String         @unique
+  activityCalendarVisibility ActivityCalendarVisibility @default(HIDDEN)
+  activityTrackingStartedAt  DateTime @default(now())
+  activityDays               UserActivity[]
   password               String
   createdAt              DateTime       @default(now())
   avatarUrl              String?
@@ -303,4 +306,20 @@ enum NotificationType {
 enum MediaType {
   IMAGE
   VIDEO
+}
+
+enum ActivityCalendarVisibility {
+  HIDDEN
+  SELF
+  PUBLIC
+}
+
+model UserActivity {
+  userId   Int
+  date     DateTime @db.Date
+  accessed Boolean  @default(false)
+  posted   Boolean  @default(false)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, date])
 }

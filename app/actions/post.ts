@@ -1,5 +1,6 @@
 "use server";
 
+import { recordActivity } from "@/lib/activity";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -438,28 +439,34 @@ export async function createPost(prevState: unknown, formData: FormData) {
       frameColor = frameColorRaw;
     }
 
-    await db.post.create({
-      data: {
-        imageUrl: firstImage,
-        mediaType,
-        thumbnailUrl,
-        frameColor,
-        comment,
-        isSpoiler,
-        userId: session.id,
-        hashtags: {
-          connectOrCreate: hashtagList.map((tag) => ({
-            where: { name: tag },
-            create: { name: tag },
-          })),
+    await db.$transaction(async (tx) => {
+      const now = new Date();
+      await tx.post.create({
+        data: {
+          createdAt: now,
+          imageUrl: firstImage,
+          mediaType,
+          thumbnailUrl,
+          frameColor,
+          comment,
+          isSpoiler,
+          userId: session.id,
+          hashtags: {
+            connectOrCreate: hashtagList.map((tag) => ({
+              where: { name: tag },
+              create: { name: tag },
+            })),
+          },
+          images: {
+              create: restImages.map((url, index) => ({
+                  url: url,
+                  order: index + 1,
+              }))
+          }
         },
-        images: {
-            create: restImages.map((url, index) => ({
-                url: url,
-                order: index + 1,
-            }))
-        }
-      },
+      });
+
+      await recordActivity(tx, session.id, true, now);
     });
 
     if (user && !user.roles.includes('inastagrammer')) {
