@@ -1,25 +1,26 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useSyncExternalStore } from 'react';
 import { changePassword, updateSettings } from '@/app/actions/user';
 import { ArrowLeft, Moon, Sun, Laptop } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
 
+const subscribeToHydration = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
+
 type SettingsPageProps = {
+    initialActivityCalendarVisibility: 'HIDDEN' | 'SELF' | 'PUBLIC';
     initialExcludeUnverifiedPosts: boolean;
     initialShowMobileQuickNav: boolean;
 };
 
-export default function SettingsClient({ initialExcludeUnverifiedPosts, initialShowMobileQuickNav }: SettingsPageProps) {
+export default function SettingsClient({ initialActivityCalendarVisibility, initialExcludeUnverifiedPosts, initialShowMobileQuickNav }: SettingsPageProps) {
   const [passwordState, passwordAction, isPasswordPending] = useActionState(changePassword, undefined);
   const [settingsState, settingsAction, isSettingsPending] = useActionState(updateSettings, undefined);
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(subscribeToHydration, clientSnapshot, serverSnapshot);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
@@ -109,6 +110,21 @@ export default function SettingsClient({ initialExcludeUnverifiedPosts, initialS
                             className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-600 dark:bg-gray-700"
                         />
                     </div>
+
+                    <fieldset className="space-y-3 pt-4 border-t dark:border-gray-700">
+                        <legend className="font-medium pt-4">活動カレンダー</legend>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">プロフィールにアクセス日・投稿日を表示します。</p>
+                        {([
+                            ['HIDDEN', '非表示'], ['SELF', '自分にだけ表示'], ['PUBLIC', '全員に公開'],
+                        ] as const).map(([value, label]) => (
+                            <label key={value} className="flex items-center gap-3 py-1">
+                                <input type="radio" name="activityCalendarVisibility" value={value}
+                                    defaultChecked={initialActivityCalendarVisibility === value} className="accent-green-700" />
+                                {label}
+                            </label>
+                        ))}
+                        <p className="text-xs text-gray-500 dark:text-gray-400">非表示中も活動は記録されます。日付は日本時間です。通常の投稿および公開した日記が対象で、削除後も投稿日は記録に残ります。</p>
+                    </fieldset>
 
                     {settingsState?.message && (
                         <div className={`text-sm ${settingsState.success ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>

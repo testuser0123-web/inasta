@@ -1,5 +1,6 @@
 'use client';
 
+import ActivityCalendar from '@/components/ActivityCalendar';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Grid, Heart, Settings, ShieldCheck, MoreHorizontal, Book } from 'lucide-react';
@@ -137,6 +138,8 @@ export default function ProfileClient({ user, currentUser, posts, likedPosts = [
                 )}
             </div>
          )}
+
+         <ActivityCalendar userId={user.id} />
 
          {/* Tabs */}
          <div className="flex border-b dark:border-gray-800 mt-4">

@@ -209,6 +209,11 @@ export async function updateSettings(prevState: unknown, formData: FormData) {
     return { message: 'Unauthorized' };
   }
 
+  const activityCalendarVisibility = formData.get('activityCalendarVisibility');
+  if (activityCalendarVisibility !== 'HIDDEN' && activityCalendarVisibility !== 'SELF' && activityCalendarVisibility !== 'PUBLIC') {
+    return { message: '活動カレンダーの公開範囲を選択してください' };
+  }
+
   const excludeUnverifiedPosts = formData.get('excludeUnverifiedPosts') === 'on';
   const showMobileQuickNav = formData.get('showMobileQuickNav') === 'on';
 
@@ -216,11 +221,15 @@ export async function updateSettings(prevState: unknown, formData: FormData) {
     await db.user.update({
       where: { id: session.id },
       data: {
+        activityCalendarVisibility,
         excludeUnverifiedPosts,
         showMobileQuickNav,
       },
     });
 
+    revalidatePath('/profile');
+    revalidatePath('/settings');
+    revalidatePath('/users/[username]', 'page');
     revalidatePath('/'); // Revalidate feed
   } catch (error) {
     console.error('Failed to update settings:', error);

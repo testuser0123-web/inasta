@@ -12,6 +12,7 @@ export default async function SettingsPage() {
   const user = await db.user.findUnique({
     where: { id: session.id },
     select: {
+      activityCalendarVisibility: true,
       excludeUnverifiedPosts: true,
       showMobileQuickNav: true,
     },
@@ -23,6 +24,7 @@ export default async function SettingsPage() {
 
   return (
     <SettingsClient
+      initialActivityCalendarVisibility={user.activityCalendarVisibility}
       initialExcludeUnverifiedPosts={user.excludeUnverifiedPosts}
       initialShowMobileQuickNav={user.showMobileQuickNav}
     />
