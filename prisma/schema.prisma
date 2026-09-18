@@ -12,6 +12,7 @@ model User {
   id                     Int            @id @default(autoincrement())
   username               String         @unique
   activityCalendarVisibility ActivityCalendarVisibility @default(HIDDEN)
+  activityCalendarPalette    ActivityCalendarPalette @default(VIVID)
   activityTrackingStartedAt  DateTime @default(now())
   activityDays               UserActivity[]
   password               String
@@ -306,6 +307,11 @@ enum NotificationType {
 enum MediaType {
   IMAGE
   VIDEO
+}
+
+enum ActivityCalendarPalette {
+  VIVID
+  GRADIENT
 }
 
 enum ActivityCalendarVisibility {

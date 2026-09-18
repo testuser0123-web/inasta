@@ -1,6 +1,9 @@
+import type { ActivityPalette } from './activity-palette';
+
 export type ActivityVisibility = 'HIDDEN' | 'SELF' | 'PUBLIC';
 export type ActivityDay = { date: string; accessed: boolean; posted: boolean };
 export type ActivityMonth = {
+  palette: ActivityPalette;
   month: string;
   today: string;
   trackingStartedAt: string;

@@ -13,6 +13,7 @@ export default async function SettingsPage() {
     where: { id: session.id },
     select: {
       activityCalendarVisibility: true,
+      activityCalendarPalette: true,
       excludeUnverifiedPosts: true,
       showMobileQuickNav: true,
     },
@@ -24,6 +25,7 @@ export default async function SettingsPage() {
 
   return (
     <SettingsClient
+      initialActivityCalendarPalette={user.activityCalendarPalette}
       initialActivityCalendarVisibility={user.activityCalendarVisibility}
       initialExcludeUnverifiedPosts={user.excludeUnverifiedPosts}
       initialShowMobileQuickNav={user.showMobileQuickNav}
