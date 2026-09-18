@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { monthBounds, type ActivityMonth, jstDate } from './activity-calendar';
+import type { ActivityPalette } from './activity-palette';
 
 // Atomic, monotonic updates: simultaneous access must never erase a post flag.
 export async function recordActivity(tx: Pick<Prisma.TransactionClient, '$executeRaw'>, userId: number, posted = false, now = new Date()) {
@@ -22,10 +23,14 @@ export async function readActivityMonth(client: Pick<Prisma.TransactionClient, '
   // One statement checks current visibility and reads the month. Never cache per viewer.
   const rows = await client.$queryRaw<Array<{
     createdAt: Date; activityTrackingStartedAt: Date;
+    activityCalendarPalette: ActivityPalette;
     date: Date | null; accessed: boolean | null; posted: boolean | null;
   }>>`
-    SELECT u."createdAt", u."activityTrackingStartedAt", a."date", a."accessed", a."posted"
+    SELECT u."createdAt", u."activityTrackingStartedAt",
+      COALESCE(viewer."activityCalendarPalette", 'VIVID') AS "activityCalendarPalette",
+      a."date", a."accessed", a."posted"
     FROM "User" u
+    LEFT JOIN "User" viewer ON viewer.id = ${viewerId ?? -1}
     LEFT JOIN "UserActivity" a ON a."userId" = u.id AND a.date >= ${start} AND a.date < ${end}
     WHERE u.id = ${userId}
       AND (u."activityCalendarVisibility" = 'PUBLIC'
@@ -35,6 +40,7 @@ export async function readActivityMonth(client: Pick<Prisma.TransactionClient, '
   if (!rows.length) return null;
   return {
     month, today,
+    palette: rows[0].activityCalendarPalette,
     joinedAt: jstDate(rows[0].createdAt),
     trackingStartedAt: jstDate(rows[0].activityTrackingStartedAt),
     days: rows.flatMap(row => row.date ? [{

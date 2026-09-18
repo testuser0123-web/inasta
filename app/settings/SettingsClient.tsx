@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useSyncExternalStore } from 'react';
+import { activityPalettes, type ActivityPalette } from '@/lib/activity-palette';
 import { changePassword, updateSettings } from '@/app/actions/user';
 import { ArrowLeft, Moon, Sun, Laptop } from 'lucide-react';
 import Link from 'next/link';
@@ -11,12 +12,13 @@ const clientSnapshot = () => true;
 const serverSnapshot = () => false;
 
 type SettingsPageProps = {
+    initialActivityCalendarPalette: ActivityPalette;
     initialActivityCalendarVisibility: 'HIDDEN' | 'SELF' | 'PUBLIC';
     initialExcludeUnverifiedPosts: boolean;
     initialShowMobileQuickNav: boolean;
 };
 
-export default function SettingsClient({ initialActivityCalendarVisibility, initialExcludeUnverifiedPosts, initialShowMobileQuickNav }: SettingsPageProps) {
+export default function SettingsClient({ initialActivityCalendarPalette, initialActivityCalendarVisibility, initialExcludeUnverifiedPosts, initialShowMobileQuickNav }: SettingsPageProps) {
   const [passwordState, passwordAction, isPasswordPending] = useActionState(changePassword, undefined);
   const [settingsState, settingsAction, isSettingsPending] = useActionState(updateSettings, undefined);
   const { theme, setTheme } = useTheme();
@@ -112,7 +114,7 @@ export default function SettingsClient({ initialActivityCalendarVisibility, init
                     </div>
 
                     <fieldset className="space-y-3 pt-4 border-t dark:border-gray-700">
-                        <legend className="font-medium pt-4">活動カレンダー</legend>
+                        <legend className="font-medium pt-4">活動カレンダーの公開範囲</legend>
                         <p className="text-sm text-gray-500 dark:text-gray-400">プロフィールにアクセス日・投稿日を表示します。</p>
                         {([
                             ['HIDDEN', '非表示'], ['SELF', '自分にだけ表示'], ['PUBLIC', '全員に公開'],
@@ -124,6 +126,22 @@ export default function SettingsClient({ initialActivityCalendarVisibility, init
                             </label>
                         ))}
                         <p className="text-xs text-gray-500 dark:text-gray-400">非表示中も活動は記録されます。日付は日本時間です。通常の投稿および公開した日記が対象で、削除後も投稿日は記録に残ります。</p>
+                    </fieldset>
+
+                    <fieldset className="space-y-3 pt-4 border-t dark:border-gray-700">
+                        <legend className="font-medium pt-4">活動カレンダーの配色</legend>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">自分や他の人のカレンダーを見るときの配色です。公開範囲には影響しません。</p>
+                        {(Object.keys(activityPalettes) as ActivityPalette[]).map(value => (
+                            <label key={value} className="flex flex-wrap items-center gap-3 cursor-pointer">
+                                <input type="radio" name="activityCalendarPalette" value={value}
+                                    defaultChecked={initialActivityCalendarPalette === value} className="accent-green-700" />
+                                <span className="text-sm">{activityPalettes[value].label}</span>
+                                <span className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                                    <span aria-hidden="true" className={`w-3 h-3 rounded-full ${activityPalettes[value].access}`} />アクセス
+                                    <span aria-hidden="true" className={`w-3 h-3 rounded-full ${activityPalettes[value].post}`} />投稿
+                                </span>
+                            </label>
+                        ))}
                     </fieldset>
 
                     {settingsState?.message && (

@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { USERNAME_REGEX, PASSWORD_REGEX } from '@/lib/validation';
 import bcrypt from 'bcryptjs';
+import { isActivityPalette } from '@/lib/activity-palette';
 
 export async function updateProfile(prevState: unknown, formData: FormData) {
   const session = await getSession();
@@ -215,6 +216,11 @@ export async function updateSettings(prevState: unknown, formData: FormData) {
   }
 
   const excludeUnverifiedPosts = formData.get('excludeUnverifiedPosts') === 'on';
+  // Older forms may omit the viewing preference; preserve it in that case.
+  const activityCalendarPalette = formData.get('activityCalendarPalette');
+  if (activityCalendarPalette !== null && !isActivityPalette(activityCalendarPalette)) {
+    return { message: 'カラーパレットを選択してください' };
+  }
   const showMobileQuickNav = formData.get('showMobileQuickNav') === 'on';
 
   try {
@@ -222,6 +228,7 @@ export async function updateSettings(prevState: unknown, formData: FormData) {
       where: { id: session.id },
       data: {
         activityCalendarVisibility,
+        ...(activityCalendarPalette !== null ? { activityCalendarPalette } : {}),
         excludeUnverifiedPosts,
         showMobileQuickNav,
       },

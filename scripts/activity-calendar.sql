@@ -7,6 +7,11 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "activityCalendarVisibility" "ActivityCalendarVisibility" NOT NULL DEFAULT 'HIDDEN';
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "activityTrackingStartedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+DO $$ BEGIN
+  CREATE TYPE "ActivityCalendarPalette" AS ENUM ('VIVID', 'GRADIENT');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "activityCalendarPalette" "ActivityCalendarPalette" NOT NULL DEFAULT 'VIVID';
 CREATE TABLE IF NOT EXISTS "UserActivity" (
   "userId" INTEGER NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
   "date" DATE NOT NULL,

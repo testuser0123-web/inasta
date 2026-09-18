@@ -18,7 +18,19 @@
 
 ## 検証
 
+### カラーパレット
+
+プロフィール → その他の設定で、活動カレンダーの公開範囲とは独立に配色を選択できます。「くっきり」は青／朱色（ダークでは水色／オレンジ）、「グラデーション」は従来の薄緑／緑です。マーカーは丸・内部文字なしです。
+
+「設定を保存」で閲覧者の設定として保存し、自分・他人のカレンダーの表示に使います。自分の活動を非表示にしても配色を選択でき、他人の公開カレンダーを閲覧できます。対象ユーザーの公開範囲は引き続き適用されます。初期値および未ログイン時は「くっきり」です。他の人から見た自分のカレンダーは、その人の配色設定で表示されます。
+
+既に活動カレンダーを導入したDBでも、アプリの更新前に `node scripts/apply-activity-calendar.mjs` を再実行してください。`ActivityCalendarPalette` 型と `User.activityCalendarPalette` カラムを追加します。再実行しても保存済みの配色は変更しません。その後 `prisma generate` とビルドを行います。
+
+### テスト
+
 - `node --import tsx --test tests/activity-calendar.test.mjs`
+- `node --import tsx --test tests/activity-palette.test.mjs`
+- `node --experimental-strip-types --test tests/activity-palette-settings.test.mjs`（Node.js 24）
 - `node --import tsx --test tests/activity-calendar-db.test.mjs`
 - `npx tsc --noEmit`
 

@@ -29,6 +29,11 @@ test('migration, backfill, atomic flags, visibility and month queries', async ()
     assert.equal(await readActivityMonth(adapter, 1, 1, '2026-09', now), null);
     await client.query(`UPDATE "User" SET "activityCalendarVisibility" = 'SELF' WHERE id = 1`);
     let data = await readActivityMonth(adapter, 1, 1, '2026-09', now);
+    assert.equal(data.palette, 'VIVID');
+    await client.query(`UPDATE "User" SET "activityCalendarPalette" = 'GRADIENT' WHERE id = 1`);
+    await client.exec(migration);
+    assert.equal((await readActivityMonth(adapter, 1, 1, '2026-09', now)).palette, 'GRADIENT');
+    assert.equal((await client.query('SELECT "activityCalendarPalette" FROM "User" WHERE id = 2')).rows[0].activityCalendarPalette, 'VIVID');
     assert.equal(data.days.length, 2);
     assert.deepEqual(data.days[0], { date: '2026-09-01', accessed: false, posted: true });
     assert.deepEqual(data.days[1], { date: '2026-09-05', accessed: false, posted: true });
@@ -46,10 +51,18 @@ test('migration, backfill, atomic flags, visibility and month queries', async ()
     await client.query(`DELETE FROM "Diary"`);
     assert.equal((await readActivityMonth(adapter, 1, 1, '2026-09', now)).days[1].posted, true);
     await client.query(`UPDATE "User" SET "activityCalendarVisibility" = 'PUBLIC' WHERE id = 1`);
+    // Palette belongs to the viewer, independently of both users' visibility.
+    assert.equal((await readActivityMonth(adapter, 1, undefined, '2026-09', now)).palette, 'VIVID');
+    assert.equal((await readActivityMonth(adapter, 1, 2, '2026-09', now)).palette, 'VIVID');
+    assert.equal((await readActivityMonth(adapter, 1, 1, '2026-09', now)).palette, 'GRADIENT');
+    await client.query(`UPDATE "User" SET "activityCalendarPalette" = 'GRADIENT' WHERE id = 2`);
+    assert.equal((await readActivityMonth(adapter, 1, 2, '2026-08', now)).palette, 'GRADIENT');
+    assert.equal(await readActivityMonth(adapter, 2, 1, '2026-09', now), null);
     assert.equal((await readActivityMonth(adapter, 1, undefined, '2026-09', now)).days.length, 3);
     assert.equal((await readActivityMonth(adapter, 1, 2, '2026-08', now)).days.length, 0);
     await client.query(`UPDATE "User" SET "activityCalendarVisibility" = 'HIDDEN' WHERE id = 1`);
     assert.equal(await readActivityMonth(adapter, 1, undefined, '2026-09', now), null);
+    assert.equal((await client.query('SELECT "activityCalendarPalette" FROM "User" WHERE id = 1')).rows[0].activityCalendarPalette, 'GRADIENT');
     await assert.rejects(readActivityMonth(adapter, 1, 1, '2026-10', now));
     await assert.rejects(readActivityMonth(adapter, -1, 1, '2026-09', now));
     await client.query('SAVEPOINT post_failure');

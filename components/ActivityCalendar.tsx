@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getActivityMonth } from '@/app/actions/activity';
 import { dayStatus, jstDate, monthBounds, shiftMonth, type ActivityMonth } from '@/lib/activity-calendar';
+import { activityPalettes, type ActivityPalette } from '@/lib/activity-palette';
 
 // Keep calendar cells and legend colors in sync, including dark mode.
-function ActivityMarker({ status }: { status: ReturnType<typeof dayStatus> }) {
+function ActivityMarker({ status, palette }: { status: ReturnType<typeof dayStatus>; palette: ActivityPalette }) {
   const appearance = status === '投稿あり'
-    ? 'bg-[#D55E00] dark:bg-[#E69F00]'
+    ? activityPalettes[palette].post
     : status === 'アクセスあり'
-      ? 'bg-[#0072B2] dark:bg-[#56B4E9]'
+      ? activityPalettes[palette].access
       : status === '未来の日付' || status === '登録前'
         ? 'border border-gray-400 dark:border-gray-500'
         : 'bg-gray-100 dark:bg-gray-800';
@@ -86,14 +87,14 @@ export function ActivityCalendarView({ data, loading = false, onMonthChange }: {
           const status = dayStatus(date, days.get(date), data);
           const label = `${Number(data.month.slice(5))}月${i + 1}日・${status}`;
           return <button key={date} type="button" title={label} aria-label={label} aria-pressed={selected === label} aria-current={date === data.today ? 'date' : undefined} onClick={() => setSelected(label)} className="h-10 flex items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 dark:focus-visible:outline-gray-100">
-            <span className={`rounded-full p-0.5 ${selected === label ? 'ring-2 ring-gray-900 dark:ring-gray-100' : ''}`}><ActivityMarker status={status} /></span>
+            <span className={`rounded-full p-0.5 ${selected === label ? 'ring-2 ring-gray-900 dark:ring-gray-100' : ''}`}><ActivityMarker status={status} palette={data.palette} /></span>
           </button>;
         })}
       </div>
       <p aria-live="polite" className="text-xs text-center text-gray-600 dark:text-gray-300 min-h-5 mt-2">{selected || '日付を選ぶと活動を確認できます'}</p>
       <div className="flex justify-center gap-4 text-xs mt-3 text-gray-600 dark:text-gray-300">
-        <span className="flex items-center gap-1.5"><ActivityMarker status="アクセスあり" />アクセス</span>
-        <span className="flex items-center gap-1.5"><ActivityMarker status="投稿あり" />投稿</span>
+        <span className="flex items-center gap-1.5"><ActivityMarker status="アクセスあり" palette={data.palette} />アクセス</span>
+        <span className="flex items-center gap-1.5"><ActivityMarker status="投稿あり" palette={data.palette} />投稿</span>
       </div>
       <p className="text-[11px] text-gray-500 mt-3 leading-relaxed">アクセス記録は{data.trackingStartedAt.replaceAll('-', '/')}から記録。それ以前は不明。通常の投稿および日記が対象です。</p>
     </section>
